@@ -2,10 +2,9 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
 
-// Signed-in pages only. Sends everyone else to sign in, then back here.
+// Signed-in pages only. Everyone else goes to the home page to sign in.
 export function RequireAuth() {
-  const { ready, currentUser, signedOut } = useApp()
-  const location = useLocation()
+  const { ready, currentUser } = useApp()
 
   if (!ready) {
     return (
@@ -14,8 +13,6 @@ export function RequireAuth() {
       </div>
     )
   }
-  // After signing out on purpose, go home. Otherwise ask them to sign in, then come back.
-  if (!currentUser && signedOut) return <Navigate to="/" replace />
-  if (!currentUser) return <Navigate to="/signin" replace state={{ from: location.pathname + location.search }} />
+  if (!currentUser) return <Navigate to="/" replace />
   return <Outlet />
 }

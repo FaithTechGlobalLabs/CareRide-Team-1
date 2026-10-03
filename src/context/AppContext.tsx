@@ -5,9 +5,13 @@ import { AppContext } from './appContext'
 
 const SESSION_KEY = 'careride-session-v3'
 
+// The session lives in sessionStorage, so it survives a reload but not closing the
+// tab or browser: every fresh visit starts signed out on the home page.
 function readSession(): string {
   try {
-    return localStorage.getItem(SESSION_KEY) ?? ''
+    // Drop sessions saved by older builds, which kept people signed in forever
+    localStorage.removeItem(SESSION_KEY)
+    return sessionStorage.getItem(SESSION_KEY) ?? ''
   } catch {
     return ''
   }
@@ -15,8 +19,8 @@ function readSession(): string {
 
 function writeSession(userId: string): void {
   try {
-    if (userId) localStorage.setItem(SESSION_KEY, userId)
-    else localStorage.removeItem(SESSION_KEY)
+    if (userId) sessionStorage.setItem(SESSION_KEY, userId)
+    else sessionStorage.removeItem(SESSION_KEY)
   } catch {
     // Ignore: the session just won't survive a reload
   }
@@ -27,7 +31,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [currentUserId, setCurrentUserId] = useState(readSession)
   const [version, setVersion] = useState(0)
-  const [signedOut, setSignedOut] = useState(false)
 
   const refresh = useCallback(() => setVersion((v) => v + 1), [])
 
@@ -35,7 +38,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (user: User) => {
       writeSession(user.id)
       setCurrentUserId(user.id)
-      setSignedOut(false)
       refresh()
     },
     [refresh],
@@ -44,7 +46,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     writeSession('')
     setCurrentUserId('')
-    setSignedOut(true)
   }, [])
 
   useEffect(() => {
@@ -67,11 +68,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ready,
       signIn,
       signOut,
-      signedOut,
       version,
       refresh,
     }),
-    [users, currentUserId, ready, signIn, signOut, signedOut, version, refresh],
+    [users, currentUserId, ready, signIn, signOut, version, refresh],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
