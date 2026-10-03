@@ -1,0 +1,3 @@
+- roll organization accounts into house accounts
+- implement supabase
+- 
