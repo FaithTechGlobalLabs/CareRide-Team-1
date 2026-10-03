@@ -6,7 +6,7 @@ import { useCurrentOrg } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { isDriverLate } from '../../logic/rideAlerts'
 import { dataService } from '../../services'
-import { byPickup, isRecent, recentCountsByHouse } from './orgRides'
+import { byPickup, isRecent, recentCountsByHouse } from './orgRideLists'
 
 // Ride requests sent to this organization's drivers. The org can answer for them,
 // and sees its drivers' upcoming and recent rides.
