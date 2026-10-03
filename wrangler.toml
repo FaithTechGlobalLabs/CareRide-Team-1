@@ -1,4 +1,5 @@
 # Static Vite app on Cloudflare Workers (assets only, no Worker script).
+# Dashboard deploy command: npx wrangler deploy
 name = "careride"
 compatibility_date = "2026-10-03"
 
