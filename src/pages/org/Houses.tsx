@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { card, input, label, pageTitle, primaryButton } from '../../components/ui'
-import { CITIES } from '../../constants'
+import { AddressPicker } from '../../components/form/AddressPicker'
+import { TextField } from '../../components/form/TextField'
+import { card, pageTitle, primaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
@@ -13,16 +14,27 @@ export function Houses() {
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
-  const [city, setCity] = useState(CITIES[0])
+  const [city, setCity] = useState('')
+  const [placeId, setPlaceId] = useState<string>()
   const [phone, setPhone] = useState('')
+  const [addressError, setAddressError] = useState<string>()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!orgId) return
+    if (!placeId) {
+      setAddressError(
+        address.trim() ? 'Pick a matching address from the list.' : 'Search for the address and pick it from the list.',
+      )
+      return
+    }
     await dataService.addHouse({ orgId, name, address, city, phone })
     setName('')
     setAddress('')
+    setCity('')
+    setPlaceId(undefined)
     setPhone('')
+    setAddressError(undefined)
     refresh()
   }
 
@@ -44,26 +56,41 @@ export function Houses() {
 
       <form onSubmit={handleSubmit} className={`${card} max-w-lg space-y-4`}>
         <h2 className="text-xl font-bold">Add a house</h2>
-        <div>
-          <label className={label} htmlFor="house-name">Name</label>
-          <input id="house-name" className={input} required placeholder="e.g. Belkin House" value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div>
-          <label className={label} htmlFor="house-address">Address</label>
-          <input id="house-address" className={input} required value={address} onChange={(e) => setAddress(e.target.value)} />
-        </div>
-        <div>
-          <label className={label} htmlFor="house-city">City</label>
-          <select id="house-city" className={input} value={city} onChange={(e) => setCity(e.target.value)}>
-            {CITIES.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={label} htmlFor="house-phone">Front desk phone</label>
-          <input id="house-phone" type="tel" className={input} required value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
+        <TextField
+          id="house-name"
+          label="Name"
+          required
+          placeholder="e.g. Belkin House"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <AddressPicker
+          id="house-address"
+          label="Street address"
+          value={address}
+          selected={Boolean(placeId)}
+          error={addressError}
+          onQueryChange={(next) => {
+            setAddress(next)
+            setPlaceId(undefined)
+            setCity('')
+            setAddressError(undefined)
+          }}
+          onSelect={(place) => {
+            setAddress(place.address)
+            setCity(place.city)
+            setPlaceId(place.id)
+            setAddressError(undefined)
+          }}
+        />
+        <TextField
+          id="house-phone"
+          label="Front desk phone"
+          type="tel"
+          required
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
         <button type="submit" className={`${primaryButton} w-full sm:w-auto`}>
           Add house
         </button>
