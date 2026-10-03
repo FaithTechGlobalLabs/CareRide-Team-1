@@ -37,7 +37,6 @@ export function RequestRide() {
 
   const [type, setType] = useState<RideType>('SCHEDULED')
   const [purpose, setPurpose] = useState<TripPurpose>('MEDICAL')
-  const [meetsPolicy, setMeetsPolicy] = useState(false)
   const [codename, setCodename] = useState('')
   const [passengers, setPassengers] = useState(1)
   const [destinationId, setDestinationId] = useState('')
@@ -110,10 +109,6 @@ export function RequestRide() {
             </option>
           ))}
         </select>
-        <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="checkbox" className="h-5 w-5 shrink-0 accent-brand-600" required checked={meetsPolicy} onChange={(e) => setMeetsPolicy(e.target.checked)} />
-          This trip meets our house's travel policy
-        </label>
       </fieldset>
 
       {outbound ? (
