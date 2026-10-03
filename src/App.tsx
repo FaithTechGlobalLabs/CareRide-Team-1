@@ -19,6 +19,7 @@ import { Destinations } from './pages/org/Destinations'
 import { Drivers } from './pages/org/Drivers'
 import { Houses } from './pages/org/Houses'
 import { OrgHome } from './pages/org/OrgHome'
+import { OrgRides } from './pages/org/OrgRides'
 
 // "/home" always lands on the right main page for whoever is signed in.
 function RoleHome() {
@@ -43,6 +44,9 @@ export default function App() {
           <Route path="/org/destinations" element={<Destinations />} />
           <Route path="/org/drivers" element={<Drivers />} />
           <Route path="/org/bookings" element={<Bookings />} />
+          <Route path="/org/rides" element={<OrgRides />} />
+          <Route path="/org/request" element={<RequestRide />} />
+          <Route path="/org/ride/:id" element={<RideDetail />} />
           <Route path="/house" element={<Dashboard />} />
           <Route path="/house/request" element={<RequestRide />} />
           <Route path="/house/ride/:id" element={<RideDetail />} />
