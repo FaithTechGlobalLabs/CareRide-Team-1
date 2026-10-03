@@ -1,5 +1,7 @@
 # FaithTech Create Template Project
 
+Team : Adi, Noah, Gilbert
+
 Tagline for the project
 
 ![MIT License](https://badgen.net/badge/license/MIT/blue)
