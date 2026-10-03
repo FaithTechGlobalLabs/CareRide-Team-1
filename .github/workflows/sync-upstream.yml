@@ -24,7 +24,16 @@ jobs:
     if: github.event.repository.fork
     runs-on: ubuntu-latest
     steps:
-      - name: Sync fork main from parent
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh repo sync "${{ github.repository }}" --branch main
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Merge upstream main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/FaithTechGlobalLabs/CareRide-Team-1.git
+          git fetch upstream main
+          git merge --no-edit upstream/main
+          git push origin main
