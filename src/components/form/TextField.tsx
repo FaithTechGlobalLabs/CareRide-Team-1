@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { input, label as labelClass } from '../ui'
 import { FieldMessage } from './FieldMessage'
+import { RequiredMark } from './RequiredMark'
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   id: string
@@ -17,6 +18,7 @@ export function TextField({ id, label, hint, error, optional, icon, className = 
     <div className={className}>
       <label htmlFor={id} className={labelClass}>
         {label}
+        {rest.required && <RequiredMark />}
         {optional && <span className="ml-1 font-normal text-slate-500">(optional)</span>}
       </label>
       <div className="relative">
