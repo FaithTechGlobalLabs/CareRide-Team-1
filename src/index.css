@@ -1,12 +1,118 @@
 @import 'tailwindcss';
 
-/* Big, readable defaults for users with low digital literacy */
-html {
-  font-size: 18px;
+/* Brand tokens, taken from the CareRide heart-road logo */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Nunito', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0b1557; /* wordmark navy */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe7ff;
+  --color-brand-200: #bcd3ff;
+  --color-brand-300: #8cb4ff;
+  --color-brand-400: #5a8cfb;
+  --color-brand-500: #2f67f2;
+  --color-brand-600: #1d4fe0;
+  --color-brand-700: #1a3fba;
+  --color-brand-800: #1b3794;
+  --color-brand-900: #1a2f74;
+  --color-aqua-300: #7deaf1;
+  --color-aqua-400: #2ad4e3;
+  --color-aqua-500: #14bdd0;
+  --color-violet-brand: #3b2fd6;
+
+  /* Supporting accents: warm coral for care, teal for going, sunny amber for welcome */
+  --color-coral-50: #fff3f1;
+  --color-coral-100: #ffe3de;
+  --color-coral-200: #ffc9c0;
+  --color-coral-300: #ffa293;
+  --color-coral-400: #fd7a66;
+  --color-coral-500: #f5573f;
+  --color-coral-600: #e03c24;
+  --color-coral-700: #bb2f1a;
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-step-forward: step-forward 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-step-back: step-back 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes step-forward {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes step-back {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.6); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
 }
 
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, #3b2fd6 0%, #1f63f0 50%, #22d3e6 100%);
+}
+
+@utility bg-warm-gradient {
+  background-image: linear-gradient(135deg, #f5573f 0%, #fb7f4a 50%, #fbbf24 100%);
+}
+
+@utility bg-fresh-gradient {
+  background-image: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #34d399 100%);
+}
+
+@utility bg-spectrum {
+  background-image: linear-gradient(90deg, #7c3aed 0%, #2f67f2 25%, #14bdd0 45%, #10b981 62%, #fbbf24 80%, #f5573f 100%);
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(90deg, #1d4fe0 0%, #1f8ff0 55%, #22d3e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply font-sans text-slate-800 antialiased;
+    background-color: #f7f7fc;
+    background-image:
+      radial-gradient(42rem 28rem at 0% 0%, rgb(124 58 237 / 0.06), transparent 70%),
+      radial-gradient(36rem 26rem at 100% 10%, rgb(20 189 208 / 0.07), transparent 70%),
+      radial-gradient(40rem 30rem at 85% 100%, rgb(245 87 63 / 0.05), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3 {
+    @apply font-display text-ink;
+  }
+
+  ::selection {
+    @apply bg-brand-100 text-ink;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

@@ -1,4 +1,4 @@
-import type { Driver, Facility, Ride, RideOffer, RideType } from '../types'
+import type { Driver, House, Ride, RideOffer, RideType } from '../types'
 import { matchDrivers } from './matchDrivers'
 
 // How long a driver has to accept or decline before the offer moves on.
@@ -19,10 +19,10 @@ export function isExpired(offer: RideOffer, now = new Date()): boolean {
 // Returns undefined when nobody is left, so the ride needs attention.
 export function nextDriver(
   ride: Ride,
-  facility: Facility | undefined,
+  house: House | undefined,
   drivers: Driver[],
   offers: RideOffer[],
 ): Driver | undefined {
   const alreadyAsked = offers.filter((o) => o.rideId === ride.id).map((o) => o.driverId)
-  return matchDrivers(ride, facility, drivers, alreadyAsked)[0]
+  return matchDrivers(ride, house, drivers, alreadyAsked)[0]
 }

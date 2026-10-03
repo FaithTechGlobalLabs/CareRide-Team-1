@@ -1,8 +1,8 @@
 # CareRide: Product Description
 
-## Free, verified rides to essential services, for any organization.
+## Free rides to essential services, for any organization.
 
-CareRide is a third-party web platform. Any social service organization can register its facilities and request free rides for its clients. Verified volunteer drivers, including professional drivers such as off-duty taxi or rideshare drivers, register to give those rides. The client needs no phone, no app, and no money.
+CareRide is a third-party web platform. Housing and social service organizations register their houses and book free rides for their residents. Transport providers and professional drivers (taxi and rideshare) register to give those rides. The client needs no phone, no app, no money, and no account. CareRide stores no client information.
 
 | Detail | Value |
 | --- | --- |
@@ -10,147 +10,187 @@ CareRide is a third-party web platform. Any social service organization can regi
 | Team | Adi, Noah, Gilbert |
 | Stage | Hackathon MVP |
 | Tech | React + TypeScript |
-| Demo customer | The Salvation Army, with facilities in Vancouver and Richmond |
-| Related docs | [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md), [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md), [JUDGING_CRITERIA.md](JUDGING_CRITERIA.md) |
+| Pilot | The Salvation Army, starting with Belkin House |
+| Related docs | [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md), [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md), [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md), [JUDGING_CRITERIA.md](JUDGING_CRITERIA.md) |
 
-> CareRide is an independent platform. Using the Salvation Army in the demo does not mean it is an official partnership or endorsement.
+> CareRide is an independent platform, not owned by the Salvation Army. The Salvation Army is the pilot; this is not an official partnership or endorsement.
 
 ---
 
 ## 1. The idea in one paragraph
 
-Free rides already exist: volunteer drivers, partner charities with vans, professional drivers willing to give their time. The problem is that they are scattered, and staff waste time phoning around. CareRide brings them together in one place. A staff member at any registered facility requests a ride. CareRide sends it to verified drivers one at a time. A driver accepts or declines. If nobody accepts, staff get an alert right away, so the client is never forgotten.
+Free rides already exist: transport providers with vans, partner organizations with their own vehicles, professional drivers willing to give their time. The problem is that they are scattered, and staff waste time phoning around. CareRide brings them together. A house books a ride from point A (the house) to point B (a hospital, a clinic, an office). CareRide sends it to suitable drivers one at a time. A driver accepts or declines. If nobody accepts, the house sees it right away, so the client is never forgotten.
 
-## 2. Why a third-party platform
+## 2. Scope
 
-- **Not just for one organization.** Any shelter, food bank, clinic, or charity can join. More organizations means more people helped.
-- **Shared driver pool.** One pool of verified drivers serves every organization, instead of each charity building its own.
-- **Neutral and trusted.** No single organization owns the platform, so others are comfortable joining.
+- **Third-party and plug and play.** Any organization can join. The Salvation Army is the first.
+- **Start with Belkin House**, then Richmond House and Grace Mansion.
+- **Fixed A to B trips in Vancouver.** Point A is a house. Point B is a saved destination, e.g. Belkin House to St. Paul's Hospital. Staff can type an address when needed.
+- **One-way trips.** A return trip is booked the same way, as a separate ride.
+- **No client information.** No names, phone numbers, or history. An optional codename is allowed (still an open question).
+- **Not an emergency service.** Anything that needs 911 goes to 911. CareRide covers the rest.
 
 ## 3. Why free first
 
 Most organizations on CareRide are nonprofits. Every dollar spent on taxis is a dollar not spent on food or shelter. So CareRide always tries free options first:
 
-1. **Verified volunteer driver** (free)
-2. **Partner organization van** (free)
+1. **Professional driver giving their time** (free)
+2. **Transport provider or partner organization vehicle** (free)
 3. **Transit directions + donated bus ticket** (free)
 4. **Paid option such as a taxi** (future, shown only as a link)
 
-## 4. Two kinds of rides
+## 4. Who's involved
 
-| Type | Meaning | Who gets the request |
+| Who | What they do | Account? |
 | --- | --- | --- |
-| **Essential** | Needed today, usually within a few hours. Example: a same-day doctor's appointment or a hospital discharge. | Verified drivers who are **available right now** and nearby |
-| **Scheduled** | Booked ahead. Example: a specialist appointment next Tuesday. | Verified drivers who serve that area |
+| **CareRide admin** (our team) | Approves new organizations and drivers | Yes |
+| **Partner organization** (e.g. the Salvation Army) | Registers, adds houses and destinations, can add its own drivers | One org admin account |
+| **House** (e.g. Belkin House) | Books rides for residents, reminds them, sees when they arrive | **One shared account per house**, not one per case manager |
+| **Transport provider** (e.g. a community van service) | Registers, adds drivers with availability, gets booking notifications, accepts bookings | One org admin account |
+| **Driver** (taxi, rideshare, or org driver) | Accepts or declines rides, marks pickup and drop-off | Yes, and must be approved |
+| **Client** (a resident) | Gets a ride | **No** |
+| **Destination** (e.g. a hospital) | Receives the client | No |
+| **Donor** (stretch goal) | Could fund rides or see impact | Not in the MVP |
 
-> **Essential is not an emergency.** If someone is in medical danger, call 911. The app shows this message on every ride request screen. CareRide is not an ambulance or emergency service.
-
-## 5. Who uses it
-
-| User | What they do | Needs an account? |
-| --- | --- | --- |
-| **Platform admin** (the CareRide team) | Approves new organizations and drivers | Yes |
-| **Organization admin** | Registers the organization, adds facilities and staff | Yes |
-| **Staff** at a facility | Requests rides for clients, tracks them, prints confirmations | Yes |
-| **Driver** (volunteer, including professional drivers) | Sets availability, accepts or declines rides, marks pickup and drop-off | Yes, and must be verified |
-| **Client** | Gets a ride. That's it. | **No** |
-
-**How organizations are structured:**
+**How a partner organization is structured:**
 
 ```mermaid
 flowchart TD
-    Org["Organization (e.g. The Salvation Army)"] --> F1["Facility: Vancouver"]
-    Org --> F2["Facility: Richmond"]
-    F1 --> S1["Staff members"]
-    F2 --> S2["Staff members"]
-    S1 --> R["Ride requests"]
-    S2 --> R
+    Org["Partner organization (e.g. The Salvation Army)"] --> H1["Belkin House"]
+    Org --> H2["Richmond House"]
+    Org --> H3["Grace Mansion"]
+    Org --> D["Saved destinations (point B)"]
+    Org --> V["Own drivers and vehicles (optional)"]
+    H1 --> R["Ride requests"]
+    H2 --> R
+    H3 --> R
 ```
 
-## 6. Driver verification
+## 5. Day-to-day flows
 
-We can't access Uber's or a taxi company's background checks, because those records aren't shared. So CareRide runs its own simple check:
+These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 
-1. The driver signs up with their name, phone, vehicle, service area, and whether the vehicle is wheelchair accessible.
-2. They upload a **driver's licence** and a **criminal record check**. Professional drivers can also note their employer type (taxi, rideshare, independent).
-3. A **platform admin** reviews and approves or rejects them.
-4. **Only approved drivers** ever receive ride requests.
+**Client**
+1. Needs to get somewhere and asks their case manager.
+2. Waits for the ride, then gets on and gets off.
+3. If returning, waits for the return ride the same way.
 
-In the demo, uploads are simulated (file names only, no real documents).
+**House (staff)**
+1. Checks the trip has a reason and meets the house's travel policy.
+2. Books the ride: destination, time, number of people, travel needs.
+3. CareRide finds a driver. The house sees when one accepts.
+4. Reminds the client, and prints a slip if it helps. The driver usually meets the client in the lobby.
+5. Sees when the driver confirms the client arrived.
+6. If needed, books the return trip. CareRide asks the same driver first.
 
-## 7. Core features (MVP)
+**Driver**
+1. Gets a request for a ride from a specific house to a destination.
+2. Accepts (or declines).
+3. Goes to the house and picks up the client. Taps **Picked up**.
+4. Drops off the client. Taps **Dropped off**, which tells the house the ride is done.
+5. If the client doesn't show, taps **Client didn't show**. The client loses that ride.
 
-### 7.1 Registration
-- **Organizations** register with a name, type, and contact. A platform admin approves them.
-- **Facilities** are added by the organization admin, each with an address and city.
-- **Drivers** register and go through verification (section 6).
+## 6. What a new organization goes through
 
-### 7.2 Availability switch (drivers)
-- A big **"I'm available"** toggle.
-- Essential rides only go to drivers who are switched on.
+**Partner organization:** register with basic info → CareRide admin approves → add houses (each gets one shared account) → add destinations (point B) → optionally add its own drivers and vehicles → houses start booking.
 
-### 7.3 Saved destinations
-- Common places like hospitals and clinics are saved once.
-- Requesting a ride is: pick facility → tap a saved destination → choose Essential or Scheduled → done.
+**Transport provider:** register with basic info and where to send booking notifications → CareRide admin approves → add drivers with availability, notice needed, and spaces → receive and accept bookings.
 
-### 7.4 Request a ride (staff)
-- Pickup (defaults to the staff member's facility), destination, time.
-- Ride type: **Essential** or **Scheduled**.
-- Needs: wheelchair, extra help, number of bags.
-- **Return trip** checkbox. A hospital visit isn't finished until the client is back.
-- Client is stored as first name or initials plus an internal reference. No private history.
+**Independent driver** (e.g. Frank, a rideshare driver who is also a CareRide driver): sign up with vehicle, availability, notice, licence, and proof of professional driving → CareRide admin approves → receive requests.
 
-### 7.5 Accept or decline (drivers)
-- The driver gets a request card with the pickup area, destination, time, and any special needs.
-- Two buttons: **Accept** or **Decline**.
-- Drivers only see what they need. Exact pickup details and the client's first name show **after** they accept.
+## 7. Drivers and verification
 
-### 7.6 Matching and fallback
+- **Start with professional drivers** (taxi and rideshare). They are already vetted, which avoids most of the liability and hoops of recruiting volunteers.
+- Drivers can be **independent** (like Frank) or belong to an **organization**.
+- Each driver sets:
+  - **Availability**: days and hours they can drive.
+  - **Notice**: how many hours ahead a ride must be booked.
+  - **Spaces**: how many passengers fit.
+  - **Wheelchair access** and **cities** they serve.
+- Drivers upload a licence and proof they drive professionally. A CareRide admin approves them. Only approved drivers get requests.
+- **How we verify** drivers and organizations in a real pilot is still open. In the demo, uploads are file names only.
+
+## 8. Core features (MVP)
+
+### 8.1 Registration and approval
+- Organizations register as a **partner organization** or a **transport provider**. A CareRide admin approves them.
+- Partner organizations add **houses** and **destinations**.
+- Any organization can add **its own drivers**.
+- Independent drivers sign up themselves.
+
+### 8.2 Booking a ride (house account)
+- **Reason for the trip** (medical, social services, housing, legal or ID, other), plus a checkbox confirming it meets the house's travel policy.
+- **Destination**: the house's most-visited places appear as one-tap buttons, with the full list and a "type an address" option below.
+- **When**: Scheduled (booked ahead) or Essential (needed today, within a few hours), plus a pickup time.
+- **Where to meet**: defaults to "Driver meets the client in the front lobby."
+- **People riding**: one or more.
+- **Codename** (optional, never a real name).
+- **Travel needs**: wheelchair, help getting in and out.
+- The **"Medical emergency? Call 911"** banner is always visible.
+
+### 8.3 Return trips
+- From a ride's page, the house taps **Book the return trip**. The trip is reversed (destination → house), and CareRide asks the **same driver first**.
+
+### 8.4 Matching and fallback
 - CareRide sends the request to **one driver at a time**, best match first.
-- A good match is: verified, vehicle fits the client's needs, serves the facility's city, and (for essential rides) is available now.
-- If the driver declines or doesn't answer in time (e.g. 5 minutes for essential), it goes to the next driver.
-- If every driver declines, the ride is flagged **Needs attention** in red on the staff dashboard, with the free fallback options listed.
+- A driver is eligible when they are approved, taking requests, serve the house's city, have enough spaces, fit wheelchair needs, are available at pickup time, and got enough notice.
+- Wheelchair-accessible and larger vehicles are asked last unless needed, so they stay free for rides that need them.
+- If a driver declines or doesn't answer in time (5 minutes for essential, 60 for scheduled), it goes to the next driver.
+- If nobody is left, or the pickup time passes without a driver, the ride turns red as **Needs attention**, with the free fallback options.
 - A ride never silently disappears.
 
-### 7.7 Client confirmation (no app needed)
-- A **printable slip** in large text: driver name, car, pickup time, pickup spot, staff phone number.
-- Optional text message if the client has any phone.
+### 8.5 Accept or decline (drivers and transport providers)
+- Drivers see the house, the destination, the time, the number of people, and travel needs.
+- Two buttons: **Accept** or **Decline**.
+- Exact pickup and drop-off details show **after** accepting.
+- A transport provider sees requests for all its drivers on its **Bookings** page and can answer for them.
+- Drivers can **pause** requests with one big switch.
 
-### 7.8 Group rides
-- If two or more clients from the same facility go to the same place around the same time, CareRide suggests combining them into one ride.
-- This stretches the volunteer driver pool further.
+### 8.6 Reminding the client (no app needed)
+- A **printable slip** in large text: when, where to wait, where they're going, driver, car, and the house phone number.
+- It reminds the client that a missed ride can't wait for them.
 
-### 7.9 Impact counter
+### 8.7 No-shows
+- If the client doesn't show, the driver taps **Client didn't show**. The ride closes and is **not** rebooked automatically. This is a firm rule from the Salvation Army.
+
+### 8.8 Group rides
+- A ride can carry several people.
+- If two rides from the same house go to the same place around the same time, CareRide can suggest combining them. (The logic is written; it isn't shown on screen yet.)
+
+### 8.9 Impact counter
 - Shows rides completed, money saved (vs. an estimated taxi fare), and organizations and drivers on the platform.
-- This answers the brief's request to quantify the benefit.
 
-## 8. What we are NOT building this weekend
+## 9. What we are NOT building this weekend
 
 - Emergency or medical dispatch
+- Client accounts or any client personal information
 - Payments, billing, or funding approvals
 - Real background checks or document storage
+- Real notifications (shown on screen only)
 - Live GPS tracking or route optimization
 - AI features
-- A client app
-- Real connections to hospitals, taxi or rideshare companies, or TransLink
+- Donor features
 
-## 9. Ride lifecycle
+## 10. Ride lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> SEARCHING: Staff requests ride
+    [*] --> SEARCHING: House books ride
     SEARCHING --> OFFERED: Sent to best-match driver
     OFFERED --> SEARCHING: Driver declines or times out
     OFFERED --> ACCEPTED: Driver accepts
     SEARCHING --> NEEDS_ATTENTION: No drivers left
-    NEEDS_ATTENTION --> SEARCHING: Staff retries
-    NEEDS_ATTENTION --> CANCELLED: Staff uses a fallback
-    ACCEPTED --> SEARCHING: Driver drops out
+    OFFERED --> NEEDS_ATTENTION: Pickup time passed
+    NEEDS_ATTENTION --> SEARCHING: House retries
+    NEEDS_ATTENTION --> CANCELLED: House uses a fallback
+    ACCEPTED --> SEARCHING: Driver can't make it
     ACCEPTED --> PICKED_UP: Driver picks up client
+    ACCEPTED --> NO_SHOW: Client didn't show
     PICKED_UP --> COMPLETED: Driver drops off client
-    SEARCHING --> CANCELLED: Staff cancels
-    ACCEPTED --> CANCELLED: Staff cancels
+    SEARCHING --> CANCELLED: House cancels
+    ACCEPTED --> CANCELLED: House cancels
     COMPLETED --> [*]
+    NO_SHOW --> [*]
     CANCELLED --> [*]
 ```
 
@@ -158,26 +198,25 @@ stateDiagram-v2
 | --- | --- |
 | `SEARCHING` | Looking for the next driver to ask |
 | `OFFERED` | Waiting for one driver to accept or decline |
-| `ACCEPTED` | A driver said yes. Client slip can be printed |
-| `NEEDS_ATTENTION` | No driver accepted. Shown in red to staff with fallback options |
+| `ACCEPTED` | A driver said yes. The slip can be printed |
+| `NEEDS_ATTENTION` | No driver accepted. Shown in red with fallback options |
 | `PICKED_UP` | Driver has the client |
-| `COMPLETED` | Client dropped off |
-| `CANCELLED` | Ride stopped, with a reason (e.g. "Used partner van") |
+| `COMPLETED` | Driver dropped off the client and the house can see it |
+| `NO_SHOW` | Client didn't show. The ride is lost |
+| `CANCELLED` | Ride stopped, with a reason (e.g. "Used a partner organization van") |
 
-A scheduled ride also moves to `NEEDS_ATTENTION` if nobody has accepted it by a set time before pickup (e.g. 24 hours). A return trip is its own ride, linked to the outbound one.
+## 11. System architecture
 
-## 10. System architecture
+### 11.1 The big picture
 
-### 10.1 The big picture
-
-For the hackathon, we build a **React + TypeScript** front end with a **data service layer** in between. The service layer first saves data in the browser (fake backend), so we can demo without a server. Later we swap it for a real backend without rewriting the screens.
+The app is **React + TypeScript**. Screens talk to a **data service**. For the hackathon, the data service saves everything in the browser, so the demo runs without a server. Later we swap in a real backend without rewriting the screens.
 
 ```mermaid
 flowchart TD
     subgraph Browser["React + TypeScript app"]
-        Admin["Platform admin screens"]
-        OrgUI["Organization and facility screens"]
-        Staff["Staff screens"]
+        Admin["CareRide admin screens"]
+        OrgUI["Organization screens"]
+        House["House screens"]
         Driver["Driver screens"]
         Store["App state (React Context)"]
         Logic["Matching and dispatch logic"]
@@ -186,27 +225,26 @@ flowchart TD
 
     Admin --> Store
     OrgUI --> Store
-    Staff --> Store
+    House --> Store
     Driver --> Store
-    Store --> Logic
     Store --> Service
-    Logic --> Service
+    Service --> Logic
 
     Service -->|"Now: hackathon"| Local["Mock service (localStorage + seed data)"]
     Service -.->|"Later: pilot"| API["Real backend (e.g. Supabase or Node API + Postgres)"]
 ```
 
 **In plain words:**
-- **Screens** show things and collect input. Each user type has its own screens.
-- **App state** holds the current user and the data, and shares them with every screen.
-- **Matching and dispatch logic** decides which driver to ask next, and when a ride needs attention.
+- **Screens** show things and collect input. Each type of user has its own screens.
+- **App state** holds who is signed in and tells screens to reload after a change.
+- **Matching and dispatch logic** decides which driver to ask next and when a ride needs attention.
 - **Data service** is one TypeScript interface with methods like `requestRide()` and `respondToOffer()`. Screens never touch storage directly.
-- **Mock service** fulfils that interface using the browser's localStorage and fictional seed data.
-- **Real backend** (later) fulfils the same interface over the internet, with real logins and live updates. Only one file changes.
+- **Mock service** fulfils that interface using the browser's localStorage and demo seed data.
+- **Real backend** (later) fulfils the same interface over the internet, with real logins and live updates. Only [src/services/index.ts](src/services/index.ts) changes.
 
-**Demo note:** with the mock service, staff and driver screens share one browser. Open them in two tabs (or use the role switcher) to show a request appearing for the driver.
+**Demo note:** with the mock service, everything lives in one browser. Open the house and the driver in two tabs; they stay in sync.
 
-### 10.2 Tech choices
+### 11.2 Tech choices
 
 | Part | Choice | Why |
 | --- | --- | --- |
@@ -220,284 +258,240 @@ flowchart TD
 | Data (later) | Supabase or Node + Postgres | Real logins, file uploads, live updates across devices |
 | Hosting | Vercel or Netlify | Free tier, deploy from GitHub |
 
-### 10.3 Folder structure
+### 11.3 Folder structure
 
 ```text
-careride/
-├── src/
-│   ├── main.tsx                  # App entry point
-│   ├── App.tsx                   # Routes
-│   ├── types/
-│   │   └── index.ts              # Shared types (Organization, Facility, Driver, Ride...)
-│   ├── services/
-│   │   ├── dataService.ts        # The interface every backend must follow
-│   │   ├── mockService.ts        # localStorage version (hackathon)
-│   │   └── seed.ts               # Demo data: Salvation Army facilities, drivers, destinations
-│   ├── logic/
-│   │   ├── matchDrivers.ts       # Rank eligible drivers for a ride
-│   │   ├── dispatch.ts           # Offer to next driver, handle decline/timeout
-│   │   ├── groupRides.ts         # Find rides that can be combined
-│   │   └── estimateFare.ts       # Rough taxi cost for the impact counter
-│   ├── context/
-│   │   └── AppContext.tsx        # Current user + data, shared across screens
-│   ├── pages/
-│   │   ├── Home.tsx              # Choose: register an organization or a driver
-│   │   ├── signup/
-│   │   │   ├── OrgSignUp.tsx
-│   │   │   └── DriverSignUp.tsx  # Includes document upload step
-│   │   ├── admin/
-│   │   │   └── Approvals.tsx     # Approve or reject orgs and drivers
-│   │   ├── org/
-│   │   │   ├── Facilities.tsx    # Add and edit facilities
-│   │   │   └── Destinations.tsx  # Saved destinations
-│   │   ├── staff/
-│   │   │   ├── Dashboard.tsx     # Rides, red "needs attention", impact counter
-│   │   │   ├── RequestRide.tsx   # Essential or scheduled, return trip, 911 banner
-│   │   │   └── RideDetail.tsx    # Status, offer history, print slip, fallbacks
-│   │   └── driver/
-│   │       ├── Requests.tsx      # Availability toggle + accept/decline cards
-│   │       └── MyRides.tsx       # Accepted rides, mark pickup/drop-off
-│   └── components/
-│       ├── RideCard.tsx
-│       ├── OfferCard.tsx         # Accept / Decline
-│       ├── StatusBadge.tsx
-│       ├── AvailabilityToggle.tsx
-│       ├── EmergencyBanner.tsx   # "Medical emergency? Call 911"
-│       ├── ClientSlip.tsx        # Large-text printable confirmation
-│       └── ImpactCounter.tsx
-├── index.html
-├── package.json
-└── tsconfig.json
+src/
+├── main.tsx                  # App entry point
+├── App.tsx                   # Routes
+├── constants.ts              # Cities, weekdays, labels
+├── types/index.ts            # Shared types (Organization, House, Driver, Ride...)
+├── services/
+│   ├── index.ts              # The one place to switch backends
+│   ├── dataService.ts        # The interface every backend must follow
+│   ├── mockService.ts        # localStorage version (hackathon)
+│   └── seed.ts               # Demo data: houses, destinations, drivers, past rides
+├── logic/
+│   ├── matchDrivers.ts       # Who can take this ride, best first
+│   ├── availability.ts       # Is the driver scheduled then, and was there enough notice?
+│   ├── dispatch.ts           # Offer timeouts, next driver to ask
+│   ├── popularDestinations.ts # Most-visited destinations per house
+│   ├── groupRides.ts         # Rides that could share a car
+│   └── estimateFare.ts       # Rough taxi cost for the impact counter
+├── context/                  # Signed-in user, reload after changes
+├── hooks/                    # useApp, useData, useCurrentOrg, useCurrentDriver
+├── components/
+│   ├── Layout.tsx            # Signed-in header and navigation
+│   ├── AccountMenu.tsx       # Name, switch account, sign out
+│   ├── RequireAuth.tsx       # Signed-in pages only
+│   ├── Logo.tsx
+│   ├── form/                 # Text, password, select, file, choice cards, chips
+│   ├── auth/                 # Sign-in/registration frame, stepper
+│   ├── RideCard.tsx
+│   ├── OfferCard.tsx         # Accept / Decline
+│   ├── StatusBadge.tsx
+│   ├── AvailabilityToggle.tsx # Taking requests / Paused
+│   ├── DriverFields.tsx      # Shared driver form (sign-up and org drivers)
+│   ├── EmergencyBanner.tsx   # "Medical emergency? Call 911"
+│   ├── ClientSlip.tsx        # Large-text printable reminder
+│   └── ImpactCounter.tsx
+└── pages/
+    ├── auth/                 # Landing, SignIn, register/ (wizard steps, review, done)
+    ├── admin/                # Approvals
+    ├── org/                  # OrgHome, Houses, Destinations, Drivers, Bookings
+    ├── house/                # Dashboard, RequestRide, RideDetail
+    └── driver/               # Requests, MyRides
 ```
 
-### 10.4 Data model
+### 11.4 Data model
 
-These TypeScript types are shared by every screen and service.
+The full types are in [src/types/index.ts](src/types/index.ts). The key ones:
 
 ```ts
-type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
-
-type OrgType = "SOCIAL_SERVICE" | "TRANSPORT_PROVIDER";
+type OrgType = "PARTNER_ORG" | "TRANSPORT_PROVIDER";
 
 interface Organization {
   id: string;
-  name: string;               // e.g. "The Salvation Army"
+  name: string;
   type: OrgType;
   contactName: string;
   contactPhone: string;
-  status: VerificationStatus;
+  bookingNotifications?: string; // phone or email for new bookings
+  status: "PENDING" | "APPROVED" | "REJECTED";
 }
 
-interface Facility {
+// Point A. Each house has one shared account.
+interface House {
   id: string;
   orgId: string;
-  name: string;               // e.g. "Vancouver Community Centre"
+  name: string;               // e.g. "Belkin House"
   address: string;
-  city: string;               // e.g. "Vancouver", "Richmond"
+  city: string;
   phone: string;
 }
 
-type UserRole = "PLATFORM_ADMIN" | "ORG_ADMIN" | "STAFF" | "DRIVER";
-
-interface User {
-  id: string;
-  name: string;
-  phone: string;
-  role: UserRole;
-  orgId?: string;
-  facilityId?: string;        // staff belong to a facility
-}
-
-type DriverBackground = "TAXI" | "RIDESHARE" | "INDEPENDENT" | "PARTNER_ORG";
+type UserRole = "PLATFORM_ADMIN" | "ORG_ADMIN" | "HOUSE" | "DRIVER";
 
 interface Driver {
   id: string;
   userId: string;
-  orgId?: string;             // set if driving for a transport organization
-  background: DriverBackground;
-  vehicle: string;            // e.g. "Blue Honda Civic"
+  orgId?: string;             // set if the driver belongs to an organization
+  background: "TAXI" | "RIDESHARE" | "ORG_DRIVER" | "INDEPENDENT";
+  vehicle: string;
   wheelchairAccessible: boolean;
-  seats: number;
-  serviceCities: string[];    // e.g. ["Vancouver", "Richmond"]
-  licenceFile?: string;       // demo: file name only
-  recordCheckFile?: string;   // demo: file name only
-  status: VerificationStatus;
-  available: boolean;         // the "I'm available" switch
+  seats: number;              // spaces for passengers
+  serviceCities: string[];
+  availability: { days: number[]; from: string; to: string };
+  minNoticeHours: number;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  available: boolean;         // false = paused
 }
 
+// Point B. Added by the partner organization.
 interface Destination {
   id: string;
-  name: string;               // e.g. "Vancouver General Hospital"
+  orgId: string;
+  name: string;               // e.g. "St. Paul's Hospital"
   address: string;
   city: string;
-  notes?: string;             // e.g. "Use the main entrance"
+  notes?: string;
 }
 
-type RideType = "ESSENTIAL" | "SCHEDULED";
-
-type RideStatus =
-  | "SEARCHING"
-  | "OFFERED"
-  | "ACCEPTED"
-  | "NEEDS_ATTENTION"
-  | "PICKED_UP"
-  | "COMPLETED"
-  | "CANCELLED";
-
+// A one-way trip. No client information.
 interface Ride {
   id: string;
-  type: RideType;
+  type: "ESSENTIAL" | "SCHEDULED";
   orgId: string;
-  facilityId: string;
-  requestedBy: string;        // staff User id, the person responsible
-  clientName: string;         // first name or initials only
-  clientRef: string;          // internal reference, e.g. "C-104"
-  clientPhone?: string;       // optional
-  pickupAddress: string;      // defaults to the facility address
-  destinationId?: string;     // if a saved destination was used
+  houseId: string;
+  requestedBy: string;        // the house account
+  codename?: string;          // optional, never a real name
+  passengers: number;
+  purpose: "MEDICAL" | "SOCIAL_SERVICES" | "HOUSING" | "LEGAL_OR_ID" | "OTHER";
+  pickupAddress: string;
+  pickupInstructions?: string;
+  destinationId?: string;
+  destinationName: string;
   destinationAddress: string;
-  pickupTime: string;         // ISO date-time
+  pickupTime: string;
   needsWheelchair: boolean;
   needsAssistance: boolean;
-  notes?: string;
   status: RideStatus;
-  driverId?: string;          // set once accepted
+  driverId?: string;
+  preferredDriverId?: string; // asked first (return trips)
   returnOfRideId?: string;    // set on a return trip
-  groupId?: string;           // set when combined with other rides
   cancelReason?: string;
   estimatedFareSaved: number;
-  createdAt: string;
+  completedAt?: string;
 }
-
-type OfferStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
 
 interface RideOffer {
   id: string;
   rideId: string;
   driverId: string;
-  status: OfferStatus;
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
   sentAt: string;
-  expiresAt: string;          // e.g. 5 minutes for essential rides
-  respondedAt?: string;
+  expiresAt: string;
 }
 ```
 
-Every accept, decline, and timeout is saved as a `RideOffer`. Staff can see who was asked and what they said.
+Every accept, decline, and timeout is saved as a `RideOffer`, so the house can see who was asked.
 
-### 10.5 Data service interface
+### 11.5 Data service
 
-Every backend (mock now, real later) must provide these methods:
+The full interface is in [src/services/dataService.ts](src/services/dataService.ts). In short:
 
-```ts
-interface DataService {
-  // Registration
-  registerOrganization(org: Omit<Organization, "id" | "status">): Promise<Organization>;
-  addFacility(facility: Omit<Facility, "id">): Promise<Facility>;
-  registerDriver(driver: Omit<Driver, "id" | "status" | "available">): Promise<Driver>;
+| Area | Methods |
+| --- | --- |
+| Organizations | `registerOrganization` (also creates the org admin account), `listOrganizations` |
+| Houses | `addHouse` (also creates the house's shared account), `listHouses` |
+| Drivers | `registerDriver`, `listDrivers`, `setAvailability` |
+| CareRide admin | `listPending`, `setOrgStatus`, `setDriverStatus` |
+| Destinations | `listDestinations`, `saveDestination` |
+| House rides | `requestRide`, `getRide`, `listRidesForHouse`, `listOffersForRide`, `retryRide`, `cancelRide` |
+| Driver and provider rides | `listMyOffers`, `listOffersForOrg`, `listMyRides`, `listRidesForOrg`, `respondToOffer`, `dropRide`, `markPickedUp`, `markCompleted`, `markNoShow` |
+| Impact | `getImpact` |
 
-  // Platform admin
-  listPending(): Promise<{ orgs: Organization[]; drivers: Driver[] }>;
-  setOrgStatus(orgId: string, status: VerificationStatus): Promise<Organization>;
-  setDriverStatus(driverId: string, status: VerificationStatus): Promise<Driver>;
-
-  // Destinations
-  listDestinations(city?: string): Promise<Destination[]>;
-  saveDestination(dest: Omit<Destination, "id">): Promise<Destination>;
-
-  // Rides: staff
-  requestRide(ride: Omit<Ride, "id" | "status" | "createdAt">): Promise<Ride>;
-  listRidesForFacility(facilityId: string): Promise<Ride[]>;
-  listOffersForRide(rideId: string): Promise<RideOffer[]>;
-  retryRide(rideId: string): Promise<Ride>;
-  cancelRide(rideId: string, reason: string): Promise<Ride>;
-
-  // Drivers
-  setAvailability(driverId: string, available: boolean): Promise<Driver>;
-  listMyOffers(driverId: string): Promise<RideOffer[]>;
-  respondToOffer(offerId: string, accept: boolean): Promise<Ride>;
-  dropRide(rideId: string, driverId: string): Promise<Ride>;
-  markPickedUp(rideId: string): Promise<Ride>;
-  markCompleted(rideId: string): Promise<Ride>;
-
-  // Impact
-  getImpact(): Promise<{
-    ridesCompleted: number;
-    moneySaved: number;
-    organizations: number;
-    verifiedDrivers: number;
-  }>;
-}
-```
-
-Two rules the service must enforce:
-- **Only approved drivers** can receive offers.
+Rules every backend must enforce:
+- **Only approved drivers** get offers.
 - **Only one driver** can accept a ride. A second accept fails cleanly.
+- **No client personal information** is stored.
 
-### 10.6 Pages and routes
+### 11.6 Pages and routes
 
 | Route | Who | What it shows |
 | --- | --- | --- |
-| `/` | Anyone | Choose: register an organization or become a driver |
-| `/signup/org` | Organization admin | Register an organization |
-| `/signup/driver` | Driver | Register, add vehicle, upload documents |
-| `/admin` | Platform admin | Pending organizations and drivers, approve or reject |
-| `/org/facilities` | Organization admin | Add facilities (e.g. Vancouver, Richmond) |
-| `/org/destinations` | Organization admin | Saved destinations |
-| `/staff` | Staff | Dashboard: rides, "needs attention" in red, impact counter |
-| `/staff/request` | Staff | Request an essential or scheduled ride |
-| `/staff/ride/:id` | Staff | Ride status, offer history, print slip, fallbacks |
-| `/driver` | Driver | Availability toggle and incoming requests (accept/decline) |
-| `/driver/my-rides` | Driver | Accepted rides, "Picked up" and "Dropped off" buttons |
+| `/` | Anyone | Landing page: welcome, how it works, who it's for |
+| `/register` | New users | Step-by-step sign-up for partner orgs, transport providers, and drivers (`?role=partner\|provider\|driver` skips the first step) |
+| `/signin` | Anyone | Sign in, plus one-tap demo accounts |
+| `/home` | Signed in | Sends each account to its main page |
+| `/admin` | CareRide admin | Approve or reject organizations and drivers |
+| `/org` | Org admin | Sends them to the right starting page |
+| `/org/houses` | Partner org admin | Add houses (each gets a shared account) |
+| `/org/destinations` | Partner org admin | Add destinations (point B) |
+| `/org/drivers` | Org admin | Add the org's own drivers and their availability |
+| `/org/bookings` | Org admin | Requests for the org's drivers (accept/decline) and upcoming rides |
+| `/house` | House account | Rides: needs attention, upcoming, past; impact counter |
+| `/house/request` | House account | Book a ride (`?returnOf=<id>` books the return trip) |
+| `/house/ride/:id` | House account | Status, drivers asked, slip, fallbacks, return trip |
+| `/driver` | Driver | Pause switch and incoming requests |
+| `/driver/my-rides` | Driver | Picked up, dropped off, client didn't show |
 
-For the demo, a simple **role switcher** replaces real logins.
+Signed-in pages require an account; anyone else is sent to sign in and then back. In the demo, accounts and passwords live in the browser (demo password: `careride`). A real backend replaces this with proper authentication.
 
-## 11. Design rules
+## 12. Design rules
 
 - **Big text, big buttons.** Works for people with low digital skills.
 - **Mobile first.** Drivers will use phones.
 - **Plain words.** "Accept" and "Decline", not "Acknowledge assignment".
 - **Status in words and colour.** Never colour alone.
-- **Show only what's needed.** Drivers never see client history.
-- **Emergency banner** on every ride request screen: "Medical emergency? Call 911."
-- **No company logos.** Say "professional drivers (e.g. taxi or rideshare)". Don't show Uber or Yellow Cab branding.
+- **No client details anywhere.** Not in rides, notes, slips, or driver screens.
+- **Emergency banner** on every booking screen: "Medical emergency? Call 911."
+- **No company logos.** Say "professional drivers (e.g. taxi or rideshare)".
 
-## 12. Demo script (about 4 minutes)
+## 13. Demo script (about 4 minutes)
 
-All data is fictional except public facility names. Label it as demo data on screen.
+Demo data is fictional except public place names. Use **Reset demo data** in the footer before starting.
 
-1. **An organization registers.** The Salvation Army signs up. The platform admin approves it.
-2. **It adds facilities** in Vancouver and Richmond.
-3. **A driver registers.** Olive, a taxi driver volunteering in their free time, signs up, uploads documents, and is approved. Olive switches on "I'm available."
-4. **An essential ride is requested.** Staff at the Vancouver facility request a ride for Alvin to Vancouver General Hospital in a few taps, with a return trip. The 911 banner is visible.
-5. **The first driver declines.** Another driver declines, and the request moves on automatically.
-6. **Olive accepts.** Staff see the update and print Alvin's slip: Olive, white sedan, 2:15 pm at the front door.
-7. **The ride completes.** Olive marks picked up, then dropped off.
-8. **Show a ride nobody accepted** turning red under "needs attention", with the free fallback options.
-9. **Show the impact counter**: rides done, dollars saved, organizations and drivers on the platform.
+1. **An organization registers.** A new partner organization signs up. The CareRide admin approves it.
+2. **A driver registers.** A taxi driver signs up with availability and documents, and the admin approves them.
+3. **Belkin House books a ride.** St. Paul's is a one-tap button because it's the house's most-visited place. Two people are riding. The 911 banner is visible.
+4. **Frank declines.** The request moves on to Olive automatically, and the house sees who was asked.
+5. **Olive accepts.** Belkin House prints the reminder slip: when, where to wait, driver, car.
+6. **The ride completes.** Olive taps Picked up, then Dropped off, and Belkin House sees the client arrived.
+7. **The return trip.** Belkin House books the return; it goes to Olive first.
+8. **A ride nobody can take.** A same-day wheelchair ride: the accessible van needs 24 hours' notice, so it turns red with the free fallbacks.
+9. **A transport provider.** The Community Van Share admin sees bookings for its drivers.
+10. **Impact counter:** rides done, dollars saved, organizations and drivers on the platform.
 
-## 13. Success measures
+## 14. Success measures
 
 | Measure | How we count it |
 | --- | --- |
 | Rides completed | Rides that reached `COMPLETED` |
 | Money saved | Sum of estimated taxi fares for completed free rides |
-| Time to accept | Minutes from request to a driver accepting (essential rides) |
+| Time to accept | Minutes from booking to a driver accepting |
 | Rides needing attention | Rides that reached `NEEDS_ATTENTION` |
-| Booking speed | Seconds for staff to request a ride (measure during user testing) |
-| Network size | Approved organizations, facilities, and drivers |
+| No-shows | Rides that reached `NO_SHOW` |
+| Booking speed | Seconds for a house to book a ride (measure during user testing) |
+| Network size | Approved organizations, houses, and drivers |
 
-## 14. Open questions for the mentor
+## 15. Open questions
 
-1. **Insurance:** Are volunteer drivers covered when driving clients? Professional drivers would likely drive off-platform in their own vehicles, not through a rideshare app.
-2. **Essential window:** How soon does an essential ride need a driver (e.g. within 2 hours)?
-3. **Who verifies drivers** in a real pilot: the CareRide team, or each transport organization?
-4. **Who runs the platform** after the hackathon, and who pays for hosting?
+1. **Codename:** should rides carry an optional codename, or nothing at all?
+2. **Verification:** how do we verify drivers, partner organizations, and transport providers?
+3. **Driver confirmation:** the draft flow said the driver confirms "dropped off" at step 4; we assumed "picked up". Confirm with the team.
+4. **"Help clients provide more info":** what does this mean for the product?
+5. **Insurance:** are professional drivers covered when driving clients in their own time?
+6. **Essential window:** how soon does an essential ride need a driver?
+7. **Who runs the platform** after the hackathon, and who pays for hosting?
 
-## 15. After the hackathon
+## 16. After the hackathon
 
 1. Swap the mock service for a real backend (Supabase or Node + Postgres).
 2. Add real logins, permissions, and secure document storage.
-3. Add text message alerts for drivers and clients.
-4. Add recurring rides (e.g. dialysis every Tuesday).
-5. Add a paid fallback link for rides no volunteer can cover.
-6. Run a small pilot with one organization, two facilities, and a handful of verified drivers.
+3. Send real booking notifications (text or email) to drivers and providers.
+4. Show group ride suggestions and let houses combine rides.
+5. Add recurring rides (e.g. dialysis every Tuesday).
+6. Add a paid fallback link for rides no free option can cover.
+7. Explore donor features.
+8. Pilot with Belkin House and a handful of approved drivers, then Richmond House and Grace Mansion.

@@ -1,41 +1,61 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { PURPOSE_LABELS } from '../constants'
 import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 
 interface Props {
   ride: Ride
+  from?: string // pickup label, e.g. the house name
   to?: string // link to the ride's detail page
   children?: ReactNode // action buttons
 }
 
-export function RideCard({ ride, to, children }: Props) {
-  const highlight = ride.status === 'NEEDS_ATTENTION' ? 'border-red-500 border-2' : ''
+// A coloured left edge echoes the status badge, so a list scans at a glance.
+const ACCENT: Record<Ride['status'], string> = {
+  SEARCHING: 'border-l-sky-400',
+  OFFERED: 'border-l-amber-400',
+  ACCEPTED: 'border-l-brand-500',
+  NEEDS_ATTENTION: 'border-l-red-500',
+  PICKED_UP: 'border-l-violet-500',
+  COMPLETED: 'border-l-emerald-500',
+  NO_SHOW: 'border-l-orange-400',
+  CANCELLED: 'border-l-slate-300',
+}
+
+export function RideCard({ ride, from, to, children }: Props) {
+  const highlight = ride.status === 'NEEDS_ATTENTION' ? 'border-red-300 bg-red-50/40' : ''
+  const needs = [
+    `${ride.passengers} ${ride.passengers === 1 ? 'person' : 'people'}`,
+    ride.needsWheelchair && 'Wheelchair',
+    ride.needsAssistance && 'Needs help',
+  ].filter(Boolean)
+
   return (
-    <div className={`${card} ${highlight}`}>
+    <div className={`${card} border-l-4 ${ACCENT[ride.status]} ${highlight}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {ride.type === 'ESSENTIAL' ? 'Essential' : 'Scheduled'}
           {ride.returnOfRideId && ' · Return trip'}
+          {ride.codename && ` · ${ride.codename}`}
         </span>
         <StatusBadge status={ride.status} />
       </div>
-      <p className="text-lg font-semibold">
-        {ride.clientName} → {ride.destinationAddress}
+      <p className="break-words text-lg font-semibold">
+        {from ? `${from} → ` : ''}
+        {ride.destinationName}
       </p>
       <p className="text-slate-600">{new Date(ride.pickupTime).toLocaleString()}</p>
-      {(ride.needsWheelchair || ride.needsAssistance) && (
-        <p className="text-slate-600">
-          {[ride.needsWheelchair && 'Wheelchair', ride.needsAssistance && 'Needs help'].filter(Boolean).join(' · ')}
-        </p>
-      )}
+      <p className="text-slate-600">
+        {PURPOSE_LABELS[ride.purpose]} · {needs.join(' · ')}
+      </p>
       {to && (
-        <Link to={to} className="mt-2 inline-block font-semibold text-blue-700 underline">
+        <Link to={to} className="mt-2 inline-block font-semibold text-brand-700 underline underline-offset-2 hover:text-violet-700">
           View details
         </Link>
       )}
-      {children && <div className="mt-4 flex flex-wrap gap-3">{children}</div>}
+      {children && <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">{children}</div>}
     </div>
   )
 }
