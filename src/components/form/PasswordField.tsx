@@ -1,5 +1,5 @@
-import { Eye, EyeOff, Lock } from 'lucide-react'
-import { useState, type InputHTMLAttributes } from 'react'
+import { ArrowBigUp, Eye, EyeOff, Lock } from 'lucide-react'
+import { useState, type InputHTMLAttributes, type KeyboardEvent } from 'react'
 import { input, label as labelClass } from '../ui'
 import { FieldMessage } from './FieldMessage'
 
@@ -24,8 +24,10 @@ function strength(password: string): { score: number; text: string } {
 
 const barColours = ['bg-red-500', 'bg-amber-500', 'bg-brand-500', 'bg-emerald-500', 'bg-emerald-600']
 
-export function PasswordField({ id, label, hint, error, showStrength, value, className = '', ...rest }: Props) {
+export function PasswordField({ id, label, hint, error, showStrength, value, className = '', onKeyDown, onKeyUp, onBlur, ...rest }: Props) {
   const [visible, setVisible] = useState(false)
+  const [capsLock, setCapsLock] = useState(false)
+  const checkCapsLock = (e: KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState('CapsLock'))
   const messageId = `${id}-message`
   const { score, text } = strength(value)
 
@@ -46,6 +48,18 @@ export function PasswordField({ id, label, hint, error, showStrength, value, cla
           spellCheck={false}
           aria-invalid={error ? true : undefined}
           aria-describedby={hint || error ? messageId : undefined}
+          onKeyDown={(e) => {
+            checkCapsLock(e)
+            onKeyDown?.(e)
+          }}
+          onKeyUp={(e) => {
+            checkCapsLock(e)
+            onKeyUp?.(e)
+          }}
+          onBlur={(e) => {
+            setCapsLock(false)
+            onBlur?.(e)
+          }}
           {...rest}
         />
         <button
@@ -70,6 +84,12 @@ export function PasswordField({ id, label, hint, error, showStrength, value, cla
           </div>
           <span className="w-24 text-right text-xs font-semibold text-slate-600">{text}</span>
         </div>
+      )}
+      {capsLock && (
+        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-700" aria-live="polite">
+          <ArrowBigUp className="h-4 w-4" aria-hidden />
+          Caps Lock is on
+        </p>
       )}
       <FieldMessage id={messageId} hint={hint} error={error} />
     </div>
