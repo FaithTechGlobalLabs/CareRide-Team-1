@@ -23,7 +23,7 @@ export type DriverSettings = Pick<
   Driver,
   'available' | 'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
 >
-export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'completedAt' | 'droppedBy'>
+export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'driverArrivedAt' | 'completedAt' | 'droppedBy'>
 
 // The contract every backend must follow (mock now, real backend later).
 // Screens only talk to this interface, never to storage directly.
@@ -83,6 +83,7 @@ export interface DataService {
   listRidesForOrg(orgId: string): Promise<Ride[]> // rides taken by the org's drivers
   respondToOffer(offerId: string, accept: boolean): Promise<Ride>
   dropRide(rideId: string, driverId: string): Promise<Ride>
+  markDriverArrived(rideId: string): Promise<Ride> // driver is at the pickup ("I'm here")
   markPickedUp(rideId: string): Promise<Ride>
   markCompleted(rideId: string): Promise<Ride>
   markNoShow(rideId: string): Promise<Ride> // client passed up the ride and loses it

@@ -1,4 +1,4 @@
-import { CarFront } from 'lucide-react'
+import { CarFront, Phone } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
 import { ConfirmButton } from '../../components/ConfirmButton'
@@ -25,6 +25,9 @@ const FALLBACKS = ['Used a partner organization van', 'Gave transit directions a
 
 const CAN_CANCEL: RideStatus[] = ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION']
 const CAN_BOOK_RETURN: RideStatus[] = ['ACCEPTED', 'PICKED_UP', 'COMPLETED']
+const HAS_DRIVER: RideStatus[] = ['ACCEPTED', 'PICKED_UP']
+
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
 export function RideDetail() {
   const { id = '' } = useParams()
@@ -57,8 +60,35 @@ export function RideDetail() {
     <div className="space-y-6">
       <h1 className={`${pageTitle} no-print`}>Ride to {ride.destinationName}</h1>
       <div className="no-print">
-        <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name} />
+        <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name}>
+          {HAS_DRIVER.includes(ride.status) && driverUser && (
+            <>
+              <p className="w-full">
+                <strong>Driver:</strong> {driverUser.name}
+                {driver && (
+                  <>
+                    <br />
+                    <strong>Car:</strong> {driver.vehicle}
+                  </>
+                )}
+              </p>
+              <a href={telHref(driverUser.phone)} className={`${secondaryButton} w-full sm:w-auto`}>
+                <Phone className="h-5 w-5" aria-hidden />
+                <span className="whitespace-normal">
+                  Call {driverUser.name}: <span className="whitespace-nowrap">{driverUser.phone}</span>
+                </span>
+              </a>
+            </>
+          )}
+        </RideCard>
       </div>
+
+      {ride.status === 'ACCEPTED' && ride.driverArrivedAt && (
+        <section className="no-print rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
+          <h2 className="text-2xl font-bold">Driver is here ({formatTime(ride.driverArrivedAt)})</h2>
+          <p className="mt-1">Send the client down to meet them.</p>
+        </section>
+      )}
 
       {isDriverLate(ride) && (
         <section role="alert" className={`${card} no-print border-2 border-red-500 bg-red-50 text-red-900`}>
@@ -113,7 +143,7 @@ export function RideDetail() {
         </section>
       )}
 
-      {(ride.status === 'ACCEPTED' || ride.status === 'PICKED_UP') && (
+      {HAS_DRIVER.includes(ride.status) && (
         <section className="space-y-3">
           <p className="no-print">Remind the client about their ride. Print this slip if it helps.</p>
           <ClientSlip ride={ride} driver={driver} driverUser={driverUser} house={house} />

@@ -1,11 +1,11 @@
 import type { Ride } from '../types'
 
-// A confirmed ride counts as late this long after pickup time if the driver hasn't picked up the client.
+// A confirmed ride counts as late this long after pickup time if the driver hasn't arrived or picked up.
 export const DRIVER_LATE_AFTER_MINUTES = 10
 
 // On-demand rides have no set pickup time (it's the booking time), so they're never flagged as late.
 export function isDriverLate(ride: Ride, now = new Date()): boolean {
-  if (ride.type === 'ON_DEMAND' || ride.status !== 'ACCEPTED') return false
+  if (ride.type === 'ON_DEMAND' || ride.status !== 'ACCEPTED' || ride.driverArrivedAt) return false
   return now.getTime() > new Date(ride.pickupTime).getTime() + DRIVER_LATE_AFTER_MINUTES * 60_000
 }
 

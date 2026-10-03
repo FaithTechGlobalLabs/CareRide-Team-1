@@ -269,6 +269,7 @@ export const mockService: DataService = {
         for (const ride of db.rides.filter((r) => r.driverId === driver.id && r.status === 'ACCEPTED')) {
           ride.driverId = undefined
           ride.acceptedAt = undefined
+          ride.driverArrivedAt = undefined
           dispatch(db, ride)
         }
       }
@@ -398,7 +399,16 @@ export const mockService: DataService = {
       ride.droppedBy = { driverId, at: now() }
       ride.driverId = undefined
       ride.acceptedAt = undefined
+      ride.driverArrivedAt = undefined
       dispatch(db, ride)
+      return ride
+    }),
+
+  markDriverArrived: (rideId) =>
+    transact((db) => {
+      const ride = findOrThrow(db.rides, rideId, 'Ride')
+      if (ride.status !== 'ACCEPTED') throw new Error('You can only say you are here on a confirmed ride.')
+      ride.driverArrivedAt = now()
       return ride
     }),
 
