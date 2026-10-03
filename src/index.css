@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+/* Big, readable defaults for users with low digital literacy */
+html {
+  font-size: 18px;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
