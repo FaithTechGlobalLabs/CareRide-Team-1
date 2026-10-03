@@ -1,0 +1,44 @@
+# When main is updated on FaithTechGlobalLabs/CareRide-Team-1, immediately
+# merge it into the Cloudflare deploy fork (maxiomattic/CareRide-Team-1).
+# Uses a write deploy key stored as DEPLOY_FORK_SSH_KEY. No-ops on forks
+# and when the secret is missing.
+name: Mirror main to deploy fork
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-deploy-fork
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: ${{ !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge this main into maxiomattic/CareRide-Team-1
+        env:
+          DEPLOY_FORK_SSH_KEY: ${{ secrets.DEPLOY_FORK_SSH_KEY }}
+          FORK_SSH: git@github.com:maxiomattic/CareRide-Team-1.git
+        run: |
+          if [ -z "${DEPLOY_FORK_SSH_KEY:-}" ]; then
+            echo "::notice::DEPLOY_FORK_SSH_KEY is not set; fork will catch up on its schedule"
+            exit 0
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_FORK_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git clone --branch main "$FORK_SSH" fork-mirror
+          cd fork-mirror
+          git remote add upstream "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --quiet upstream main
+          git merge --no-edit upstream/main
+          git push origin main

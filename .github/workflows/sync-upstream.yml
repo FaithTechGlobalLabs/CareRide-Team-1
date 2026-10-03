@@ -1,11 +1,15 @@
 # On a fork, keep main aligned with FaithTechGlobalLabs/CareRide-Team-1#main
-# so Cloudflare Pages can auto-deploy without org admin. Does nothing on the
+# so Cloudflare can auto-deploy without org admin. Does nothing on the
 # upstream repo. Enable Actions on the fork after forking.
+#
+# Immediate sync is handled by sync-deploy-fork.yml on the upstream repo.
+# This schedule is the fallback (GitHub will not run cron more often than
+# about every five minutes).
 name: Sync upstream main
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,16 +24,7 @@ jobs:
     if: github.event.repository.fork
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
-
-      - name: Merge upstream main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote add upstream https://github.com/FaithTechGlobalLabs/CareRide-Team-1.git
-          git fetch upstream main
-          git merge --no-edit upstream/main
-          git push origin main
+      - name: Sync fork main from parent
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh repo sync "${{ github.repository }}" --branch main
