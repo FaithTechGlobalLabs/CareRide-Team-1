@@ -1,6 +1,6 @@
 import { Hourglass } from 'lucide-react'
-import { AvailabilityToggle } from '../../components/AvailabilityToggle'
 import { OfferCard } from '../../components/OfferCard'
+import { RequestStatusCard } from '../../components/RequestStatusCard'
 import { card, pageTitle } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useCurrentDriver } from '../../hooks/useCurrent'
@@ -29,7 +29,7 @@ export function Requests() {
         <h1 className="text-2xl font-extrabold tracking-tight">We're checking your documents</h1>
         <p className="mt-2 text-slate-600">
           The CareRide team reviews every driver before the first ride. Once you're approved, requests that fit your
-          schedule will show up right here.
+          settings will show up right here.
         </p>
       </div>
     )
@@ -41,7 +41,7 @@ export function Requests() {
   }
 
   async function setAvailable(available: boolean) {
-    await dataService.setAvailability(driverId, available)
+    await dataService.updateDriver(driverId, { available })
     refresh()
   }
 
@@ -57,7 +57,7 @@ export function Requests() {
   return (
     <div className="space-y-6">
       <h1 className={pageTitle}>Ride requests</h1>
-      <AvailabilityToggle available={driver.available} onChange={setAvailable} />
+      <RequestStatusCard driver={driver} onPause={setAvailable} showSettingsLink />
 
       {offers?.length === 0 && <p>No requests right now. We'll show them here.</p>}
       <div className="space-y-3">

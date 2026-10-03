@@ -1,5 +1,5 @@
 import { Car, HeartHandshake, Smartphone } from 'lucide-react'
-import { CITIES, WEEKDAYS } from '../constants'
+import { CITIES } from '../constants'
 import { needsProfessionalProof, type DriverDraft, type FieldErrors } from './driverDraft'
 import { ChoiceCard } from './form/ChoiceCard'
 import { FileField } from './form/FileField'
@@ -7,6 +7,7 @@ import { FieldMessage } from './form/FieldMessage'
 import { SelectField } from './form/SelectField'
 import { TextField } from './form/TextField'
 import { ToggleChip } from './form/ToggleChip'
+import { NoticePicker, RequestHoursEditor } from './RequestHoursEditor'
 import { label as labelClass } from './ui'
 
 interface SectionProps {
@@ -14,14 +15,6 @@ interface SectionProps {
   onChange: (value: DriverDraft) => void
   errors?: FieldErrors
 }
-
-const NOTICE_OPTIONS = [
-  { hours: 1, text: '1 hour ahead' },
-  { hours: 2, text: '2 hours ahead' },
-  { hours: 4, text: '4 hours ahead' },
-  { hours: 24, text: '1 day ahead' },
-  { hours: 48, text: '2 days ahead' },
-]
 
 const BACKGROUNDS = [
   { value: 'TAXI', title: 'Taxi driver', description: 'I drive a taxi and want to give free rides in my own time.', icon: <Car className="h-6 w-6" /> },
@@ -143,72 +136,16 @@ export function DriverVehicleFields({ value, onChange, errors = {} }: SectionPro
   )
 }
 
-export function DriverAvailabilityFields({ value, onChange, errors = {} }: SectionProps) {
-  const { availability } = value
-  const setAvailability = (patch: Partial<DriverDraft['availability']>) =>
-    onChange({ ...value, availability: { ...availability, ...patch } })
-
+// When to send this driver ride requests, and how much notice they need.
+export function DriverRequestFields({ value, onChange, errors = {} }: SectionProps) {
   return (
-    <div className="space-y-6">
-      <fieldset aria-describedby="days-message">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <legend className="text-sm font-semibold text-ink">Days you can drive</legend>
-          <div className="flex gap-2 text-sm">
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 font-semibold text-brand-700 hover:bg-brand-50"
-              onClick={() => setAvailability({ days: [1, 2, 3, 4, 5] })}
-            >
-              Weekdays
-            </button>
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 font-semibold text-brand-700 hover:bg-brand-50"
-              onClick={() => setAvailability({ days: [0, 1, 2, 3, 4, 5, 6] })}
-            >
-              Every day
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {WEEKDAYS.map((day, i) => (
-            <ToggleChip
-              key={day}
-              checked={availability.days.includes(i)}
-              onChange={() => setAvailability({ days: toggle(availability.days, i).sort() })}
-            >
-              {day}
-            </ToggleChip>
-          ))}
-        </div>
-        <FieldMessage id="days-message" error={errors.days} />
-      </fieldset>
-
-      <div className="grid grid-cols-2 gap-4">
-        <TextField
-          id="from"
-          label="From"
-          type="time"
-          value={availability.from}
-          error={errors.hours}
-          onChange={(e) => setAvailability({ from: e.target.value })}
-        />
-        <TextField id="to" label="Until" type="time" value={availability.to} onChange={(e) => setAvailability({ to: e.target.value })} />
-      </div>
-
-      <SelectField
-        id="notice"
-        label="How much notice do you need?"
-        hint="You'll only get requests booked at least this far ahead."
-        value={value.minNoticeHours}
-        onChange={(e) => onChange({ ...value, minNoticeHours: Number(e.target.value) })}
-      >
-        {NOTICE_OPTIONS.map((o) => (
-          <option key={o.hours} value={o.hours}>
-            {o.text}
-          </option>
-        ))}
-      </SelectField>
+    <div className="space-y-8">
+      <RequestHoursEditor
+        value={value.requestHours}
+        onChange={(requestHours) => onChange({ ...value, requestHours })}
+        error={errors.requestHours}
+      />
+      <NoticePicker value={value.minNoticeHours} onChange={(minNoticeHours) => onChange({ ...value, minNoticeHours })} />
     </div>
   )
 }
@@ -247,8 +184,8 @@ export function DriverFields({ value, onChange, errors, showBackground = true }:
         <DriverVehicleFields value={value} onChange={onChange} errors={errors} />
       </section>
       <section className="space-y-4">
-        <h3 className="text-lg font-extrabold">Availability</h3>
-        <DriverAvailabilityFields value={value} onChange={onChange} errors={errors} />
+        <h3 className="text-lg font-extrabold">Ride requests</h3>
+        <DriverRequestFields value={value} onChange={onChange} errors={errors} />
       </section>
       <section className="space-y-4">
         <h3 className="text-lg font-extrabold">Documents</h3>

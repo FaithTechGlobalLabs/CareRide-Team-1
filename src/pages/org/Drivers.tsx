@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { DriverFields } from '../../components/DriverFields'
 import { emptyDriverDraft, splitDriverDraft, type DriverDraft } from '../../components/driverDraft'
 import { card, pageTitle, primaryButton } from '../../components/ui'
-import { WEEKDAYS } from '../../constants'
+import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
@@ -28,7 +28,7 @@ export function Drivers() {
   return (
     <div className="space-y-8">
       <h1 className={pageTitle}>Our drivers</h1>
-      <p>Add the drivers and vehicles your organization can offer, and when they're available.</p>
+      <p>Add the drivers and vehicles your organization can offer, and when to send them ride requests.</p>
 
       {drivers.length === 0 && <p>No drivers yet.</p>}
       <div className="space-y-3">
@@ -41,8 +41,7 @@ export function Drivers() {
               {d.vehicle} · {d.seats} spaces{d.wheelchairAccessible && ' · Wheelchair accessible'}
             </p>
             <p className="text-slate-600">
-              {d.availability.days.map((day) => WEEKDAYS[day]).join(', ')} · {d.availability.from}–
-              {d.availability.to} · {d.minNoticeHours}h notice
+              Requests: {describeRequestHours(d.requestHours)} · {formatNotice(d.minNoticeHours)} notice
             </p>
           </div>
         ))}

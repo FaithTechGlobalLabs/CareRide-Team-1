@@ -1,5 +1,6 @@
 import { emptyDriverDraft, needsProfessionalProof, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
 import { CITIES, MIN_PASSWORD_LENGTH } from '../../../constants'
+import { requestHoursError } from '../../../logic/requestHours'
 
 export type RegisterRole = 'PARTNER' | 'PROVIDER' | 'DRIVER'
 
@@ -105,12 +106,8 @@ export function validateVehicle(d: RegisterDraft): FieldErrors {
   })
 }
 
-export function validateAvailability(d: RegisterDraft): FieldErrors {
-  const a = d.driver.availability
-  return compact({
-    days: a.days.length ? undefined : 'Pick at least one day.',
-    hours: a.from < a.to ? undefined : 'The end time must be after the start time.',
-  })
+export function validateRequestHours(d: RegisterDraft): FieldErrors {
+  return compact({ requestHours: requestHoursError(d.driver.requestHours) })
 }
 
 export function validateDocuments(d: RegisterDraft): FieldErrors {
