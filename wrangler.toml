@@ -1,8 +1,7 @@
-# This Cloudflare project is Pages (not a Worker). The dashboard deploy
-# command must be `npm run deploy` (wrangler pages deploy), not wrangler deploy.
+# Static Vite app: Cloudflare Workers with assets only (no Worker script).
+# Dashboard deploy command: npx wrangler deploy
 name = "careride"
 compatibility_date = "2026-10-03"
-pages_build_output_dir = "./dist"
 
 [assets]
 directory = "./dist"
