@@ -2,8 +2,8 @@ import { Building2, Bus, Car, Home, Mail, MapPin, Pencil, Plus, Trash2, User as 
 import { useState, type ReactNode } from 'react'
 import {
   DriverAboutFields,
-  DriverAvailabilityFields,
   DriverDocumentFields,
+  DriverRequestFields,
   DriverVehicleFields,
 } from '../../../components/DriverFields'
 import type { FieldErrors } from '../../../components/driverDraft'
@@ -13,7 +13,8 @@ import { PasswordField } from '../../../components/form/PasswordField'
 import { SelectField } from '../../../components/form/SelectField'
 import { TextField } from '../../../components/form/TextField'
 import { secondaryButton, type Tone } from '../../../components/ui'
-import { BACKGROUND_LABELS, CITIES, WEEKDAYS } from '../../../constants'
+import { BACKGROUND_LABELS, CITIES } from '../../../constants'
+import { describeRequestHours, formatNotice } from '../../../logic/requestHours'
 import { SUGGESTED_DESTINATIONS, type RegisterDraft, type RegisterRole } from './draft'
 
 export interface StepProps {
@@ -345,8 +346,8 @@ export function VehicleStep({ draft, update, errors }: StepProps) {
   return <DriverVehicleFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
 
-export function AvailabilityStep({ draft, update, errors }: StepProps) {
-  return <DriverAvailabilityFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
+export function RequestHoursStep({ draft, update, errors }: StepProps) {
+  return <DriverRequestFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
 
 export function DocumentsStep({ draft, update, errors }: StepProps) {
@@ -457,13 +458,12 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             ]}
           />
           <ReviewSection
-            title="Availability"
-            stepId="availability"
+            title="Ride requests"
+            stepId="requests"
             goTo={goTo}
             rows={[
-              ['Days', d.availability.days.map((x) => WEEKDAYS[x]).join(', ')],
-              ['Hours', `${d.availability.from} – ${d.availability.to}`],
-              ['Notice', d.minNoticeHours < 24 ? `${d.minNoticeHours} h` : `${d.minNoticeHours / 24} day(s)`],
+              ['Send requests', describeRequestHours(d.requestHours)],
+              ['Notice', formatNotice(d.minNoticeHours)],
             ]}
           />
           <ReviewSection

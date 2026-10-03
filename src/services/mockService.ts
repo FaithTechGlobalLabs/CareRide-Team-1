@@ -1,5 +1,6 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
 import { isExpired, nextDriver, offerExpiry } from '../logic/dispatch'
+import { DEFAULT_REQUEST_HOURS, hoursOn } from '../logic/requestHours'
 import type { Driver, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService } from './dataService'
 import { seed, type Database } from './seed'
@@ -11,10 +12,21 @@ const STORAGE_KEY = 'careride-db-v3'
 
 const OPEN: RideStatus[] = ['SEARCHING', 'OFFERED']
 
+// Older saves gave drivers one block of days and hours ("availability").
+// Turn that into request hours so existing demo accounts keep working.
+function migrate(db: Database): Database {
+  for (const driver of db.drivers) {
+    const old = (driver as Driver & { availability?: { days: number[]; from: string; to: string } }).availability
+    if (!driver.requestHours) driver.requestHours = old ? hoursOn(old.days, { from: old.from, to: old.to }) : DEFAULT_REQUEST_HOURS
+    delete (driver as { availability?: unknown }).availability
+  }
+  return db
+}
+
 function load(): Database {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Database
+    if (raw) return migrate(JSON.parse(raw) as Database)
   } catch {
     // Storage unavailable or corrupt: fall back to seed data
   }
@@ -195,10 +207,10 @@ export const mockService: DataService = {
 
   listDrivers: (orgId) => transact((db) => db.drivers.filter((d) => !orgId || d.orgId === orgId)),
 
-  setAvailability: (driverId, available) =>
+  updateDriver: (driverId, changes) =>
     transact((db) => {
       const driver = findOrThrow(db.drivers, driverId, 'Driver')
-      driver.available = available
+      Object.assign(driver, changes)
       return driver
     }),
 

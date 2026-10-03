@@ -18,6 +18,11 @@ export interface NewAccount {
 }
 export type NewDriverUser = Pick<User, 'name' | 'phone'>
 export type NewDriver = Omit<Driver, 'id' | 'userId' | 'status' | 'available'>
+// What drivers can change themselves from their settings page
+export type DriverSettings = Pick<
+  Driver,
+  'available' | 'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
+>
 export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'completedAt'>
 
 // The contract every backend must follow (mock now, real backend later).
@@ -44,7 +49,7 @@ export interface DataService {
     login?: Pick<NewAccount, 'email' | 'password'>,
   ): Promise<{ driver: Driver; user: User }>
   listDrivers(orgId?: string): Promise<Driver[]>
-  setAvailability(driverId: string, available: boolean): Promise<Driver>
+  updateDriver(driverId: string, changes: Partial<DriverSettings>): Promise<Driver>
 
   // Platform admin
   listPending(): Promise<{ orgs: Organization[]; drivers: Driver[] }>

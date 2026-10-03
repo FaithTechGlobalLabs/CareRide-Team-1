@@ -11,7 +11,7 @@ import { Done, type RegisterResult } from './Done'
 import {
   emptyRegisterDraft,
   validateAccount,
-  validateAvailability,
+  validateRequestHours,
   validateDocuments,
   validateDriverAbout,
   validateHouse,
@@ -23,7 +23,7 @@ import {
 } from './draft'
 import {
   AccountStep,
-  AvailabilityStep,
+  RequestHoursStep,
   DestinationsStep,
   DocumentsStep,
   DriverAboutStep,
@@ -43,7 +43,7 @@ type StepId =
   | 'destinations'
   | 'about'
   | 'vehicle'
-  | 'availability'
+  | 'requests'
   | 'documents'
   | 'review'
 
@@ -105,12 +105,13 @@ const STEPS: Record<StepId, StepDef> = {
     Component: VehicleStep,
     validate: validateVehicle,
   },
-  availability: {
-    title: 'Availability',
-    heading: () => 'When can you drive?',
-    subtitle: () => 'You can pause requests anytime from your dashboard.',
-    Component: AvailabilityStep,
-    validate: validateAvailability,
+  requests: {
+    title: 'Ride requests',
+    heading: () => 'When should we send you requests?',
+    subtitle: () =>
+      'Pick the times you’re happy to hear about rides. You decide which ones to take, and can change this anytime from your dashboard.',
+    Component: RequestHoursStep,
+    validate: validateRequestHours,
   },
   documents: {
     title: 'Documents',
@@ -130,13 +131,13 @@ const STEPS: Record<StepId, StepDef> = {
 const FLOWS: Record<RegisterRole, StepId[]> = {
   PARTNER: ['role', 'account', 'organization', 'house', 'destinations', 'review'],
   PROVIDER: ['role', 'account', 'organization', 'review'],
-  DRIVER: ['role', 'account', 'about', 'vehicle', 'availability', 'documents', 'review'],
+  DRIVER: ['role', 'account', 'about', 'vehicle', 'requests', 'documents', 'review'],
 }
 
 const ROLE_PARAM: Record<string, RegisterRole> = { partner: 'PARTNER', provider: 'PROVIDER', driver: 'DRIVER' }
 
 // The draft survives a refresh (but never the password).
-const DRAFT_KEY = 'careride-register-draft'
+const DRAFT_KEY = 'careride-register-draft-v2'
 
 function loadDraft(roleParam: string | null): { draft: RegisterDraft; stepId: StepId } {
   const fromParam = roleParam ? ROLE_PARAM[roleParam] : undefined

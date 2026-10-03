@@ -1,3 +1,4 @@
+import { DEFAULT_REQUEST_HOURS } from '../logic/requestHours'
 import type { NewDriver, NewDriverUser } from '../services/dataService'
 
 // Form state for DriverFields: the driver's account details plus their driver profile.
@@ -11,7 +12,7 @@ export const emptyDriverDraft: DriverDraft = {
   wheelchairAccessible: false,
   seats: 3,
   serviceCities: [],
-  availability: { days: [1, 2, 3, 4, 5], from: '08:00', to: '18:00' },
+  requestHours: DEFAULT_REQUEST_HOURS,
   minNoticeHours: 1,
 }
 
