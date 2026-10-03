@@ -11,7 +11,6 @@ import { dataService } from '../../services'
 import type { RideType, TripPurpose } from '../../types'
 
 const CUSTOM = 'custom'
-const QUICK_PICKS = 3
 
 // Default pickup time: two hours from now, formatted for a datetime-local input.
 function inTwoHours(): string {
@@ -37,8 +36,7 @@ export function RequestRide() {
 
   const [type, setType] = useState<RideType>('SCHEDULED')
   const [purpose, setPurpose] = useState<TripPurpose>('MEDICAL')
-  const [meetsPolicy, setMeetsPolicy] = useState(false)
-  const [codename, setCodename] = useState('')
+  const [clientName, setClientName] = useState('')
   const [passengers, setPassengers] = useState(1)
   const [destinationId, setDestinationId] = useState('')
   const [customAddress, setCustomAddress] = useState('')
@@ -47,6 +45,7 @@ export function RequestRide() {
   const [needsWheelchair, setNeedsWheelchair] = useState(false)
   const [needsAssistance, setNeedsAssistance] = useState(false)
   const [notes, setNotes] = useState('')
+  const [destinationError, setDestinationError] = useState('')
 
   if (!house || !currentUser) return <p>This account isn't linked to a house.</p>
   if (returnOf && !outbound) return null
@@ -55,15 +54,20 @@ export function RequestRide() {
     e.preventDefault()
     if (!house || !currentUser) return
 
+    if (!outbound && !destinationId) {
+      setDestinationError('Choose where the client is going.')
+      return
+    }
+
     const base = {
       type,
       orgId: house.orgId,
       houseId: house.id,
       requestedBy: currentUser.id,
-      codename: codename || undefined,
+      clientName: clientName.trim() || undefined,
       passengers,
       purpose,
-      pickupTime: new Date(pickupTime).toISOString(),
+      pickupTime: type === 'ON_DEMAND' ? new Date().toISOString() : new Date(pickupTime).toISOString(),
       needsWheelchair,
       needsAssistance,
       notes: notes || undefined,
@@ -110,10 +114,6 @@ export function RequestRide() {
             </option>
           ))}
         </select>
-        <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="checkbox" className="h-5 w-5 shrink-0 accent-brand-600" required checked={meetsPolicy} onChange={(e) => setMeetsPolicy(e.target.checked)} />
-          This trip meets our house's travel policy
-        </label>
       </fieldset>
 
       {outbound ? (
@@ -131,30 +131,40 @@ export function RequestRide() {
           </div>
           <fieldset>
             <legend className={label}>To</legend>
-            <div className="mb-2 grid gap-2 sm:flex sm:flex-wrap">
-              {sorted.slice(0, QUICK_PICKS).map((d) => (
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Destination">
+              {sorted.map((d) => (
                 <button
                   key={d.id}
                   type="button"
-                  aria-pressed={destinationId === d.id}
+                  role="radio"
+                  aria-checked={destinationId === d.id}
                   className={destinationId === d.id ? primaryButton : secondaryButton}
-                  onClick={() => setDestinationId(d.id)}
+                  onClick={() => {
+                    setDestinationId(d.id)
+                    setDestinationError('')
+                  }}
                 >
                   {d.name}
                 </button>
               ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={destinationId === CUSTOM}
+                className={destinationId === CUSTOM ? primaryButton : secondaryButton}
+                onClick={() => {
+                  setDestinationId(CUSTOM)
+                  setDestinationError('')
+                }}
+              >
+                Somewhere else
+              </button>
             </div>
-            <select className={input} required value={destinationId} onChange={(e) => setDestinationId(e.target.value)}>
-              <option value="" disabled>
-                Or choose another destination
-              </option>
-              {sorted.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-              <option value={CUSTOM}>Somewhere else (type the address)</option>
-            </select>
+            {destinationError && (
+              <p role="alert" className="mt-2 text-sm font-medium text-red-700">
+                {destinationError}
+              </p>
+            )}
           </fieldset>
           {destinationId === CUSTOM && (
             <div>
@@ -168,25 +178,35 @@ export function RequestRide() {
       <fieldset>
         <legend className={label}>When</legend>
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="radio" className="h-5 w-5 shrink-0 accent-brand-600" checked={type === 'SCHEDULED'} onChange={() => setType('SCHEDULED')} />
-          <span>
-            <strong>Scheduled</strong>: booked ahead
-          </span>
+          <input
+            type="radio"
+            name="when"
+            className="h-5 w-5 shrink-0 accent-brand-600"
+            checked={type === 'SCHEDULED'}
+            onChange={() => setType('SCHEDULED')}
+          />
+          Scheduled
         </label>
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="radio" className="h-5 w-5 shrink-0 accent-brand-600" checked={type === 'ESSENTIAL'} onChange={() => setType('ESSENTIAL')} />
-          <span>
-            <strong>Essential</strong>: needed today, within a few hours
-          </span>
+          <input
+            type="radio"
+            name="when"
+            className="h-5 w-5 shrink-0 accent-brand-600"
+            checked={type === 'ON_DEMAND'}
+            onChange={() => setType('ON_DEMAND')}
+          />
+          On Demand
         </label>
-        <input
-          type="datetime-local"
-          aria-label="Pickup time"
-          className={`${input} mt-2`}
-          required
-          value={pickupTime}
-          onChange={(e) => setPickupTime(e.target.value)}
-        />
+        {type === 'SCHEDULED' && (
+          <input
+            type="datetime-local"
+            aria-label="Pickup time"
+            className={`${input} mt-2`}
+            required
+            value={pickupTime}
+            onChange={(e) => setPickupTime(e.target.value)}
+          />
+        )}
       </fieldset>
 
       <div>
@@ -194,15 +214,14 @@ export function RequestRide() {
         <input id="instructions" className={input} value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label} htmlFor="passengers">People riding</label>
-          <input id="passengers" type="number" min={1} max={12} className={input} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} />
-        </div>
-        <div>
-          <label className={label} htmlFor="codename">Codename (optional)</label>
-          <input id="codename" className={input} placeholder="Not a real name" value={codename} onChange={(e) => setCodename(e.target.value)} />
-        </div>
+      <div>
+        <label className={label} htmlFor="client-name">Name</label>
+        <input id="client-name" className={input} required value={clientName} onChange={(e) => setClientName(e.target.value)} />
+      </div>
+
+      <div>
+        <label className={label} htmlFor="passengers">People riding</label>
+        <input id="passengers" type="number" min={1} max={12} className={input} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} />
       </div>
 
       <fieldset>
@@ -219,7 +238,7 @@ export function RequestRide() {
 
       <div>
         <label className={label} htmlFor="notes">Notes for the driver (optional)</label>
-        <input id="notes" className={input} placeholder="No personal details" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <input id="notes" className={input} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       {/* TODO: suggest group rides (logic/groupRides.ts) before submitting */}

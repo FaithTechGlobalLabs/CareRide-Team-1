@@ -8,7 +8,7 @@ import { seed, type Database } from './seed'
 // Hackathon backend: keeps everything in the browser's localStorage.
 // Swap this file for a real backend later; screens won't need to change.
 
-const STORAGE_KEY = 'careride-db-v3'
+const STORAGE_KEY = 'careride-db-v4'
 
 const OPEN: RideStatus[] = ['SEARCHING', 'OFFERED']
 
@@ -92,7 +92,7 @@ function checkDeadlines(db: Database): void {
     if (ride?.status === 'OFFERED') dispatch(db, ride)
   }
   for (const ride of db.rides) {
-    if (OPEN.includes(ride.status) && new Date(ride.pickupTime) <= new Date()) {
+    if (OPEN.includes(ride.status) && ride.type !== 'ON_DEMAND' && new Date(ride.pickupTime) <= new Date()) {
       closePendingOffers(db, ride.id)
       ride.status = 'NEEDS_ATTENTION'
     }

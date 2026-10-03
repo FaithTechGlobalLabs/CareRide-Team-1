@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { PURPOSE_LABELS } from '../constants'
+import { PURPOSE_LABELS, RIDE_TYPE_LABELS } from '../constants'
 import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
@@ -36,9 +36,9 @@ export function RideCard({ ride, from, to, children }: Props) {
     <div className={`${card} border-l-4 ${ACCENT[ride.status]} ${highlight}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          {ride.type === 'ESSENTIAL' ? 'Essential' : 'Scheduled'}
+          {RIDE_TYPE_LABELS[ride.type]}
           {ride.returnOfRideId && ' · Return trip'}
-          {ride.codename && ` · ${ride.codename}`}
+          {ride.clientName && ` · ${ride.clientName}`}
         </span>
         <StatusBadge status={ride.status} />
       </div>
@@ -46,7 +46,9 @@ export function RideCard({ ride, from, to, children }: Props) {
         {from ? `${from} → ` : ''}
         {ride.destinationName}
       </p>
-      <p className="text-slate-600">{new Date(ride.pickupTime).toLocaleString()}</p>
+      <p className="text-slate-600">
+        {ride.type === 'ON_DEMAND' ? 'On demand' : new Date(ride.pickupTime).toLocaleString()}
+      </p>
       <p className="text-slate-600">
         {PURPOSE_LABELS[ride.purpose]} · {needs.join(' · ')}
       </p>

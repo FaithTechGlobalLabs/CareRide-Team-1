@@ -80,7 +80,7 @@ export interface Destination {
   notes?: string
 }
 
-export type RideType = 'ESSENTIAL' | 'SCHEDULED'
+export type RideType = 'ON_DEMAND' | 'SCHEDULED'
 
 export type TripPurpose = 'MEDICAL' | 'SOCIAL_SERVICES' | 'HOUSING' | 'LEGAL_OR_ID' | 'OTHER'
 
@@ -102,7 +102,7 @@ export interface Ride {
   orgId: string
   houseId: string
   requestedBy: string // house account User id
-  codename?: string // optional, never the client's real name
+  clientName?: string
   passengers: number
   purpose: TripPurpose
   pickupAddress: string

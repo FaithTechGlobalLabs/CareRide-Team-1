@@ -7,13 +7,18 @@ interface Props {
   house?: House
 }
 
-// Large-text printable reminder for clients without a phone. No client details on it.
+// Large-text printable reminder for clients without a phone.
 export function ClientSlip({ ride, driver, driverUser, house }: Props) {
   return (
     <div className="rounded-xl border-2 border-dashed border-slate-400 bg-white p-6 text-xl leading-relaxed">
       <h2 className="mb-4 text-2xl font-bold">Your ride</h2>
+      {ride.clientName && (
+        <p>
+          <strong>Name:</strong> {ride.clientName}
+        </p>
+      )}
       <p>
-        <strong>When:</strong> {new Date(ride.pickupTime).toLocaleString()}
+        <strong>When:</strong> {ride.type === 'ON_DEMAND' ? 'On demand' : new Date(ride.pickupTime).toLocaleString()}
       </p>
       <p>
         <strong>Where to wait:</strong> {ride.pickupInstructions ?? ride.pickupAddress}

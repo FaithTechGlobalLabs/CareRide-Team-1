@@ -22,6 +22,8 @@ export function matchDrivers(
       (!house || d.serviceCities.includes(house.city)) &&
       d.seats >= ride.passengers &&
       (!ride.needsWheelchair || d.wheelchairAccessible) &&
+      isWithinAvailability(d.availability, pickup) &&
+      (ride.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)),
       isWithinRequestHours(d.requestHours, now) &&
       meetsNotice(d.minNoticeHours, pickup, now),
   )
