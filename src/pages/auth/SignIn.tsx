@@ -1,6 +1,7 @@
 import { ArrowRight, Building2, Car, Home, Loader2, Mail, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import logoMark from '../../assets/logo-mark.png'
 import { AuthShell } from '../../components/auth/AuthShell'
 import { PasswordField } from '../../components/form/PasswordField'
 import { TextField } from '../../components/form/TextField'
@@ -86,7 +87,7 @@ export function SignIn() {
 
         <form onSubmit={handleSubmit} noValidate className={`${card} mx-auto max-w-md space-y-5 p-8`}>
           <div className="text-center">
-            <img src="/assets/logo-mark.png" alt="" className="mx-auto mb-4 h-16 w-16" />
+            <img src={logoMark} alt="" className="mx-auto mb-4 h-16 w-16" />
             <h1 className="text-3xl font-extrabold tracking-tight">Welcome back</h1>
             <p className="mt-1 text-slate-600">Sign in to book or give rides.</p>
           </div>

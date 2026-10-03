@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import logoMark from '../../assets/logo-mark.png'
 import { Logo } from '../../components/Logo'
 import { ghostButton, primaryButton, secondaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
@@ -109,7 +110,7 @@ function HeroPreview() {
       <div className="absolute -bottom-6 -right-6 h-40 w-40 rounded-full bg-coral-300/40 blur-3xl" />
       <div className="absolute -left-8 top-1/3 h-36 w-36 rounded-full bg-violet-300/40 blur-3xl" />
       <div className="relative rounded-[2rem] border border-white/60 bg-white/70 p-5 shadow-2xl sm:rounded-[2.5rem] sm:p-8 shadow-brand-900/10 backdrop-blur">
-        <img src="/assets/logo-mark.png" alt="" className="mx-auto h-36 w-36 animate-float sm:h-48 sm:w-48" />
+        <img src={logoMark} alt="" className="mx-auto h-36 w-36 animate-float sm:h-48 sm:w-48" />
 
         {/* Highlights sit in their own row so they never cover the logo */}
         <div className="mt-5 hidden grid-cols-2 gap-3 sm:mt-6 sm:grid">

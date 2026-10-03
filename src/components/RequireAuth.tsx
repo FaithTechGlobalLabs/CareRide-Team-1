@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
 
 // Signed-in pages only. Sends everyone else to sign in, then back here.
@@ -9,7 +10,7 @@ export function RequireAuth() {
   if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Loading">
-        <img src="/assets/logo-mark.png" alt="" className="h-16 w-16 animate-pulse" />
+        <img src={logoMark} alt="" className="h-16 w-16 animate-pulse" />
       </div>
     )
   }
