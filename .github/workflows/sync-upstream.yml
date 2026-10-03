@@ -1,11 +1,12 @@
 # On a fork, keep main aligned with FaithTechGlobalLabs/CareRide-Team-1#main
 # so Cloudflare Pages can auto-deploy without org admin. Does nothing on the
 # upstream repo. Enable Actions on the fork after forking.
+# GitHub cron's shortest interval is once per minute.
 name: Sync upstream main
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '* * * * *'
   workflow_dispatch:
 
 permissions:
