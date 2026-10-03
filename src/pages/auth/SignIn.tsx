@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowRight, Building2, Car, Home, Loader2, Mail, ShieldCheck, Sparkles } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import logoMark from '../../assets/logo-mark.png'
 import { AuthShell } from '../../components/auth/AuthShell'
 import { CopyButton } from '../../components/CopyButton'
@@ -72,7 +72,9 @@ export function SignIn() {
   const [error, setError] = useState<string>()
   const [attempts, setAttempts] = useState(0) // replays the shake on each failed try
   const [busy, setBusy] = useState<string>() // which button is working
-  const [pane, setPane] = useState<Pane>('form') // phones show one side at a time
+  const [params] = useSearchParams()
+  // Phones show one side at a time. /signin?demo opens on the demo accounts.
+  const [pane, setPane] = useState<Pane>(() => (params.has('demo') ? 'demo' : 'form'))
 
   const demoUsers = users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN))
   const groups = ROLE_GROUPS.map((g) => ({ ...g, users: demoUsers.filter((u) => u.role === g.role) })).filter((g) => g.users.length > 0)
