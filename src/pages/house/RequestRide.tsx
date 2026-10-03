@@ -36,7 +36,7 @@ export function RequestRide() {
 
   const [type, setType] = useState<RideType>('SCHEDULED')
   const [purpose, setPurpose] = useState<TripPurpose>('MEDICAL')
-  const [codename, setCodename] = useState('')
+  const [clientName, setClientName] = useState('')
   const [passengers, setPassengers] = useState(1)
   const [destinationId, setDestinationId] = useState('')
   const [customAddress, setCustomAddress] = useState('')
@@ -64,10 +64,10 @@ export function RequestRide() {
       orgId: house.orgId,
       houseId: house.id,
       requestedBy: currentUser.id,
-      codename: codename || undefined,
+      clientName: clientName.trim() || undefined,
       passengers,
       purpose,
-      pickupTime: new Date(pickupTime).toISOString(),
+      pickupTime: type === 'ON_DEMAND' ? new Date().toISOString() : new Date(pickupTime).toISOString(),
       needsWheelchair,
       needsAssistance,
       notes: notes || undefined,
@@ -178,25 +178,35 @@ export function RequestRide() {
       <fieldset>
         <legend className={label}>When</legend>
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="radio" className="h-5 w-5 shrink-0 accent-brand-600" checked={type === 'SCHEDULED'} onChange={() => setType('SCHEDULED')} />
-          <span>
-            <strong>Scheduled</strong>: booked ahead
-          </span>
+          <input
+            type="radio"
+            name="when"
+            className="h-5 w-5 shrink-0 accent-brand-600"
+            checked={type === 'SCHEDULED'}
+            onChange={() => setType('SCHEDULED')}
+          />
+          Scheduled
         </label>
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
-          <input type="radio" className="h-5 w-5 shrink-0 accent-brand-600" checked={type === 'ESSENTIAL'} onChange={() => setType('ESSENTIAL')} />
-          <span>
-            <strong>Essential</strong>: needed today, within a few hours
-          </span>
+          <input
+            type="radio"
+            name="when"
+            className="h-5 w-5 shrink-0 accent-brand-600"
+            checked={type === 'ON_DEMAND'}
+            onChange={() => setType('ON_DEMAND')}
+          />
+          On Demand
         </label>
-        <input
-          type="datetime-local"
-          aria-label="Pickup time"
-          className={`${input} mt-2`}
-          required
-          value={pickupTime}
-          onChange={(e) => setPickupTime(e.target.value)}
-        />
+        {type === 'SCHEDULED' && (
+          <input
+            type="datetime-local"
+            aria-label="Pickup time"
+            className={`${input} mt-2`}
+            required
+            value={pickupTime}
+            onChange={(e) => setPickupTime(e.target.value)}
+          />
+        )}
       </fieldset>
 
       <div>
@@ -204,15 +214,14 @@ export function RequestRide() {
         <input id="instructions" className={input} value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label} htmlFor="passengers">People riding</label>
-          <input id="passengers" type="number" min={1} max={12} className={input} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} />
-        </div>
-        <div>
-          <label className={label} htmlFor="codename">Codename (optional)</label>
-          <input id="codename" className={input} placeholder="Not a real name" value={codename} onChange={(e) => setCodename(e.target.value)} />
-        </div>
+      <div>
+        <label className={label} htmlFor="client-name">Name</label>
+        <input id="client-name" className={input} required value={clientName} onChange={(e) => setClientName(e.target.value)} />
+      </div>
+
+      <div>
+        <label className={label} htmlFor="passengers">People riding</label>
+        <input id="passengers" type="number" min={1} max={12} className={input} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} />
       </div>
 
       <fieldset>
@@ -229,7 +238,7 @@ export function RequestRide() {
 
       <div>
         <label className={label} htmlFor="notes">Notes for the driver (optional)</label>
-        <input id="notes" className={input} placeholder="No personal details" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <input id="notes" className={input} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       {/* TODO: suggest group rides (logic/groupRides.ts) before submitting */}

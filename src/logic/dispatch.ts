@@ -3,7 +3,7 @@ import { matchDrivers } from './matchDrivers'
 
 // How long a driver has to accept or decline before the offer moves on.
 export const OFFER_TIMEOUT_MINUTES: Record<RideType, number> = {
-  ESSENTIAL: 5,
+  ON_DEMAND: 5,
   SCHEDULED: 60,
 }
 
