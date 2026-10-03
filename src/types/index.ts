@@ -42,12 +42,16 @@ export interface User {
 
 export type DriverBackground = 'TAXI' | 'RIDESHARE' | 'ORG_DRIVER' | 'INDEPENDENT'
 
-// When a driver can take rides. Days use 0 = Sunday ... 6 = Saturday.
-export interface Availability {
-  days: number[]
+// A stretch of one day. Can't cross midnight.
+export interface TimeWindow {
   from: string // "HH:MM", 24-hour
   to: string // "HH:MM", 24-hour, same day
 }
+
+// When a driver is happy to be sent ride requests. It's not a promise to drive:
+// they still choose which requests to accept. Seven entries, 0 = Sunday ... 6 = Saturday;
+// null means no requests that day.
+export type RequestHours = (TimeWindow | null)[]
 
 export interface Driver {
   id: string
@@ -58,7 +62,7 @@ export interface Driver {
   wheelchairAccessible: boolean
   seats: number // spaces for passengers
   serviceCities: string[]
-  availability: Availability
+  requestHours: RequestHours
   minNoticeHours: number // how far ahead a ride must be booked
   licenceFile?: string // demo: file name only
   proofFile?: string // demo: proof of professional driving, file name only

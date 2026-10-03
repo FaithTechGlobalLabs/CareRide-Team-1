@@ -42,6 +42,7 @@ const navFor: Record<Exclude<UserRole, 'ORG_ADMIN'>, NavLinkItem[]> = {
   DRIVER: [
     { to: '/driver', label: 'Requests' },
     { to: '/driver/my-rides', label: 'My rides' },
+    { to: '/driver/settings', label: 'Settings' },
   ],
 }
 

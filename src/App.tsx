@@ -10,6 +10,7 @@ import { Register } from './pages/auth/register/Register'
 import { SignIn } from './pages/auth/SignIn'
 import { MyRides } from './pages/driver/MyRides'
 import { Requests } from './pages/driver/Requests'
+import { Settings } from './pages/driver/Settings'
 import { Dashboard } from './pages/house/Dashboard'
 import { RequestRide } from './pages/house/RequestRide'
 import { RideDetail } from './pages/house/RideDetail'
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/house/ride/:id" element={<RideDetail />} />
           <Route path="/driver" element={<Requests />} />
           <Route path="/driver/my-rides" element={<MyRides />} />
+          <Route path="/driver/settings" element={<Settings />} />
         </Route>
       </Route>
 

@@ -26,7 +26,7 @@ const NEXT_STEPS: Record<RegisterRole, string[]> = {
   ],
   DRIVER: [
     'The CareRide team checks your documents.',
-    'Once approved, ride requests that fit your schedule show up on your dashboard.',
+    'Once approved, we’ll send ride requests during the hours you picked. Change them anytime in Settings.',
     'Accept the ones you can take. Decline the rest, no questions asked.',
   ],
 }

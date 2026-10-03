@@ -1,4 +1,5 @@
-import type { Availability, Destination, Driver, House, Organization, Ride, RideOffer, User } from '../types'
+import { ALL_DAY, hoursOn } from '../logic/requestHours'
+import type { Destination, Driver, House, Organization, Ride, RideOffer, User } from '../types'
 
 // Demo data. Everything here is fictional except public place names.
 // TODO: confirm real house addresses with the project owners.
@@ -25,8 +26,10 @@ export interface Database {
   offers: RideOffer[]
 }
 
-const EVERY_DAY: Availability = { days: [0, 1, 2, 3, 4, 5, 6], from: '07:00', to: '22:00' }
-const WEEKDAYS: Availability = { days: [1, 2, 3, 4, 5], from: '09:00', to: '17:00' }
+// Frank takes requests any time so the demo always has someone to ask
+const ANY_TIME = hoursOn([0, 1, 2, 3, 4, 5, 6], ALL_DAY)
+const DAYS_AND_EVENINGS = hoursOn([0, 1, 2, 3, 4, 5, 6], { from: '07:00', to: '22:00' })
+const WEEKDAYS = hoursOn([1, 2, 3, 4, 5], { from: '09:00', to: '17:00' })
 
 function pastRide(id: string, destinationId: string, name: string, address: string, date: string): Ride {
   return {
@@ -109,7 +112,7 @@ export const seed: Database = {
       wheelchairAccessible: false,
       seats: 3,
       serviceCities: ['Vancouver', 'Richmond'],
-      availability: EVERY_DAY,
+      requestHours: ANY_TIME,
       minNoticeHours: 1,
       licenceFile: 'licence.pdf',
       proofFile: 'rideshare-permit.pdf',
@@ -124,7 +127,7 @@ export const seed: Database = {
       wheelchairAccessible: false,
       seats: 3,
       serviceCities: ['Vancouver', 'Richmond'],
-      availability: EVERY_DAY,
+      requestHours: DAYS_AND_EVENINGS,
       minNoticeHours: 1,
       licenceFile: 'licence.pdf',
       proofFile: 'taxi-permit.pdf',
@@ -140,7 +143,7 @@ export const seed: Database = {
       wheelchairAccessible: true,
       seats: 6,
       serviceCities: ['Vancouver'],
-      availability: WEEKDAYS,
+      requestHours: WEEKDAYS,
       minNoticeHours: 24,
       licenceFile: 'licence.pdf',
       status: 'APPROVED',
@@ -154,7 +157,7 @@ export const seed: Database = {
       wheelchairAccessible: false,
       seats: 3,
       serviceCities: ['Richmond'],
-      availability: EVERY_DAY,
+      requestHours: DAYS_AND_EVENINGS,
       minNoticeHours: 2,
       licenceFile: 'licence.pdf',
       proofFile: 'taxi-permit.pdf',
