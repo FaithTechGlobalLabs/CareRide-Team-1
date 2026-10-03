@@ -1,5 +1,6 @@
+import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
-import { pageTitle, primaryButton, secondaryButton } from '../../components/ui'
+import { dangerButton, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
@@ -51,12 +52,26 @@ export function MyRides() {
                   <button type="button" className={primaryButton} onClick={() => run(() => dataService.markPickedUp(r.id))}>
                     Picked up
                   </button>
-                  <button type="button" className={secondaryButton} onClick={() => run(() => dataService.markNoShow(r.id))}>
+                  <ConfirmButton
+                    className={secondaryButton}
+                    title="Client didn't show?"
+                    body="The client loses this ride. It won't be rebooked."
+                    confirmLabel="Yes, client didn't show"
+                    confirmClassName={dangerButton}
+                    onConfirm={() => run(() => dataService.markNoShow(r.id))}
+                  >
                     Client didn't show
-                  </button>
-                  <button type="button" className={secondaryButton} onClick={() => run(() => dataService.dropRide(r.id, driverId))}>
+                  </ConfirmButton>
+                  <ConfirmButton
+                    className={secondaryButton}
+                    title="Can't make this ride?"
+                    body="The house will see it, and we'll ask another driver."
+                    confirmLabel="Yes, I can't make it"
+                    confirmClassName={dangerButton}
+                    onConfirm={() => run(() => dataService.dropRide(r.id, driverId))}
+                  >
                     I can't make it
-                  </button>
+                  </ConfirmButton>
                 </>
               )}
               {r.status === 'PICKED_UP' && (

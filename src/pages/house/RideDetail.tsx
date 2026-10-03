@@ -1,6 +1,7 @@
 import { CarFront } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
+import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
 import { card, dangerButton, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
@@ -90,9 +91,16 @@ export function RideDetail() {
               Ask drivers again
             </button>
             {FALLBACKS.map((f) => (
-              <button key={f} type="button" className={`${secondaryButton} py-3 text-center`} onClick={() => cancel(f)}>
+              <ConfirmButton
+                key={f}
+                className={`${secondaryButton} py-3 text-center`}
+                title={`${f}?`}
+                body="This closes the ride in CareRide. No more drivers will be asked."
+                confirmLabel="Yes, close the ride"
+                onConfirm={() => cancel(f)}
+              >
                 <span className="whitespace-normal">{f}</span>
-              </button>
+              </ConfirmButton>
             ))}
           </div>
         </section>
@@ -138,9 +146,21 @@ export function RideDetail() {
           </button>
         )}
         {CAN_CANCEL.includes(ride.status) && (
-          <button type="button" className={dangerButton} onClick={() => cancel('Cancelled by the house')}>
+          <ConfirmButton
+            className={dangerButton}
+            title="Cancel this ride?"
+            body={
+              ride.status === 'ACCEPTED'
+                ? "It comes off the driver's list. This cannot be undone."
+                : 'We will stop asking drivers. This cannot be undone.'
+            }
+            confirmLabel="Yes, cancel the ride"
+            confirmClassName={dangerButton}
+            cancelLabel="Keep the ride"
+            onConfirm={() => cancel('Cancelled by the house')}
+          >
             Cancel ride
-          </button>
+          </ConfirmButton>
         )}
       </div>
 
