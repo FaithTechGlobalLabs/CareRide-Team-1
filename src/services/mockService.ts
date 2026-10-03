@@ -1,5 +1,5 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
-import { isExpired, nextDriver, offerExpiry } from '../logic/dispatch'
+import { driversToAsk, isExpired, offerExpiry } from '../logic/dispatch'
 import { DEFAULT_REQUEST_HOURS, hoursOn } from '../logic/requestHours'
 import type { Driver, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService } from './dataService'
@@ -65,32 +65,49 @@ function closePendingOffers(db: Database, rideId: string): void {
   }
 }
 
-// Offers the ride to the next eligible driver, or flags it for the house.
+function hasPendingOffers(db: Database, rideId: string): boolean {
+  return db.offers.some((o) => o.rideId === rideId && o.status === 'PENDING')
+}
+
+// Drivers with a client in the car can't take an on-demand ride right now.
+function busyDriverIds(db: Database, ride: Ride): string[] {
+  if (ride.type !== 'ON_DEMAND') return []
+  return db.rides.filter((r) => r.status === 'PICKED_UP' && r.driverId).map((r) => r.driverId!)
+}
+
+// Sends the ride to every driver who can take it right now, or flags it for the house.
 function dispatch(db: Database, ride: Ride): void {
   const house = db.houses.find((h) => h.id === ride.houseId)
-  const driver = nextDriver(ride, house, db.drivers, db.offers)
-  if (!driver) {
-    ride.status = 'NEEDS_ATTENTION'
+  const drivers = driversToAsk(ride, house, db.drivers, db.offers, busyDriverIds(db, ride))
+  if (drivers.length === 0) {
+    ride.status = hasPendingOffers(db, ride.id) ? 'OFFERED' : 'NEEDS_ATTENTION'
     return
   }
-  db.offers.push({
-    id: newId('offer'),
-    rideId: ride.id,
-    driverId: driver.id,
-    status: 'PENDING',
-    sentAt: now(),
-    expiresAt: offerExpiry(ride.type),
-  })
+  const sentAt = now()
+  for (const driver of drivers) {
+    db.offers.push({
+      id: newId('offer'),
+      rideId: ride.id,
+      driverId: driver.id,
+      status: 'PENDING',
+      sentAt,
+      expiresAt: offerExpiry(ride.type),
+    })
+  }
   ride.status = 'OFFERED'
+}
+
+// Once nobody is left to answer, asks the next drivers (if any).
+function dispatchIfUnanswered(db: Database, rideId: string): void {
+  const ride = db.rides.find((r) => r.id === rideId)
+  if (ride?.status === 'OFFERED' && !hasPendingOffers(db, rideId)) dispatch(db, ride)
 }
 
 // Moves timed-out offers on, and flags rides whose pickup time passed without a driver.
 function checkDeadlines(db: Database): void {
-  for (const offer of db.offers.filter((o) => isExpired(o))) {
-    offer.status = 'EXPIRED'
-    const ride = db.rides.find((r) => r.id === offer.rideId)
-    if (ride?.status === 'OFFERED') dispatch(db, ride)
-  }
+  const expired = db.offers.filter((o) => isExpired(o))
+  for (const offer of expired) offer.status = 'EXPIRED'
+  for (const rideId of new Set(expired.map((o) => o.rideId))) dispatchIfUnanswered(db, rideId)
   for (const ride of db.rides) {
     if (OPEN.includes(ride.status) && ride.type !== 'ON_DEMAND' && new Date(ride.pickupTime) <= new Date()) {
       closePendingOffers(db, ride.id)
@@ -246,12 +263,12 @@ export const mockService: DataService = {
         // Requests waiting on them move to the next driver
         for (const offer of db.offers.filter((o) => o.driverId === driver.id && o.status === 'PENDING')) {
           offer.status = 'EXPIRED'
-          const ride = db.rides.find((r) => r.id === offer.rideId)
-          if (ride?.status === 'OFFERED') dispatch(db, ride)
+          dispatchIfUnanswered(db, offer.rideId)
         }
         // Upcoming rides they accepted go back out
         for (const ride of db.rides.filter((r) => r.driverId === driver.id && r.status === 'ACCEPTED')) {
           ride.driverId = undefined
+          ride.acceptedAt = undefined
           dispatch(db, ride)
         }
       }
@@ -302,6 +319,8 @@ export const mockService: DataService = {
 
   listRidesForHouse: (houseId) => transact((db) => db.rides.filter((r) => r.houseId === houseId)),
 
+  listRidesRequestedByOrg: (orgId) => transact((db) => db.rides.filter((r) => r.orgId === orgId)),
+
   listOffersForRide: (rideId) => transact((db) => db.offers.filter((o) => o.rideId === rideId)),
 
   retryRide: (rideId) =>
@@ -343,17 +362,21 @@ export const mockService: DataService = {
     transact((db) => {
       const offer = findOrThrow(db.offers, offerId, 'Offer')
       const ride = findOrThrow(db.rides, offer.rideId, 'Ride')
-      if (offer.status !== 'PENDING') throw new Error('This request is no longer open.')
+      if (offer.status !== 'PENDING') {
+        throw new Error(ride.driverId ? 'Another driver already accepted this ride.' : 'This request is no longer open.')
+      }
       offer.respondedAt = now()
       if (accept) {
-        // Only one driver can accept a ride
+        // Only one driver can accept a ride: the first yes wins, everyone else's request closes
         if (ride.driverId) throw new Error('Another driver already accepted this ride.')
         offer.status = 'ACCEPTED'
+        closePendingOffers(db, ride.id)
         ride.status = 'ACCEPTED'
         ride.driverId = offer.driverId
+        ride.acceptedAt = offer.respondedAt
       } else {
         offer.status = 'DECLINED'
-        dispatch(db, ride)
+        dispatchIfUnanswered(db, ride.id)
       }
       return ride
     }),
@@ -363,6 +386,7 @@ export const mockService: DataService = {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       if (ride.driverId !== driverId) throw new Error('This ride belongs to another driver.')
       ride.driverId = undefined
+      ride.acceptedAt = undefined
       dispatch(db, ride)
       return ride
     }),

@@ -101,7 +101,7 @@ export interface Ride {
   type: RideType
   orgId: string
   houseId: string
-  requestedBy: string // house account User id
+  requestedBy: string // User id of the house account or org admin who booked it
   clientName?: string
   passengers: number
   purpose: TripPurpose
@@ -122,6 +122,7 @@ export interface Ride {
   cancelReason?: string
   estimatedFareSaved: number
   createdAt: string
+  acceptedAt?: string // when a driver said yes
   completedAt?: string
 }
 

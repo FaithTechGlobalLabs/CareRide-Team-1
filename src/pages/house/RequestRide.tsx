@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { EmergencyBanner } from '../../components/EmergencyBanner'
 import { input, label, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { DEFAULT_PICKUP_INSTRUCTIONS, PURPOSE_LABELS } from '../../constants'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { estimateFare } from '../../logic/estimateFare'
+import { ridePath } from '../../logic/homeFor'
 import { sortByPopularity } from '../../logic/popularDestinations'
 import { dataService } from '../../services'
 import type { RideType, TripPurpose } from '../../types'
@@ -20,18 +21,21 @@ function inTwoHours(): string {
 }
 
 // One-way trip. With ?returnOf=<rideId>, books the trip back to the house instead.
+// A house books for itself; an organization admin picks which of its houses the ride is for.
 export function RequestRide() {
   const { currentUser, refresh } = useApp()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const returnOf = params.get('returnOf') ?? ''
+  const isOrg = currentUser?.role === 'ORG_ADMIN'
 
-  const houseId = currentUser?.houseId ?? ''
-  const houses = useData(() => dataService.listHouses())
+  const houses = useData(() => dataService.listHouses(currentUser?.orgId), currentUser?.orgId)
+  const outbound = useData(() => (returnOf ? dataService.getRide(returnOf) : Promise.resolve(undefined)), returnOf)
+  const [pickedHouseId, setPickedHouseId] = useState('')
+  const houseId = outbound?.houseId ?? (isOrg ? pickedHouseId || houses?.[0]?.id : currentUser?.houseId) ?? ''
   const house = houses?.find((h) => h.id === houseId)
   const pastRides = useData(() => dataService.listRidesForHouse(houseId), houseId) ?? []
   const destinations = useData(() => dataService.listDestinations(currentUser?.orgId), currentUser?.orgId) ?? []
-  const outbound = useData(() => (returnOf ? dataService.getRide(returnOf) : Promise.resolve(undefined)), returnOf)
   const sorted = sortByPopularity(destinations, pastRides, houseId)
 
   const [type, setType] = useState<RideType>('SCHEDULED')
@@ -47,8 +51,19 @@ export function RequestRide() {
   const [notes, setNotes] = useState('')
   const [destinationError, setDestinationError] = useState('')
 
-  if (!house || !currentUser) return <p>This account isn't linked to a house.</p>
-  if (returnOf && !outbound) return null
+  if (!houses || (returnOf && !outbound)) return null
+  if (!house || !currentUser) {
+    return isOrg ? (
+      <p>
+        Add a house first, so drivers know where to pick clients up.{' '}
+        <Link to="/org/houses" className="font-semibold text-brand-700 underline underline-offset-2">
+          Add a house
+        </Link>
+      </p>
+    ) : (
+      <p>This account isn't linked to a house.</p>
+    )
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -97,7 +112,7 @@ export function RequestRide() {
         })
 
     refresh()
-    navigate(`/house/ride/${ride.id}`)
+    navigate(ridePath(currentUser.role, ride.id))
   }
 
   return (
@@ -125,10 +140,23 @@ export function RequestRide() {
         </div>
       ) : (
         <>
-          <div>
-            <span className={label}>From</span>
-            <p>{house.name}</p>
-          </div>
+          {isOrg && houses.length > 1 ? (
+            <div>
+              <label className={label} htmlFor="house">From</label>
+              <select id="house" className={input} value={house.id} onChange={(e) => setPickedHouseId(e.target.value)}>
+                {houses.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.name}, {h.city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <span className={label}>From</span>
+              <p>{house.name}</p>
+            </div>
+          )}
           <fieldset>
             <legend className={label}>To</legend>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Destination">

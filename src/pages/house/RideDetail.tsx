@@ -1,9 +1,11 @@
+import { CarFront } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
 import { RideCard } from '../../components/RideCard'
 import { card, dangerButton, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
+import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
 import type { OfferStatus, RideStatus } from '../../types'
 
@@ -23,7 +25,7 @@ const CAN_BOOK_RETURN: RideStatus[] = ['ACCEPTED', 'PICKED_UP', 'COMPLETED']
 export function RideDetail() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
-  const { users, refresh } = useApp()
+  const { currentUser, users, refresh } = useApp()
   const ride = useData(() => dataService.getRide(id), id)
   const offers = useData(() => dataService.listOffersForRide(id), id) ?? []
   const drivers = useData(() => dataService.listDrivers()) ?? []
@@ -53,6 +55,18 @@ export function RideDetail() {
       <div className="no-print">
         <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name} />
       </div>
+
+      {driver && (ride.status === 'ACCEPTED' || ride.status === 'PICKED_UP') && (
+        <section className="no-print flex items-start gap-4 rounded-2xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-600" aria-hidden>
+            <CarFront className="h-6 w-6" />
+          </span>
+          <div>
+            <h2 className="text-xl font-bold text-brand-900">{acceptedMessage(ride, driverUser?.name)}</h2>
+            <p className="text-brand-800">{driver.vehicle}</p>
+          </div>
+        </section>
+      )}
 
       {ride.status === 'NEEDS_ATTENTION' && (
         <section className={`${card} no-print border-2 border-red-500`}>
@@ -95,7 +109,10 @@ export function RideDetail() {
         <ul className="space-y-1">
           {offers.map((o) => (
             <li key={o.id}>
-              {driverName(o.driverId)}: <strong>{offerText[o.status]}</strong>
+              {driverName(o.driverId)}:{' '}
+              <strong>
+                {o.status === 'EXPIRED' && ride.driverId && !o.respondedAt ? 'Another driver accepted first' : offerText[o.status]}
+              </strong>
             </li>
           ))}
         </ul>
@@ -103,7 +120,7 @@ export function RideDetail() {
 
       <div className="no-print grid gap-3 sm:flex sm:flex-wrap">
         {!ride.returnOfRideId && CAN_BOOK_RETURN.includes(ride.status) && (
-          <button type="button" className={secondaryButton} onClick={() => navigate(`/house/request?returnOf=${ride.id}`)}>
+          <button type="button" className={secondaryButton} onClick={() => navigate(`/${currentUser?.role === 'ORG_ADMIN' ? 'org' : 'house'}/request?returnOf=${ride.id}`)}>
             Book the return trip
           </button>
         )}
