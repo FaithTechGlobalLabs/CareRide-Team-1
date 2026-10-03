@@ -5,7 +5,9 @@ import { useCurrentDriver, useCurrentOrg } from '../hooks/useCurrent'
 import { resetDemoData } from '../services/mockService'
 import type { UserRole } from '../types'
 import { AccountMenu } from './AccountMenu'
+import { IncomingRequests } from './IncomingRequests'
 import { Logo } from './Logo'
+import { RideAcceptedNotice } from './RideAcceptedNotice'
 import { ROLE_TONE, type Tone } from './ui'
 
 type NavLinkItem = { to: string; label: string }
@@ -19,6 +21,7 @@ const ACTIVE_NAV: Record<Tone, { soft: string; solid: string }> = {
 }
 
 const partnerOrgNav: NavLinkItem[] = [
+  { to: '/org/rides', label: 'Rides' },
   { to: '/org/houses', label: 'Houses' },
   { to: '/org/destinations', label: 'Destinations' },
   { to: '/org/drivers', label: 'Our drivers' },
@@ -115,6 +118,12 @@ export function Layout() {
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <Outlet />
       </main>
+
+      {/* Pop-ups: new requests for drivers, accepted rides for whoever booked them */}
+      <div className="no-print fixed inset-x-4 bottom-4 z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
+        <IncomingRequests />
+        <RideAcceptedNotice />
+      </div>
 
       <footer className="no-print mx-auto max-w-5xl px-4 pb-10 text-sm text-slate-500 sm:px-6">
         Demo data only. CareRide is an independent platform.{' '}

@@ -71,6 +71,7 @@ export interface DataService {
   requestRide(ride: NewRide): Promise<Ride>
   getRide(rideId: string): Promise<Ride | undefined>
   listRidesForHouse(houseId: string): Promise<Ride[]>
+  listRidesRequestedByOrg(orgId: string): Promise<Ride[]> // rides booked by a partner org's houses
   listOffersForRide(rideId: string): Promise<RideOffer[]>
   retryRide(rideId: string): Promise<Ride>
   cancelRide(rideId: string, reason: string): Promise<Ride>
