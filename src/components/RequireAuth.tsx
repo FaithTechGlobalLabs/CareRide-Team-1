@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
 
