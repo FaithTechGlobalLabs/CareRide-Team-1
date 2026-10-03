@@ -1,13 +1,13 @@
 import { RideCard } from '../../components/RideCard'
 import { pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
+import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
 
 export function MyRides() {
-  const { currentUser, refresh } = useApp()
-  const drivers = useData(() => dataService.listDrivers())
-  const driver = drivers?.find((d) => d.userId === currentUser?.id)
+  const { refresh } = useApp()
+  const driver = useCurrentDriver()
   const driverId = driver?.id ?? ''
   const rides = useData(() => dataService.listMyRides(driverId), driverId) ?? []
 
@@ -16,8 +16,10 @@ export function MyRides() {
     refresh()
   }
 
-  const current = rides.filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP')
-  const past = rides.filter((r) => r.status === 'COMPLETED')
+  const current = rides
+    .filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP')
+    .sort((a, b) => a.pickupTime.localeCompare(b.pickupTime))
+  const past = rides.filter((r) => r.status === 'COMPLETED' || r.status === 'NO_SHOW')
 
   return (
     <div className="space-y-8">
@@ -29,6 +31,14 @@ export function MyRides() {
             <RideCard key={r.id} ride={r}>
               <p className="w-full">
                 <strong>Pick up at:</strong> {r.pickupAddress}
+                {r.pickupInstructions && (
+                  <>
+                    <br />
+                    <strong>Meet:</strong> {r.pickupInstructions}
+                  </>
+                )}
+                <br />
+                <strong>Drop off at:</strong> {r.destinationAddress}
                 {r.notes && (
                   <>
                     <br />
@@ -41,6 +51,9 @@ export function MyRides() {
                   <button type="button" className={primaryButton} onClick={() => run(() => dataService.markPickedUp(r.id))}>
                     Picked up
                   </button>
+                  <button type="button" className={secondaryButton} onClick={() => run(() => dataService.markNoShow(r.id))}>
+                    Client didn't show
+                  </button>
                   <button type="button" className={secondaryButton} onClick={() => run(() => dataService.dropRide(r.id, driverId))}>
                     I can't make it
                   </button>
@@ -48,7 +61,7 @@ export function MyRides() {
               )}
               {r.status === 'PICKED_UP' && (
                 <button type="button" className={primaryButton} onClick={() => run(() => dataService.markCompleted(r.id))}>
-                  Dropped off
+                  Dropped off: tell the house
                 </button>
               )}
             </RideCard>
@@ -57,8 +70,8 @@ export function MyRides() {
       </section>
 
       <section>
-        <h2 className={pageTitle}>Completed</h2>
-        {past.length === 0 && <p>No completed rides yet.</p>}
+        <h2 className={pageTitle}>Past rides</h2>
+        {past.length === 0 && <p>No past rides yet.</p>}
         <div className="space-y-3">
           {past.map((r) => (
             <RideCard key={r.id} ride={r} />

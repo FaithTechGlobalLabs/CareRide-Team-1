@@ -3,7 +3,9 @@
 
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
-export type OrgType = 'SOCIAL_SERVICE' | 'TRANSPORT_PROVIDER'
+// A partner org requests rides (and may also have its own vehicles).
+// A transport provider only gives rides.
+export type OrgType = 'PARTNER_ORG' | 'TRANSPORT_PROVIDER'
 
 export interface Organization {
   id: string
@@ -11,10 +13,13 @@ export interface Organization {
   type: OrgType
   contactName: string
   contactPhone: string
+  bookingNotifications?: string // phone or email that hears about new bookings
   status: VerificationStatus
 }
 
-export interface Facility {
+// Point A: a housing location where clients live, e.g. Belkin House.
+// Each house has exactly one shared account.
+export interface House {
   id: string
   orgId: string
   name: string
@@ -23,36 +28,48 @@ export interface Facility {
   phone: string
 }
 
-export type UserRole = 'PLATFORM_ADMIN' | 'ORG_ADMIN' | 'STAFF' | 'DRIVER'
+export type UserRole = 'PLATFORM_ADMIN' | 'ORG_ADMIN' | 'HOUSE' | 'DRIVER'
 
 export interface User {
   id: string
   name: string
+  email?: string // used to sign in
   phone: string
   role: UserRole
   orgId?: string
-  facilityId?: string // staff belong to a facility
+  houseId?: string // set on a house account
 }
 
-export type DriverBackground = 'TAXI' | 'RIDESHARE' | 'INDEPENDENT' | 'PARTNER_ORG'
+export type DriverBackground = 'TAXI' | 'RIDESHARE' | 'ORG_DRIVER' | 'INDEPENDENT'
+
+// When a driver can take rides. Days use 0 = Sunday ... 6 = Saturday.
+export interface Availability {
+  days: number[]
+  from: string // "HH:MM", 24-hour
+  to: string // "HH:MM", 24-hour, same day
+}
 
 export interface Driver {
   id: string
   userId: string
-  orgId?: string // set if driving for a transport organization
+  orgId?: string // set if the driver belongs to an organization
   background: DriverBackground
   vehicle: string
   wheelchairAccessible: boolean
-  seats: number
+  seats: number // spaces for passengers
   serviceCities: string[]
+  availability: Availability
+  minNoticeHours: number // how far ahead a ride must be booked
   licenceFile?: string // demo: file name only
-  recordCheckFile?: string // demo: file name only
+  proofFile?: string // demo: proof of professional driving, file name only
   status: VerificationStatus
-  available: boolean // the "I'm available" switch
+  available: boolean // false = paused, gets no requests
 }
 
+// Point B: a place clients go, e.g. St. Paul's Hospital. Added by the partner org.
 export interface Destination {
   id: string
+  orgId: string
   name: string
   address: string
   city: string
@@ -61,6 +78,8 @@ export interface Destination {
 
 export type RideType = 'ESSENTIAL' | 'SCHEDULED'
 
+export type TripPurpose = 'MEDICAL' | 'SOCIAL_SERVICES' | 'HOUSING' | 'LEGAL_OR_ID' | 'OTHER'
+
 export type RideStatus =
   | 'SEARCHING'
   | 'OFFERED'
@@ -68,19 +87,24 @@ export type RideStatus =
   | 'NEEDS_ATTENTION'
   | 'PICKED_UP'
   | 'COMPLETED'
+  | 'NO_SHOW'
   | 'CANCELLED'
 
+// A one-way trip. A return trip is a separate ride linked by returnOfRideId.
+// No client information is stored: no name, phone, or history.
 export interface Ride {
   id: string
   type: RideType
   orgId: string
-  facilityId: string
-  requestedBy: string // staff User id, the person responsible
-  clientName: string // first name or initials only
-  clientRef: string // internal reference, e.g. "C-104"
-  clientPhone?: string
+  houseId: string
+  requestedBy: string // house account User id
+  codename?: string // optional, never the client's real name
+  passengers: number
+  purpose: TripPurpose
   pickupAddress: string
-  destinationId?: string
+  pickupInstructions?: string // e.g. "Meet in the front lobby"
+  destinationId?: string // if a saved destination was used
+  destinationName: string
   destinationAddress: string
   pickupTime: string // ISO date-time
   needsWheelchair: boolean
@@ -88,11 +112,13 @@ export interface Ride {
   notes?: string
   status: RideStatus
   driverId?: string // set once accepted
+  preferredDriverId?: string // asked first, e.g. the driver of the outbound trip
   returnOfRideId?: string // set on a return trip
   groupId?: string // set when combined with other rides
   cancelReason?: string
   estimatedFareSaved: number
   createdAt: string
+  completedAt?: string
 }
 
 export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED'

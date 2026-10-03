@@ -1,4 +1,5 @@
 import { card, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
+import { BACKGROUND_LABELS, ORG_TYPE_LABELS, WEEKDAYS } from '../../constants'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
@@ -7,6 +8,7 @@ import type { VerificationStatus } from '../../types'
 export function Approvals() {
   const { users, refresh } = useApp()
   const pending = useData(() => dataService.listPending())
+  const orgs = useData(() => dataService.listOrganizations()) ?? []
 
   async function setOrg(id: string, status: VerificationStatus) {
     await dataService.setOrgStatus(id, status)
@@ -21,6 +23,7 @@ export function Approvals() {
   return (
     <div className="space-y-8">
       <h1 className={pageTitle}>Approvals</h1>
+      {/* TODO: how we verify organizations and drivers is still an open question */}
 
       <section>
         <h2 className="mb-3 text-xl font-bold">Organizations</h2>
@@ -28,12 +31,11 @@ export function Approvals() {
         <div className="space-y-3">
           {pending?.orgs.map((org) => (
             <div key={org.id} className={card}>
-              <p className="text-lg font-semibold">{org.name}</p>
+              <p className="break-words text-lg font-semibold">{org.name}</p>
               <p className="text-slate-600">
-                {org.type === 'SOCIAL_SERVICE' ? 'Requests rides' : 'Provides rides'} · {org.contactName},{' '}
-                {org.contactPhone}
+                {ORG_TYPE_LABELS[org.type]} · {org.contactName}, {org.contactPhone}
               </p>
-              <div className="mt-3 flex gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:flex">
                 <button type="button" className={primaryButton} onClick={() => setOrg(org.id, 'APPROVED')}>
                   Approve
                 </button>
@@ -52,15 +54,24 @@ export function Approvals() {
         <div className="space-y-3">
           {pending?.drivers.map((driver) => (
             <div key={driver.id} className={card}>
-              <p className="text-lg font-semibold">{users.find((u) => u.id === driver.userId)?.name}</p>
+              <p className="break-words text-lg font-semibold">{users.find((u) => u.id === driver.userId)?.name}</p>
               <p className="text-slate-600">
-                {driver.vehicle} · {driver.seats} seats
+                {BACKGROUND_LABELS[driver.background]}
+                {driver.orgId && ` · ${orgs.find((o) => o.id === driver.orgId)?.name}`}
+              </p>
+              <p className="text-slate-600">
+                {driver.vehicle} · {driver.seats} spaces
                 {driver.wheelchairAccessible && ' · Wheelchair accessible'} · {driver.serviceCities.join(', ')}
               </p>
               <p className="text-slate-600">
-                Licence: {driver.licenceFile ?? 'missing'} · Record check: {driver.recordCheckFile ?? 'missing'}
+                {driver.availability.days.map((d) => WEEKDAYS[d]).join(', ')} · {driver.availability.from}–
+                {driver.availability.to} · {driver.minNoticeHours}h notice
               </p>
-              <div className="mt-3 flex gap-3">
+              <p className="text-slate-600">
+                Licence: {driver.licenceFile ?? 'missing'}
+                {driver.proofFile && ` · Professional proof: ${driver.proofFile}`}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:flex">
                 <button type="button" className={primaryButton} onClick={() => setDriver(driver.id, 'APPROVED')}>
                   Approve
                 </button>

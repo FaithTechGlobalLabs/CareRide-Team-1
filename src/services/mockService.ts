@@ -1,12 +1,15 @@
+import { MIN_PASSWORD_LENGTH } from '../constants'
 import { isExpired, nextDriver, offerExpiry } from '../logic/dispatch'
-import type { Driver, Ride, RideOffer } from '../types'
+import type { Driver, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService } from './dataService'
 import { seed, type Database } from './seed'
 
 // Hackathon backend: keeps everything in the browser's localStorage.
 // Swap this file for a real backend later; screens won't need to change.
 
-const STORAGE_KEY = 'careride-db'
+const STORAGE_KEY = 'careride-db-v3'
+
+const OPEN: RideStatus[] = ['SEARCHING', 'OFFERED']
 
 function load(): Database {
   try {
@@ -44,10 +47,16 @@ function findOrThrow<T extends { id: string }>(items: T[], id: string, label: st
   return item
 }
 
-// Offers the ride to the next eligible driver, or flags it for staff.
+function closePendingOffers(db: Database, rideId: string): void {
+  for (const o of db.offers) {
+    if (o.rideId === rideId && o.status === 'PENDING') o.status = 'EXPIRED'
+  }
+}
+
+// Offers the ride to the next eligible driver, or flags it for the house.
 function dispatch(db: Database, ride: Ride): void {
-  const facility = db.facilities.find((f) => f.id === ride.facilityId)
-  const driver = nextDriver(ride, facility, db.drivers, db.offers)
+  const house = db.houses.find((h) => h.id === ride.houseId)
+  const driver = nextDriver(ride, house, db.drivers, db.offers)
   if (!driver) {
     ride.status = 'NEEDS_ATTENTION'
     return
@@ -63,56 +72,181 @@ function dispatch(db: Database, ride: Ride): void {
   ride.status = 'OFFERED'
 }
 
-// Moves timed-out offers on to the next driver.
-function expireOffers(db: Database): void {
+// Moves timed-out offers on, and flags rides whose pickup time passed without a driver.
+function checkDeadlines(db: Database): void {
   for (const offer of db.offers.filter((o) => isExpired(o))) {
     offer.status = 'EXPIRED'
     const ride = db.rides.find((r) => r.id === offer.rideId)
     if (ride?.status === 'OFFERED') dispatch(db, ride)
   }
+  for (const ride of db.rides) {
+    if (OPEN.includes(ride.status) && new Date(ride.pickupTime) <= new Date()) {
+      closePendingOffers(db, ride.id)
+      ride.status = 'NEEDS_ATTENTION'
+    }
+  }
 }
 
 // Runs a change against the database and saves it.
+// Nothing is saved if the change throws.
 function transact<T>(fn: (db: Database) => T): Promise<T> {
-  const db = load()
-  expireOffers(db)
-  const result = fn(db)
-  save(db)
-  return Promise.resolve(result)
+  try {
+    const db = load()
+    checkDeadlines(db)
+    const result = fn(db)
+    save(db)
+    return Promise.resolve(result)
+  } catch (err) {
+    return Promise.reject(err)
+  }
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
+}
+
+function addLogin(db: Database, userId: string, email: string, password: string): void {
+  const normalized = normalizeEmail(email)
+  if (db.credentials.some((c) => c.email === normalized)) {
+    throw new Error('An account with this email already exists.')
+  }
+  db.credentials.push({ email: normalized, userId, password })
+}
+
+// Readable temporary password for a new house account, e.g. "ride-4821".
+function tempPassword(): string {
+  return `ride-${Math.floor(1000 + Math.random() * 9000)}`
+}
+
+function driverIdsForOrg(db: Database, orgId: string): string[] {
+  return db.drivers.filter((d) => d.orgId === orgId).map((d) => d.id)
 }
 
 export const mockService: DataService = {
   listUsers: () => transact((db) => db.users),
 
-  registerOrganization: (org) =>
+  signIn: (email, password) =>
     transact((db) => {
-      const created = { ...org, id: newId('org'), status: 'PENDING' as const }
+      const login = db.credentials.find((c) => c.email === normalizeEmail(email))
+      const user = login && login.password === password && db.users.find((u) => u.id === login.userId)
+      if (!user) throw new Error("That email and password don't match. Please try again.")
+      return user
+    }),
+
+  isEmailAvailable: (email) =>
+    transact((db) => !db.credentials.some((c) => c.email === normalizeEmail(email))),
+
+  registerOrganization: (org, admin) =>
+    transact((db) => {
+      const created: Organization = { ...org, id: newId('org'), status: 'PENDING' }
+      const user: User = {
+        id: newId('u'),
+        name: admin.name,
+        email: normalizeEmail(admin.email),
+        phone: org.contactPhone,
+        role: 'ORG_ADMIN',
+        orgId: created.id,
+      }
+      addLogin(db, user.id, admin.email, admin.password)
       db.organizations.push(created)
-      return created
+      db.users.push(user)
+      return { org: created, user }
     }),
 
   listOrganizations: () => transact((db) => db.organizations),
 
-  addFacility: (facility) =>
+  addHouse: (house, loginEmail) =>
     transact((db) => {
-      const created = { ...facility, id: newId('fac') }
-      db.facilities.push(created)
-      return created
+      const created = { ...house, id: newId('house') }
+      // One shared account per house, not one per case manager
+      const user: User = {
+        id: newId('u'),
+        name: house.name,
+        email: loginEmail ? normalizeEmail(loginEmail) : undefined,
+        phone: house.phone,
+        role: 'HOUSE',
+        orgId: house.orgId,
+        houseId: created.id,
+      }
+      const password = loginEmail ? tempPassword() : undefined
+      if (loginEmail && password) addLogin(db, user.id, loginEmail, password)
+      db.houses.push(created)
+      db.users.push(user)
+      return { house: created, tempPassword: password }
     }),
 
-  listFacilities: (orgId) =>
-    transact((db) => db.facilities.filter((f) => !orgId || f.orgId === orgId)),
+  listHouses: (orgId) => transact((db) => db.houses.filter((h) => !orgId || h.orgId === orgId)),
 
-  registerDriver: (user, driver) =>
+  registerDriver: (newUser, driver, login) =>
     transact((db) => {
-      const userId = newId('u')
-      db.users.push({ ...user, id: userId, role: 'DRIVER' })
-      const created: Driver = { ...driver, id: newId('d'), userId, status: 'PENDING', available: false }
+      const user: User = {
+        ...newUser,
+        id: newId('u'),
+        email: login ? normalizeEmail(login.email) : undefined,
+        role: 'DRIVER',
+        orgId: driver.orgId,
+      }
+      if (login) addLogin(db, user.id, login.email, login.password)
+      const created: Driver = { ...driver, id: newId('d'), userId: user.id, status: 'PENDING', available: true }
+      db.users.push(user)
       db.drivers.push(created)
-      return created
+      return { driver: created, user }
     }),
 
-  listDrivers: () => transact((db) => db.drivers),
+  listDrivers: (orgId) => transact((db) => db.drivers.filter((d) => !orgId || d.orgId === orgId)),
+
+  setAvailability: (driverId, available) =>
+    transact((db) => {
+      const driver = findOrThrow(db.drivers, driverId, 'Driver')
+      driver.available = available
+      return driver
+    }),
+
+  listAccounts: () =>
+    transact((db) => {
+      const withLogin = new Set(db.credentials.map((c) => c.userId))
+      return db.users.filter((u) => withLogin.has(u.id))
+    }),
+
+  resetPassword: (userId, newPassword) =>
+    transact((db) => {
+      const login = db.credentials.find((c) => c.userId === userId)
+      if (!login) throw new Error("This account doesn't have a sign-in.")
+      const password = newPassword ?? tempPassword()
+      if (password.length < MIN_PASSWORD_LENGTH) throw new Error(`Use at least ${MIN_PASSWORD_LENGTH} characters.`)
+      login.password = password
+      return { email: login.email, password }
+    }),
+
+  deleteAccount: (userId) =>
+    transact((db) => {
+      const user = findOrThrow(db.users, userId, 'Account')
+      if (user.role === 'PLATFORM_ADMIN' && db.users.filter((u) => u.role === 'PLATFORM_ADMIN').length === 1) {
+        throw new Error("This is the only CareRide admin account, so it can't be deleted.")
+      }
+
+      const driver = db.drivers.find((d) => d.userId === userId)
+      if (driver) {
+        if (db.rides.some((r) => r.driverId === driver.id && r.status === 'PICKED_UP')) {
+          throw new Error('This driver has a client in the car right now. Try again once the ride is finished.')
+        }
+        db.drivers = db.drivers.filter((d) => d.id !== driver.id)
+        // Requests waiting on them move to the next driver
+        for (const offer of db.offers.filter((o) => o.driverId === driver.id && o.status === 'PENDING')) {
+          offer.status = 'EXPIRED'
+          const ride = db.rides.find((r) => r.id === offer.rideId)
+          if (ride?.status === 'OFFERED') dispatch(db, ride)
+        }
+        // Upcoming rides they accepted go back out
+        for (const ride of db.rides.filter((r) => r.driverId === driver.id && r.status === 'ACCEPTED')) {
+          ride.driverId = undefined
+          dispatch(db, ride)
+        }
+      }
+
+      db.credentials = db.credentials.filter((c) => c.userId !== userId)
+      db.users = db.users.filter((u) => u.id !== userId)
+    }),
 
   listPending: () =>
     transact((db) => ({
@@ -134,8 +268,8 @@ export const mockService: DataService = {
       return driver
     }),
 
-  listDestinations: (city) =>
-    transact((db) => db.destinations.filter((d) => !city || d.city === city)),
+  listDestinations: (orgId) =>
+    transact((db) => db.destinations.filter((d) => !orgId || d.orgId === orgId)),
 
   saveDestination: (dest) =>
     transact((db) => {
@@ -154,8 +288,7 @@ export const mockService: DataService = {
 
   getRide: (rideId) => transact((db) => db.rides.find((r) => r.id === rideId)),
 
-  listRidesForFacility: (facilityId) =>
-    transact((db) => db.rides.filter((r) => r.facilityId === facilityId)),
+  listRidesForHouse: (houseId) => transact((db) => db.rides.filter((r) => r.houseId === houseId)),
 
   listOffersForRide: (rideId) => transact((db) => db.offers.filter((o) => o.rideId === rideId)),
 
@@ -173,27 +306,30 @@ export const mockService: DataService = {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       ride.status = 'CANCELLED'
       ride.cancelReason = reason
-      for (const o of db.offers) {
-        if (o.rideId === rideId && o.status === 'PENDING') o.status = 'EXPIRED'
-      }
+      closePendingOffers(db, rideId)
       return ride
-    }),
-
-  setAvailability: (driverId, available) =>
-    transact((db) => {
-      const driver = findOrThrow(db.drivers, driverId, 'Driver')
-      driver.available = available
-      return driver
     }),
 
   listMyOffers: (driverId) =>
     transact((db) => db.offers.filter((o) => o.driverId === driverId && o.status === 'PENDING')),
 
+  listOffersForOrg: (orgId) =>
+    transact((db) => {
+      const ids = driverIdsForOrg(db, orgId)
+      return db.offers.filter((o) => ids.includes(o.driverId) && o.status === 'PENDING')
+    }),
+
   listMyRides: (driverId) => transact((db) => db.rides.filter((r) => r.driverId === driverId)),
+
+  listRidesForOrg: (orgId) =>
+    transact((db) => {
+      const ids = driverIdsForOrg(db, orgId)
+      return db.rides.filter((r) => r.driverId && ids.includes(r.driverId))
+    }),
 
   respondToOffer: (offerId, accept) =>
     transact((db) => {
-      const offer: RideOffer = findOrThrow(db.offers, offerId, 'Offer')
+      const offer = findOrThrow(db.offers, offerId, 'Offer')
       const ride = findOrThrow(db.rides, offer.rideId, 'Ride')
       if (offer.status !== 'PENDING') throw new Error('This request is no longer open.')
       offer.respondedAt = now()
@@ -230,6 +366,15 @@ export const mockService: DataService = {
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       ride.status = 'COMPLETED'
+      ride.completedAt = now()
+      return ride
+    }),
+
+  markNoShow: (rideId) =>
+    transact((db) => {
+      const ride = findOrThrow(db.rides, rideId, 'Ride')
+      ride.status = 'NO_SHOW'
+      ride.cancelReason = 'Client did not show up. The ride is lost.'
       return ride
     }),
 

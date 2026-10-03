@@ -1,15 +1,17 @@
+import { Hourglass } from 'lucide-react'
 import { AvailabilityToggle } from '../../components/AvailabilityToggle'
 import { OfferCard } from '../../components/OfferCard'
-import { pageTitle } from '../../components/ui'
+import { card, pageTitle } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
+import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
 
 export function Requests() {
-  const { currentUser, refresh } = useApp()
-  const drivers = useData(() => dataService.listDrivers())
-  const driver = drivers?.find((d) => d.userId === currentUser?.id)
+  const { refresh } = useApp()
+  const driver = useCurrentDriver()
   const driverId = driver?.id ?? ''
+  const houses = useData(() => dataService.listHouses()) ?? []
 
   const offers = useData(async () => {
     const pending = await dataService.listMyOffers(driverId)
@@ -20,11 +22,22 @@ export function Requests() {
   if (!driver) return <p>No driver profile found.</p>
   if (driver.status !== 'APPROVED') {
     return (
-      <div>
-        <h1 className={pageTitle}>Thanks for signing up</h1>
-        <p>Your documents are being reviewed. You'll get ride requests once you're approved.</p>
+      <div className={`${card} mx-auto max-w-xl p-8 text-center`}>
+        <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600" aria-hidden>
+          <Hourglass className="h-7 w-7" />
+        </span>
+        <h1 className="text-2xl font-extrabold tracking-tight">We're checking your documents</h1>
+        <p className="mt-2 text-slate-600">
+          The CareRide team reviews every driver before the first ride. Once you're approved, requests that fit your
+          schedule will show up right here.
+        </p>
       </div>
     )
+  }
+
+  const pickupArea = (houseId: string) => {
+    const house = houses.find((h) => h.id === houseId)
+    return house && `${house.name}, ${house.city}`
   }
 
   async function setAvailable(available: boolean) {
@@ -51,7 +64,13 @@ export function Requests() {
         {offers?.map(
           ({ offer, ride }) =>
             ride && (
-              <OfferCard key={offer.id} offer={offer} ride={ride} onRespond={(accept) => respond(offer.id, accept)} />
+              <OfferCard
+                key={offer.id}
+                offer={offer}
+                ride={ride}
+                from={ride.returnOfRideId ? undefined : pickupArea(ride.houseId)}
+                onRespond={(accept) => respond(offer.id, accept)}
+              />
             ),
         )}
       </div>

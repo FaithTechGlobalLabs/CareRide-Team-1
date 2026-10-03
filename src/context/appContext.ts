@@ -4,7 +4,10 @@ import type { User } from '../types'
 export interface AppState {
   users: User[]
   currentUser: User | undefined
-  setCurrentUserId: (id: string) => void
+  ready: boolean // users have loaded, so currentUser can be trusted
+  signIn: (user: User) => void
+  signOut: () => void
+  signedOut: boolean // true right after an intentional sign-out
   // Bumped after every change so screens reload their data
   version: number
   refresh: () => void
