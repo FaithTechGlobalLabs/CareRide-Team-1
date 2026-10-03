@@ -1,60 +1,75 @@
-# FaithTech Create Template Project
+# React + TypeScript + Vite
 
-Team : Adi, Noah, Gilbert
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Tagline for the project
+Currently, two official plugins are available:
 
-![MIT License](https://badgen.net/badge/license/MIT/blue)
-![Discover](https://badgen.net/badge/stage/discover/orange)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-<!--
-Other 4D cycle badges
-![Discern](https://badgen.net/badge/stage/discern/gray)
-![Develop](https://badgen.net/badge/stage/develop/blue)
-![Demonstrate](https://badgen.net/badge/stage/demonstrate/green)
--->
+## React Compiler
 
-Overview of the project.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## 📋 Requirementss
+## Expanding the ESLint configuration
 
-Details on prerequisites and requirements for setting up the development environment.
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## 🚀 Getting Started
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Instructions on setting up the project.
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## 🗓️ How to Participate
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-*(Example)*
+```
 
-- We chat async on FaithTech Slack | [#prj-our-project][slack]
-- We meet online every Thursday at 4PM ET | [conference link][online-meeting]
-- We meet in-person every third Thursday of the month | [events calendar][inperson-meeting]
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
 
-[online-meeting]: https://zoom.us/
-[inperson-meeting]: https://faithtech.com/events/
-[slack]: https://faithtechhub.slack.com/archives/C7R5FM25B
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-## 👏 How to Contribute
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-Details on how to get involved with the project.
-
-### [Code of Conduct][code]
-
-We have adopted a Code of Conduct that we expect project participants to adhere to.
-Please read the [full text][code] so that you can understand what actions will and will not be tolerated.
-
-[code]: https://github.com/FaithTechGlobalLabs/.github/blob/main/CODE_OF_CONDUCT.md
-
-### Contributing Guide
-
-Instructions on how people can contribute to this project.
-
-## 📄 License
-
-*(Modify based on your selected license)*
-
-Project is MIT licensed, as found in the [LICENSE][license] file.
-
-[license]: ./LICENSE
+```
