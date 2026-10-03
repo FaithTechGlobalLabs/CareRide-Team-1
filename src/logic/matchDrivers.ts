@@ -11,6 +11,7 @@ export function matchDrivers(
   drivers: Driver[],
   excludeDriverIds: string[] = [],
   now = new Date(),
+  checkRequestHours = true, // false: also count drivers whose request hours open later
 ): Driver[] {
   const pickup = new Date(ride.pickupTime)
 
@@ -22,7 +23,7 @@ export function matchDrivers(
       (!house || d.serviceCities.includes(house.city)) &&
       d.seats >= ride.passengers &&
       (!ride.needsWheelchair || d.wheelchairAccessible) &&
-      isWithinRequestHours(d.requestHours, now) &&
+      (!checkRequestHours || isWithinRequestHours(d.requestHours, now)) &&
       (ride.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)),
   )
 

@@ -1,5 +1,6 @@
+import { DriverTripActions, driverRideStatusLabel } from '../../components/DriverTripActions'
 import { RideCard } from '../../components/RideCard'
-import { pageTitle, primaryButton, secondaryButton } from '../../components/ui'
+import { pageTitle } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
@@ -10,11 +11,7 @@ export function MyRides() {
   const driver = useCurrentDriver()
   const driverId = driver?.id ?? ''
   const rides = useData(() => dataService.listMyRides(driverId), driverId) ?? []
-
-  async function run(action: () => Promise<unknown>) {
-    await action()
-    refresh()
-  }
+  const houses = useData(() => dataService.listHouses()) ?? []
 
   const current = rides
     .filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP')
@@ -28,42 +25,13 @@ export function MyRides() {
         {current.length === 0 && <p>No upcoming rides.</p>}
         <div className="space-y-3">
           {current.map((r) => (
-            <RideCard key={r.id} ride={r}>
-              <p className="w-full">
-                <strong>Pick up at:</strong> {r.pickupAddress}
-                {r.pickupInstructions && (
-                  <>
-                    <br />
-                    <strong>Meet:</strong> {r.pickupInstructions}
-                  </>
-                )}
-                <br />
-                <strong>Drop off at:</strong> {r.destinationAddress}
-                {r.notes && (
-                  <>
-                    <br />
-                    <strong>Notes:</strong> {r.notes}
-                  </>
-                )}
-              </p>
-              {r.status === 'ACCEPTED' && (
-                <>
-                  <button type="button" className={primaryButton} onClick={() => run(() => dataService.markPickedUp(r.id))}>
-                    Picked up
-                  </button>
-                  <button type="button" className={secondaryButton} onClick={() => run(() => dataService.markNoShow(r.id))}>
-                    Client didn't show
-                  </button>
-                  <button type="button" className={secondaryButton} onClick={() => run(() => dataService.dropRide(r.id, driverId))}>
-                    I can't make it
-                  </button>
-                </>
-              )}
-              {r.status === 'PICKED_UP' && (
-                <button type="button" className={primaryButton} onClick={() => run(() => dataService.markCompleted(r.id))}>
-                  Dropped off: tell the house
-                </button>
-              )}
+            <RideCard key={r.id} ride={r} statusLabel={driverRideStatusLabel(r)}>
+              <DriverTripActions
+                ride={r}
+                house={houses.find((h) => h.id === r.houseId)}
+                driverId={driverId}
+                onDone={refresh}
+              />
             </RideCard>
           ))}
         </div>

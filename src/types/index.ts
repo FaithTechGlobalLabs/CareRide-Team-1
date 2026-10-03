@@ -101,7 +101,7 @@ export interface Ride {
   type: RideType
   orgId: string
   houseId: string
-  requestedBy: string // house account User id
+  requestedBy: string // User id of the house account or org admin who booked it
   clientName?: string
   passengers: number
   purpose: TripPurpose
@@ -122,10 +122,16 @@ export interface Ride {
   cancelReason?: string
   estimatedFareSaved: number
   createdAt: string
+  acceptedAt?: string // when a driver said yes
+  driverArrivedAt?: string // driver tapped "I'm here" at pickup
   completedAt?: string
+  cancelledAt?: string
+  droppedBy?: { driverId: string; at: string } // last driver who accepted, then said they can't make it
 }
 
-export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED'
+// WITHDRAWN: the driver accepted, then said they can't make it.
+// TAKEN: another driver accepted first, so this driver never got to answer.
+export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'WITHDRAWN' | 'TAKEN'
 
 export interface RideOffer {
   id: string

@@ -1,7 +1,7 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
-import { isExpired, nextDriver, offerExpiry } from '../logic/dispatch'
+import { canWaitForDrivers, driversToAsk, isExpired, offerExpiry } from '../logic/dispatch'
 import { DEFAULT_REQUEST_HOURS, hoursOn } from '../logic/requestHours'
-import type { Driver, Organization, Ride, RideStatus, User } from '../types'
+import type { Driver, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService } from './dataService'
 import { seed, type Database } from './seed'
 
@@ -53,48 +53,94 @@ function now(): string {
   return new Date().toISOString()
 }
 
+// Each step of a ride can only follow the one before it, e.g. no pickup on a cancelled ride.
+// Two tabs (or a slow refresh) can show a button for a step that no longer applies.
+function requireStatus(ride: Ride, allowed: RideStatus[], message: string): void {
+  if (!allowed.includes(ride.status)) throw new Error(message)
+}
+
+function cantChange(ride: Ride): string {
+  switch (ride.status) {
+    case 'CANCELLED':
+      return 'This ride was cancelled.'
+    case 'PICKED_UP':
+      return 'The client is already in the car.'
+    case 'COMPLETED':
+    case 'NO_SHOW':
+      return 'This ride is already finished.'
+    default:
+      return 'This ride has changed. Please check it again.'
+  }
+}
+
 function findOrThrow<T extends { id: string }>(items: T[], id: string, label: string): T {
   const item = items.find((i) => i.id === id)
   if (!item) throw new Error(`${label} not found: ${id}`)
   return item
 }
 
-function closePendingOffers(db: Database, rideId: string): void {
+function closePendingOffers(db: Database, rideId: string, status: OfferStatus = 'EXPIRED'): void {
   for (const o of db.offers) {
-    if (o.rideId === rideId && o.status === 'PENDING') o.status = 'EXPIRED'
+    if (o.rideId === rideId && o.status === 'PENDING') o.status = status
   }
 }
 
-// Offers the ride to the next eligible driver, or flags it for the house.
+function hasPendingOffers(db: Database, rideId: string): boolean {
+  return db.offers.some((o) => o.rideId === rideId && o.status === 'PENDING')
+}
+
+// Drivers on their way to an on-demand pickup, or with a client in the car, can't take an on-demand ride right now.
+// The outbound trip of a return doesn't count: that driver is the best one to bring the client back.
+function busyDriverIds(db: Database, ride: Ride): string[] {
+  if (ride.type !== 'ON_DEMAND') return []
+  return db.rides
+    .filter((r) => r.id !== ride.returnOfRideId)
+    .filter((r) => r.driverId && (r.status === 'PICKED_UP' || (r.status === 'ACCEPTED' && r.type === 'ON_DEMAND')))
+    .map((r) => r.driverId!)
+}
+
+// Sends the ride to every driver who can take it right now, or flags it for the house.
 function dispatch(db: Database, ride: Ride): void {
   const house = db.houses.find((h) => h.id === ride.houseId)
-  const driver = nextDriver(ride, house, db.drivers, db.offers)
-  if (!driver) {
-    ride.status = 'NEEDS_ATTENTION'
+  const drivers = driversToAsk(ride, house, db.drivers, db.offers, busyDriverIds(db, ride))
+  if (drivers.length === 0) {
+    if (hasPendingOffers(db, ride.id)) ride.status = 'OFFERED'
+    else if (canWaitForDrivers(ride, house, db.drivers, db.offers)) ride.status = 'SEARCHING'
+    else ride.status = 'NEEDS_ATTENTION'
     return
   }
-  db.offers.push({
-    id: newId('offer'),
-    rideId: ride.id,
-    driverId: driver.id,
-    status: 'PENDING',
-    sentAt: now(),
-    expiresAt: offerExpiry(ride.type),
-  })
+  const sentAt = now()
+  for (const driver of drivers) {
+    db.offers.push({
+      id: newId('offer'),
+      rideId: ride.id,
+      driverId: driver.id,
+      status: 'PENDING',
+      sentAt,
+      expiresAt: offerExpiry(ride.type),
+    })
+  }
   ride.status = 'OFFERED'
 }
 
-// Moves timed-out offers on, and flags rides whose pickup time passed without a driver.
+// Once nobody is left to answer, asks the next drivers (if any).
+function dispatchIfUnanswered(db: Database, rideId: string): void {
+  const ride = db.rides.find((r) => r.id === rideId)
+  if (ride?.status === 'OFFERED' && !hasPendingOffers(db, rideId)) dispatch(db, ride)
+}
+
+// Moves timed-out offers on, asks drivers whose request hours just opened,
+// and flags rides whose pickup time passed without a driver.
 function checkDeadlines(db: Database): void {
-  for (const offer of db.offers.filter((o) => isExpired(o))) {
-    offer.status = 'EXPIRED'
-    const ride = db.rides.find((r) => r.id === offer.rideId)
-    if (ride?.status === 'OFFERED') dispatch(db, ride)
-  }
+  const expired = db.offers.filter((o) => isExpired(o))
+  for (const offer of expired) offer.status = 'EXPIRED'
+  for (const rideId of new Set(expired.map((o) => o.rideId))) dispatchIfUnanswered(db, rideId)
   for (const ride of db.rides) {
     if (OPEN.includes(ride.status) && ride.type !== 'ON_DEMAND' && new Date(ride.pickupTime) <= new Date()) {
       closePendingOffers(db, ride.id)
       ride.status = 'NEEDS_ATTENTION'
+    } else if (ride.status === 'SEARCHING') {
+      dispatch(db, ride)
     }
   }
 }
@@ -246,12 +292,13 @@ export const mockService: DataService = {
         // Requests waiting on them move to the next driver
         for (const offer of db.offers.filter((o) => o.driverId === driver.id && o.status === 'PENDING')) {
           offer.status = 'EXPIRED'
-          const ride = db.rides.find((r) => r.id === offer.rideId)
-          if (ride?.status === 'OFFERED') dispatch(db, ride)
+          dispatchIfUnanswered(db, offer.rideId)
         }
         // Upcoming rides they accepted go back out
         for (const ride of db.rides.filter((r) => r.driverId === driver.id && r.status === 'ACCEPTED')) {
           ride.driverId = undefined
+          ride.acceptedAt = undefined
+          ride.driverArrivedAt = undefined
           dispatch(db, ride)
         }
       }
@@ -292,6 +339,10 @@ export const mockService: DataService = {
 
   requestRide: (input) =>
     transact((db) => {
+      // On-demand rides are picked up as soon as possible, so their pickup time is the booking time.
+      if (input.type === 'SCHEDULED' && new Date(input.pickupTime).getTime() <= Date.now()) {
+        throw new Error('Pick a time in the future.')
+      }
       const ride: Ride = { ...input, id: newId('ride'), status: 'SEARCHING', createdAt: now() }
       db.rides.push(ride)
       dispatch(db, ride)
@@ -302,13 +353,21 @@ export const mockService: DataService = {
 
   listRidesForHouse: (houseId) => transact((db) => db.rides.filter((r) => r.houseId === houseId)),
 
+  listRidesRequestedByOrg: (orgId) => transact((db) => db.rides.filter((r) => r.orgId === orgId)),
+
   listOffersForRide: (rideId) => transact((db) => db.offers.filter((o) => o.rideId === rideId)),
 
   retryRide: (rideId) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
-      // Clear previous answers so everyone can be asked again
-      db.offers = db.offers.filter((o) => o.rideId !== rideId || o.status === 'ACCEPTED')
+      requireStatus(ride, ['NEEDS_ATTENTION'], cantChange(ride))
+      if (ride.type === 'SCHEDULED' && new Date(ride.pickupTime) <= new Date()) {
+        throw new Error('The pickup time has passed. Please book a new ride.')
+      }
+      // Clear previous answers so everyone can be asked again, except drivers who already dropped it
+      db.offers = db.offers.filter(
+        (o) => o.rideId !== rideId || o.status === 'ACCEPTED' || o.status === 'WITHDRAWN',
+      )
       dispatch(db, ride)
       return ride
     }),
@@ -316,8 +375,10 @@ export const mockService: DataService = {
   cancelRide: (rideId, reason) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
+      requireStatus(ride, ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION'], cantChange(ride))
       ride.status = 'CANCELLED'
       ride.cancelReason = reason
+      ride.cancelledAt = now()
       closePendingOffers(db, rideId)
       return ride
     }),
@@ -343,17 +404,21 @@ export const mockService: DataService = {
     transact((db) => {
       const offer = findOrThrow(db.offers, offerId, 'Offer')
       const ride = findOrThrow(db.rides, offer.rideId, 'Ride')
-      if (offer.status !== 'PENDING') throw new Error('This request is no longer open.')
+      if (offer.status !== 'PENDING') {
+        throw new Error(ride.driverId ? 'Another driver already accepted this ride.' : 'This request is no longer open.')
+      }
       offer.respondedAt = now()
       if (accept) {
-        // Only one driver can accept a ride
+        // Only one driver can accept a ride: the first yes wins, everyone else's request closes
         if (ride.driverId) throw new Error('Another driver already accepted this ride.')
         offer.status = 'ACCEPTED'
+        closePendingOffers(db, ride.id, 'TAKEN')
         ride.status = 'ACCEPTED'
         ride.driverId = offer.driverId
+        ride.acceptedAt = offer.respondedAt
       } else {
         offer.status = 'DECLINED'
-        dispatch(db, ride)
+        dispatchIfUnanswered(db, ride.id)
       }
       return ride
     }),
@@ -362,14 +427,31 @@ export const mockService: DataService = {
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       if (ride.driverId !== driverId) throw new Error('This ride belongs to another driver.')
+      requireStatus(ride, ['ACCEPTED'], cantChange(ride))
+      // Mark their acceptance as withdrawn, so they aren't asked again and the house can see it
+      for (const o of db.offers) {
+        if (o.rideId === rideId && o.driverId === driverId && o.status === 'ACCEPTED') o.status = 'WITHDRAWN'
+      }
+      ride.droppedBy = { driverId, at: now() }
       ride.driverId = undefined
+      ride.acceptedAt = undefined
+      ride.driverArrivedAt = undefined
       dispatch(db, ride)
+      return ride
+    }),
+
+  markDriverArrived: (rideId) =>
+    transact((db) => {
+      const ride = findOrThrow(db.rides, rideId, 'Ride')
+      if (ride.status !== 'ACCEPTED') throw new Error('You can only say you are here on a confirmed ride.')
+      ride.driverArrivedAt = now()
       return ride
     }),
 
   markPickedUp: (rideId) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
+      requireStatus(ride, ['ACCEPTED'], cantChange(ride))
       ride.status = 'PICKED_UP'
       return ride
     }),
@@ -377,6 +459,7 @@ export const mockService: DataService = {
   markCompleted: (rideId) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
+      requireStatus(ride, ['PICKED_UP'], ride.status === 'ACCEPTED' ? 'Mark the client as picked up first.' : cantChange(ride))
       ride.status = 'COMPLETED'
       ride.completedAt = now()
       return ride
@@ -385,6 +468,7 @@ export const mockService: DataService = {
   markNoShow: (rideId) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
+      requireStatus(ride, ['ACCEPTED'], cantChange(ride))
       ride.status = 'NO_SHOW'
       ride.cancelReason = 'Client did not show up. The ride is lost.'
       return ride

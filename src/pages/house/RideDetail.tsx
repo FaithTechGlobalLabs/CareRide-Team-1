@@ -1,17 +1,24 @@
+import { CarFront, Phone } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
+import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
 import { card, dangerButton, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
+import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
-import type { OfferStatus, RideStatus } from '../../types'
+import type { OfferStatus, RideOffer, RideStatus } from '../../types'
+import { formatTime } from '../../logic/formatTime'
+import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
 
 const offerText: Record<OfferStatus, string> = {
   PENDING: 'Waiting for answer',
   ACCEPTED: 'Accepted',
   DECLINED: 'Declined',
   EXPIRED: 'No answer',
+  WITHDRAWN: 'Accepted, then cancelled',
+  TAKEN: 'Another driver accepted first',
 }
 
 // Free options the house can try when no driver accepts.
@@ -19,11 +26,21 @@ const FALLBACKS = ['Used a partner organization van', 'Gave transit directions a
 
 const CAN_CANCEL: RideStatus[] = ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION']
 const CAN_BOOK_RETURN: RideStatus[] = ['ACCEPTED', 'PICKED_UP', 'COMPLETED']
+const HAS_DRIVER: RideStatus[] = ['ACCEPTED', 'PICKED_UP']
+
+// A driver can be asked twice (e.g. again after another driver drops the ride). Show their latest answer.
+function latestPerDriver(offers: RideOffer[]): RideOffer[] {
+  const latest = new Map<string, RideOffer>()
+  for (const o of offers) if (!latest.has(o.driverId) || o.sentAt >= latest.get(o.driverId)!.sentAt) latest.set(o.driverId, o)
+  return [...latest.values()]
+}
+
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
 export function RideDetail() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
-  const { users, refresh } = useApp()
+  const { currentUser, users, refresh } = useApp()
   const ride = useData(() => dataService.getRide(id), id)
   const offers = useData(() => dataService.listOffersForRide(id), id) ?? []
   const drivers = useData(() => dataService.listDrivers()) ?? []
@@ -37,22 +54,81 @@ export function RideDetail() {
   const driverName = (driverId: string) =>
     users.find((u) => u.id === drivers.find((d) => d.id === driverId)?.userId)?.name ?? 'Driver'
 
-  async function cancel(reason: string) {
-    await dataService.cancelRide(id, reason)
+  // The ride can change while this page is open (e.g. the driver picks the client up), so say why an action failed
+  async function run(action: () => Promise<unknown>) {
+    try {
+      await action()
+    } catch (err) {
+      alert((err as Error).message)
+    }
     refresh()
   }
 
-  async function retry() {
-    await dataService.retryRide(id)
-    refresh()
-  }
+  const cancel = (reason: string) => run(() => dataService.cancelRide(id, reason))
+  const retry = () => run(() => dataService.retryRide(id))
 
   return (
     <div className="space-y-6">
       <h1 className={`${pageTitle} no-print`}>Ride to {ride.destinationName}</h1>
       <div className="no-print">
-        <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name} />
+        <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name}>
+          {HAS_DRIVER.includes(ride.status) && driverUser && (
+            <>
+              <p className="w-full">
+                <strong>Driver:</strong> {driverUser.name}
+                {driver && (
+                  <>
+                    <br />
+                    <strong>Car:</strong> {driver.vehicle}
+                  </>
+                )}
+              </p>
+              <a href={telHref(driverUser.phone)} className={`${secondaryButton} w-full sm:w-auto`}>
+                <Phone className="h-5 w-5" aria-hidden />
+                <span className="whitespace-normal">
+                  Call {driverUser.name}: <span className="whitespace-nowrap">{driverUser.phone}</span>
+                </span>
+              </a>
+            </>
+          )}
+        </RideCard>
       </div>
+
+      {ride.status === 'ACCEPTED' && ride.driverArrivedAt && (
+        <section className="no-print rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
+          <h2 className="text-2xl font-bold">Driver is here ({formatTime(ride.driverArrivedAt)})</h2>
+          <p className="mt-1">Send the client down to meet them.</p>
+        </section>
+      )}
+
+      {isDriverLate(ride) && (
+        <section role="alert" className={`${card} no-print border-2 border-red-500 bg-red-50 text-red-900`}>
+          <h2 className="text-xl font-bold">⚠ The driver hasn't picked up the client yet</h2>
+          <p className="mt-1">Pickup was at {formatTime(ride.pickupTime)}.</p>
+        </section>
+      )}
+
+      {driver && (ride.status === 'ACCEPTED' || ride.status === 'PICKED_UP') && (
+        <section className="no-print flex items-start gap-4 rounded-2xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-600" aria-hidden>
+            <CarFront className="h-6 w-6" />
+          </span>
+          <div>
+            <h2 className="text-xl font-bold text-brand-900">{acceptedMessage(ride, driverUser?.name)}</h2>
+            <p className="text-brand-800">{driver.vehicle}</p>
+          </div>
+        </section>
+      )}
+
+      {wasDropped(ride) && ride.droppedBy && (
+        <section role="alert" className={`${card} no-print border-2 border-red-500 bg-red-50 text-red-900`}>
+          <h2 className="text-xl font-bold">⚠ {driverName(ride.droppedBy.driverId)} can no longer take this ride</h2>
+          <p className="mt-1">
+            {ride.status === 'NEEDS_ATTENTION' ? '' : "We're finding another driver. "}If you printed a slip, it's out of date.
+          </p>
+          <p className="mt-1 text-sm">They cancelled at {formatTime(ride.droppedBy.at)}.</p>
+        </section>
+      )}
 
       {ride.status === 'NEEDS_ATTENTION' && (
         <section className={`${card} no-print border-2 border-red-500`}>
@@ -63,15 +139,22 @@ export function RideDetail() {
               Ask drivers again
             </button>
             {FALLBACKS.map((f) => (
-              <button key={f} type="button" className={`${secondaryButton} py-3 text-center`} onClick={() => cancel(f)}>
+              <ConfirmButton
+                key={f}
+                className={`${secondaryButton} py-3 text-center`}
+                title={`${f}?`}
+                body="This closes the ride in CareRide. No more drivers will be asked."
+                confirmLabel="Yes, close the ride"
+                onConfirm={() => cancel(f)}
+              >
                 <span className="whitespace-normal">{f}</span>
-              </button>
+              </ConfirmButton>
             ))}
           </div>
         </section>
       )}
 
-      {(ride.status === 'ACCEPTED' || ride.status === 'PICKED_UP') && (
+      {HAS_DRIVER.includes(ride.status) && (
         <section className="space-y-3">
           <p className="no-print">Remind the client about their ride. Print this slip if it helps.</p>
           <ClientSlip ride={ride} driver={driver} driverUser={driverUser} house={house} />
@@ -83,7 +166,7 @@ export function RideDetail() {
 
       {ride.status === 'COMPLETED' && ride.completedAt && (
         <p className="no-print font-semibold text-green-800">
-          Arrived. The driver confirmed drop-off at {new Date(ride.completedAt).toLocaleTimeString()}.
+          Arrived. The driver confirmed drop-off at {formatTime(ride.completedAt)}.
         </p>
       )}
 
@@ -93,7 +176,7 @@ export function RideDetail() {
         <h2 className="mb-3 text-xl font-bold">Drivers asked</h2>
         {offers.length === 0 && <p>No drivers asked yet.</p>}
         <ul className="space-y-1">
-          {offers.map((o) => (
+          {latestPerDriver(offers).map((o) => (
             <li key={o.id}>
               {driverName(o.driverId)}: <strong>{offerText[o.status]}</strong>
             </li>
@@ -103,14 +186,26 @@ export function RideDetail() {
 
       <div className="no-print grid gap-3 sm:flex sm:flex-wrap">
         {!ride.returnOfRideId && CAN_BOOK_RETURN.includes(ride.status) && (
-          <button type="button" className={secondaryButton} onClick={() => navigate(`/house/request?returnOf=${ride.id}`)}>
+          <button type="button" className={secondaryButton} onClick={() => navigate(`/${currentUser?.role === 'ORG_ADMIN' ? 'org' : 'house'}/request?returnOf=${ride.id}`)}>
             Book the return trip
           </button>
         )}
         {CAN_CANCEL.includes(ride.status) && (
-          <button type="button" className={dangerButton} onClick={() => cancel('Cancelled by the house')}>
+          <ConfirmButton
+            className={dangerButton}
+            title="Cancel this ride?"
+            body={
+              ride.status === 'ACCEPTED'
+                ? "It comes off the driver's list. This cannot be undone."
+                : 'We will stop asking drivers. This cannot be undone.'
+            }
+            confirmLabel="Yes, cancel the ride"
+            confirmClassName={dangerButton}
+            cancelLabel="Keep the ride"
+            onConfirm={() => cancel('Cancelled by the house')}
+          >
             Cancel ride
-          </button>
+          </ConfirmButton>
         )}
       </div>
 

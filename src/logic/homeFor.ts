@@ -14,3 +14,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   HOUSE: 'House account',
   DRIVER: 'Driver',
 }
+
+// Where a ride's detail page lives for whoever booked it.
+export function ridePath(role: UserRole | undefined, rideId: string): string {
+  return role === 'ORG_ADMIN' ? `/org/ride/${rideId}` : `/house/ride/${rideId}`
+}
