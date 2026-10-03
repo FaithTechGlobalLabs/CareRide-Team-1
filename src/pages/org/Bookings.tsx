@@ -5,8 +5,10 @@ import { useApp } from '../../hooks/useApp'
 import { useCurrentOrg } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
+import { byPickup, isRecent, recentCountsByHouse } from './orgRides'
 
-// Ride requests sent to this organization's drivers. The org can answer for them.
+// Ride requests sent to this organization's drivers. The org can answer for them,
+// and sees its drivers' upcoming and recent rides.
 export function Bookings() {
   const { currentUser, users, refresh } = useApp()
   const org = useCurrentOrg()
@@ -34,7 +36,8 @@ export function Bookings() {
     refresh()
   }
 
-  const upcoming = rides.filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP')
+  const upcoming = rides.filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP').sort(byPickup)
+  const recent = rides.filter((r) => isRecent(r)).sort((a, b) => byPickup(b, a))
 
   return (
     <div className="space-y-8">
@@ -70,6 +73,25 @@ export function Bookings() {
         {upcoming.length === 0 && <p>No upcoming rides.</p>}
         <div className="space-y-3">
           {upcoming.map((r) => (
+            <RideCard key={r.id} ride={r} from={houseName(r.houseId)}>
+              <p className="w-full text-slate-600">Driver: {driverName(r.driverId)}</p>
+            </RideCard>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-xl font-bold">Recent: last 7 days</h2>
+        {recent.length === 0 && <p>No finished rides in the last 7 days.</p>}
+        {recent.length > 0 && (
+          <ul className="mb-4 space-y-1 font-semibold text-slate-700">
+            {recentCountsByHouse(recent, houses).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
+        <div className="space-y-3">
+          {recent.map((r) => (
             <RideCard key={r.id} ride={r} from={houseName(r.houseId)}>
               <p className="w-full text-slate-600">Driver: {driverName(r.driverId)}</p>
             </RideCard>
