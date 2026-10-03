@@ -9,12 +9,14 @@ import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
 import type { OfferStatus, RideStatus } from '../../types'
 import { formatTime } from '../../logic/formatTime'
+import { wasDropped } from '../../logic/rideAlerts'
 
 const offerText: Record<OfferStatus, string> = {
   PENDING: 'Waiting for answer',
   ACCEPTED: 'Accepted',
   DECLINED: 'Declined',
   EXPIRED: 'No answer',
+  WITHDRAWN: 'Accepted, then cancelled',
 }
 
 // Free options the house can try when no driver accepts.
@@ -66,6 +68,16 @@ export function RideDetail() {
             <h2 className="text-xl font-bold text-brand-900">{acceptedMessage(ride, driverUser?.name)}</h2>
             <p className="text-brand-800">{driver.vehicle}</p>
           </div>
+        </section>
+      )}
+
+      {wasDropped(ride) && ride.droppedBy && (
+        <section role="alert" className={`${card} no-print border-2 border-red-500 bg-red-50 text-red-900`}>
+          <h2 className="text-xl font-bold">⚠ {driverName(ride.droppedBy.driverId)} can no longer take this ride</h2>
+          <p className="mt-1">
+            {ride.status === 'NEEDS_ATTENTION' ? '' : "We're finding another driver. "}If you printed a slip, it's out of date.
+          </p>
+          <p className="mt-1 text-sm">They cancelled at {formatTime(ride.droppedBy.at)}.</p>
         </section>
       )}
 

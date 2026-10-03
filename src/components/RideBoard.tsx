@@ -3,6 +3,7 @@ import { useApp } from '../hooks/useApp'
 import { useData } from '../hooks/useData'
 import { acceptedMessage } from '../logic/acceptedMessage'
 import { ridePath } from '../logic/homeFor'
+import { wasDropped } from '../logic/rideAlerts'
 import { dataService } from '../services'
 import type { House, Ride } from '../types'
 import { RideCard } from './RideCard'
@@ -21,8 +22,10 @@ export function RideBoard({ rides, houses }: Props) {
   const drivers = useData(() => dataService.listDrivers()) ?? []
 
   const byPickup = (a: Ride, b: Ride) => a.pickupTime.localeCompare(b.pickupTime)
-  const needsAttention = rides.filter((r) => r.status === 'NEEDS_ATTENTION').sort(byPickup)
-  const active = rides.filter((r) => r.status !== 'NEEDS_ATTENTION' && !FINISHED.includes(r.status)).sort(byPickup)
+  // A ride whose driver dropped it needs a look too: any printed slip names the wrong driver.
+  const needsAction = (r: Ride) => r.status === 'NEEDS_ATTENTION' || wasDropped(r)
+  const needsAttention = rides.filter(needsAction).sort(byPickup)
+  const active = rides.filter((r) => !needsAction(r) && !FINISHED.includes(r.status)).sort(byPickup)
   const finished = rides.filter((r) => FINISHED.includes(r.status)).sort((a, b) => byPickup(b, a))
 
   const card = (r: Ride) => {
