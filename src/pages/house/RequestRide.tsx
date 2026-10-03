@@ -11,7 +11,6 @@ import { dataService } from '../../services'
 import type { RideType, TripPurpose } from '../../types'
 
 const CUSTOM = 'custom'
-const QUICK_PICKS = 3
 
 // Default pickup time: two hours from now, formatted for a datetime-local input.
 function inTwoHours(): string {
@@ -46,6 +45,7 @@ export function RequestRide() {
   const [needsWheelchair, setNeedsWheelchair] = useState(false)
   const [needsAssistance, setNeedsAssistance] = useState(false)
   const [notes, setNotes] = useState('')
+  const [destinationError, setDestinationError] = useState('')
 
   if (!house || !currentUser) return <p>This account isn't linked to a house.</p>
   if (returnOf && !outbound) return null
@@ -53,6 +53,11 @@ export function RequestRide() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!house || !currentUser) return
+
+    if (!outbound && !destinationId) {
+      setDestinationError('Choose where the client is going.')
+      return
+    }
 
     const base = {
       type,
@@ -126,30 +131,40 @@ export function RequestRide() {
           </div>
           <fieldset>
             <legend className={label}>To</legend>
-            <div className="mb-2 grid gap-2 sm:flex sm:flex-wrap">
-              {sorted.slice(0, QUICK_PICKS).map((d) => (
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Destination">
+              {sorted.map((d) => (
                 <button
                   key={d.id}
                   type="button"
-                  aria-pressed={destinationId === d.id}
+                  role="radio"
+                  aria-checked={destinationId === d.id}
                   className={destinationId === d.id ? primaryButton : secondaryButton}
-                  onClick={() => setDestinationId(d.id)}
+                  onClick={() => {
+                    setDestinationId(d.id)
+                    setDestinationError('')
+                  }}
                 >
                   {d.name}
                 </button>
               ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={destinationId === CUSTOM}
+                className={destinationId === CUSTOM ? primaryButton : secondaryButton}
+                onClick={() => {
+                  setDestinationId(CUSTOM)
+                  setDestinationError('')
+                }}
+              >
+                Somewhere else
+              </button>
             </div>
-            <select className={input} required value={destinationId} onChange={(e) => setDestinationId(e.target.value)}>
-              <option value="" disabled>
-                Or choose another destination
-              </option>
-              {sorted.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-              <option value={CUSTOM}>Somewhere else (type the address)</option>
-            </select>
+            {destinationError && (
+              <p role="alert" className="mt-2 text-sm font-medium text-red-700">
+                {destinationError}
+              </p>
+            )}
           </fieldset>
           {destinationId === CUSTOM && (
             <div>
