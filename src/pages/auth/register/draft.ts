@@ -20,7 +20,7 @@ export interface RegisterDraft {
   orgPhone: string
   notifications: string
   addHouse: boolean
-  house: { name: string; address: string; city: string; phone: string; email: string }
+  house: { name: string; address: string; city: string; phone: string; email: string; placeId?: string }
   destinations: DestinationDraft[]
   driver: DriverDraft
 }
@@ -89,7 +89,11 @@ export function validateHouse(d: RegisterDraft): FieldErrors {
   const h = d.house
   return compact({
     houseName: h.name.trim() ? undefined : 'Please enter the house name.',
-    houseAddress: h.address.trim() ? undefined : 'Please enter the address.',
+    houseAddress: h.placeId
+      ? undefined
+      : h.address.trim()
+        ? 'Pick a matching address from the list.'
+        : 'Search for the address and pick it from the list.',
     housePhone: isPhone(h.phone) ? undefined : 'Please enter a 10-digit phone number.',
     houseEmail: h.email.trim() && !EMAIL.test(h.email.trim()) ? 'That email doesn’t look right.' : undefined,
   })

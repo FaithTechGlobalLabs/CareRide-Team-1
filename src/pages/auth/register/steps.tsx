@@ -7,6 +7,7 @@ import {
   DriverVehicleFields,
 } from '../../../components/DriverFields'
 import type { FieldErrors } from '../../../components/driverDraft'
+import { AddressPicker } from '../../../components/form/AddressPicker'
 import { ChoiceCard } from '../../../components/form/ChoiceCard'
 import { FieldMessage } from '../../../components/form/FieldMessage'
 import { PasswordField } from '../../../components/form/PasswordField'
@@ -193,31 +194,24 @@ export function HouseStep({ draft, update, errors }: StepProps) {
             onChange={(e) => setHouse({ name: e.target.value })}
             data-autofocus
           />
-          <TextField
+          <AddressPicker
             id="houseAddress"
             label="Street address"
-            autoComplete="street-address"
-            icon={<MapPin className="h-5 w-5" />}
             value={house.address}
+            selected={Boolean(house.placeId)}
             error={errors.houseAddress}
-            onChange={(e) => setHouse({ address: e.target.value })}
+            onQueryChange={(address) => setHouse({ address, placeId: undefined })}
+            onSelect={(place) => setHouse({ address: place.address, city: place.city, placeId: place.id })}
           />
-          <div className="grid gap-5 sm:grid-cols-2">
-            <SelectField id="houseCity" label="City" value={house.city} onChange={(e) => setHouse({ city: e.target.value })}>
-              {CITIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </SelectField>
-            <TextField
-              id="housePhone"
-              label="Front desk phone"
-              type="tel"
-              inputMode="tel"
-              value={house.phone}
-              error={errors.housePhone}
-              onChange={(e) => setHouse({ phone: e.target.value })}
-            />
-          </div>
+          <TextField
+            id="housePhone"
+            label="Front desk phone"
+            type="tel"
+            inputMode="tel"
+            value={house.phone}
+            error={errors.housePhone}
+            onChange={(e) => setHouse({ phone: e.target.value })}
+          />
           <TextField
             id="houseEmail"
             label="Sign-in email for this house"
