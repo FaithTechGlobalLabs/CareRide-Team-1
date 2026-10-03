@@ -25,7 +25,6 @@ import { MatchLine } from '../../components/booking/MatchLine'
 import { OptionTile } from '../../components/booking/OptionTile'
 import { PassengerStepper } from '../../components/booking/PassengerStepper'
 import { TripSummary } from '../../components/booking/TripSummary'
-import { EmergencyBanner } from '../../components/EmergencyBanner'
 import { FieldMessage } from '../../components/form/FieldMessage'
 import { RequiredMark } from '../../components/form/RequiredMark'
 import { SelectField } from '../../components/form/SelectField'
@@ -287,8 +286,6 @@ export function RequestRide() {
           <span className="sr-only">with a star</span> are required.
         </p>
       </div>
-
-      <EmergencyBanner />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-8">
         <div className="space-y-5">
