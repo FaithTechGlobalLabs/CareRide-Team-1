@@ -1,0 +1,5 @@
+# Cloudflare Pages. Connect the git repo in the dashboard (see the handoff
+# in the PR). Build: npm ci && npm run build. Output: dist.
+name = "careride"
+compatibility_date = "2026-10-03"
+pages_build_output_dir = "./dist"
