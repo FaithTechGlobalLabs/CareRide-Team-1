@@ -4,12 +4,14 @@ import { PURPOSE_LABELS, RIDE_TYPE_LABELS } from '../constants'
 import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
+import { formatDayTime } from '../logic/formatTime'
 
 interface Props {
   ride: Ride
   from?: string // pickup label, e.g. the house name
   to?: string // link to the ride's detail page
   children?: ReactNode // action buttons
+  alert?: string // one-line reason the ride needs action, shown in red
 }
 
 // A coloured left edge echoes the status badge, so a list scans at a glance.
@@ -24,8 +26,8 @@ const ACCENT: Record<Ride['status'], string> = {
   CANCELLED: 'border-l-slate-300',
 }
 
-export function RideCard({ ride, from, to, children }: Props) {
-  const highlight = ride.status === 'NEEDS_ATTENTION' ? 'border-red-300 bg-red-50/40' : ''
+export function RideCard({ ride, from, to, children, alert }: Props) {
+  const highlight = ride.status === 'NEEDS_ATTENTION' || alert ? 'border-red-300 bg-red-50/40' : ''
   const needs = [
     `${ride.passengers} ${ride.passengers === 1 ? 'person' : 'people'}`,
     ride.needsWheelchair && 'Wheelchair',
@@ -34,6 +36,7 @@ export function RideCard({ ride, from, to, children }: Props) {
 
   return (
     <div className={`${card} border-l-4 ${ACCENT[ride.status]} ${highlight}`}>
+      {alert && <p className="mb-2 font-bold text-red-800">⚠ {alert}</p>}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {RIDE_TYPE_LABELS[ride.type]}
@@ -47,7 +50,7 @@ export function RideCard({ ride, from, to, children }: Props) {
         {ride.destinationName}
       </p>
       <p className="text-slate-600">
-        {ride.type === 'ON_DEMAND' ? 'On demand' : new Date(ride.pickupTime).toLocaleString()}
+        {ride.type === 'ON_DEMAND' ? 'On demand' : formatDayTime(ride.pickupTime)}
       </p>
       <p className="text-slate-600">
         {PURPOSE_LABELS[ride.purpose]} · {needs.join(' · ')}

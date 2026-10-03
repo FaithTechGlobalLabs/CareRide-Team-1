@@ -123,10 +123,13 @@ export interface Ride {
   estimatedFareSaved: number
   createdAt: string
   acceptedAt?: string // when a driver said yes
+  driverArrivedAt?: string // driver tapped "I'm here" at pickup
   completedAt?: string
+  droppedBy?: { driverId: string; at: string } // last driver who accepted, then said they can't make it
 }
 
-export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED'
+// WITHDRAWN: the driver accepted, then said they can't make it.
+export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'WITHDRAWN'
 
 export interface RideOffer {
   id: string

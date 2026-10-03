@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { MatchLine } from '../../components/booking/MatchLine'
 import { EmergencyBanner } from '../../components/EmergencyBanner'
 import { input, label, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { DEFAULT_PICKUP_INSTRUCTIONS, PURPOSE_LABELS } from '../../constants'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
+import { previewDriverMatch } from '../../logic/driverMatchPreview'
 import { estimateFare } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
 import { sortByPopularity } from '../../logic/popularDestinations'
@@ -13,9 +15,9 @@ import type { RideType, TripPurpose } from '../../types'
 
 const CUSTOM = 'custom'
 
-// Default pickup time: two hours from now, formatted for a datetime-local input.
-function inTwoHours(): string {
-  const d = new Date(Date.now() + 2 * 3_600_000)
+// Formats a time for a datetime-local input, e.g. "2026-10-03T14:30".
+function toLocalInput(ms: number): string {
+  const d = new Date(ms)
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
   return d.toISOString().slice(0, 16)
 }
@@ -36,7 +38,11 @@ export function RequestRide() {
   const house = houses?.find((h) => h.id === houseId)
   const pastRides = useData(() => dataService.listRidesForHouse(houseId), houseId) ?? []
   const destinations = useData(() => dataService.listDestinations(currentUser?.orgId), currentUser?.orgId) ?? []
+  const drivers = useData(() => dataService.listDrivers())
   const sorted = sortByPopularity(destinations, pastRides, houseId)
+
+  // When the form was opened. The default and earliest pickup times are based on it.
+  const [openedAt] = useState(() => Date.now())
 
   const [type, setType] = useState<RideType>('SCHEDULED')
   const [purpose, setPurpose] = useState<TripPurpose>('MEDICAL')
@@ -44,12 +50,14 @@ export function RequestRide() {
   const [passengers, setPassengers] = useState(1)
   const [destinationId, setDestinationId] = useState('')
   const [customAddress, setCustomAddress] = useState('')
-  const [pickupTime, setPickupTime] = useState(inTwoHours)
+  const [pickupTime, setPickupTime] = useState(() => toLocalInput(openedAt + 2 * 3_600_000))
   const [pickupInstructions, setPickupInstructions] = useState(DEFAULT_PICKUP_INSTRUCTIONS)
   const [needsWheelchair, setNeedsWheelchair] = useState(false)
   const [needsAssistance, setNeedsAssistance] = useState(false)
   const [notes, setNotes] = useState('')
   const [destinationError, setDestinationError] = useState('')
+  const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
 
   if (!houses || (returnOf && !outbound)) return null
   if (!house || !currentUser) {
@@ -64,6 +72,22 @@ export function RequestRide() {
       <p>This account isn't linked to a house.</p>
     )
   }
+
+  // How many drivers could take this ride, shown before sending so staff aren't surprised.
+  const pickupIso =
+    type === 'ON_DEMAND'
+      ? new Date(openedAt).toISOString()
+      : pickupTime && !Number.isNaN(Date.parse(pickupTime))
+        ? new Date(pickupTime).toISOString()
+        : ''
+  const match =
+    drivers && pickupIso
+      ? previewDriverMatch(
+          { type, pickupTime: pickupIso, passengers, needsWheelchair, preferredDriverId: outbound?.driverId },
+          house,
+          drivers,
+        )
+      : undefined
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -94,25 +118,31 @@ export function RequestRide() {
       ? { destinationId: saved.id, destinationName: saved.name, destinationAddress: saved.address }
       : { destinationName: customAddress, destinationAddress: customAddress }
 
-    const ride = outbound
-      ? await dataService.requestRide({
-          ...base,
-          pickupAddress: outbound.destinationAddress,
-          pickupInstructions: pickupInstructions || undefined,
-          destinationName: house.name,
-          destinationAddress: house.address,
-          returnOfRideId: outbound.id,
-          preferredDriverId: outbound.driverId, // ask the same driver first
-        })
-      : await dataService.requestRide({
-          ...base,
-          pickupAddress: house.address,
-          pickupInstructions: pickupInstructions || undefined,
-          ...to,
-        })
-
-    refresh()
-    navigate(ridePath(currentUser.role, ride.id))
+    setError('')
+    setSending(true)
+    try {
+      const ride = outbound
+        ? await dataService.requestRide({
+            ...base,
+            pickupAddress: outbound.destinationAddress,
+            pickupInstructions: pickupInstructions || undefined,
+            destinationName: house.name,
+            destinationAddress: house.address,
+            returnOfRideId: outbound.id,
+            preferredDriverId: outbound.driverId, // ask the same driver first
+          })
+        : await dataService.requestRide({
+            ...base,
+            pickupAddress: house.address,
+            pickupInstructions: pickupInstructions || undefined,
+            ...to,
+          })
+      refresh()
+      navigate(ridePath(currentUser.role, ride.id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setSending(false)
+    }
   }
 
   return (
@@ -231,6 +261,7 @@ export function RequestRide() {
             aria-label="Pickup time"
             className={`${input} mt-2`}
             required
+            min={toLocalInput(openedAt)}
             value={pickupTime}
             onChange={(e) => setPickupTime(e.target.value)}
           />
@@ -271,8 +302,16 @@ export function RequestRide() {
 
       {/* TODO: suggest group rides (logic/groupRides.ts) before submitting */}
 
-      <button type="submit" className={`${primaryButton} w-full sm:w-auto`}>
-        {outbound ? 'Book return trip' : 'Request ride'}
+      <MatchLine match={match} />
+
+      {error && (
+        <p role="alert" className="rounded-xl border-2 border-red-600 bg-red-50 p-4 text-red-900">
+          <strong>We couldn't send this ride.</strong> {error}
+        </p>
+      )}
+
+      <button type="submit" className={`${primaryButton} w-full sm:w-auto`} disabled={sending}>
+        {sending ? 'Sending…' : outbound ? 'Book return trip' : 'Request ride'}
       </button>
     </form>
   )

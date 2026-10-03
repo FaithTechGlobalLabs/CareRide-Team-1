@@ -269,6 +269,7 @@ export const mockService: DataService = {
         for (const ride of db.rides.filter((r) => r.driverId === driver.id && r.status === 'ACCEPTED')) {
           ride.driverId = undefined
           ride.acceptedAt = undefined
+          ride.driverArrivedAt = undefined
           dispatch(db, ride)
         }
       }
@@ -309,6 +310,10 @@ export const mockService: DataService = {
 
   requestRide: (input) =>
     transact((db) => {
+      // On-demand rides are picked up as soon as possible, so their pickup time is the booking time.
+      if (input.type === 'SCHEDULED' && new Date(input.pickupTime).getTime() <= Date.now()) {
+        throw new Error('Pick a time in the future.')
+      }
       const ride: Ride = { ...input, id: newId('ride'), status: 'SEARCHING', createdAt: now() }
       db.rides.push(ride)
       dispatch(db, ride)
@@ -326,8 +331,10 @@ export const mockService: DataService = {
   retryRide: (rideId) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
-      // Clear previous answers so everyone can be asked again
-      db.offers = db.offers.filter((o) => o.rideId !== rideId || o.status === 'ACCEPTED')
+      // Clear previous answers so everyone can be asked again, except drivers who already dropped it
+      db.offers = db.offers.filter(
+        (o) => o.rideId !== rideId || o.status === 'ACCEPTED' || o.status === 'WITHDRAWN',
+      )
       dispatch(db, ride)
       return ride
     }),
@@ -385,9 +392,23 @@ export const mockService: DataService = {
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       if (ride.driverId !== driverId) throw new Error('This ride belongs to another driver.')
+      // Mark their acceptance as withdrawn, so they aren't asked again and the house can see it
+      for (const o of db.offers) {
+        if (o.rideId === rideId && o.driverId === driverId && o.status === 'ACCEPTED') o.status = 'WITHDRAWN'
+      }
+      ride.droppedBy = { driverId, at: now() }
       ride.driverId = undefined
       ride.acceptedAt = undefined
+      ride.driverArrivedAt = undefined
       dispatch(db, ride)
+      return ride
+    }),
+
+  markDriverArrived: (rideId) =>
+    transact((db) => {
+      const ride = findOrThrow(db.rides, rideId, 'Ride')
+      if (ride.status !== 'ACCEPTED') throw new Error('You can only say you are here on a confirmed ride.')
+      ride.driverArrivedAt = now()
       return ride
     }),
 
