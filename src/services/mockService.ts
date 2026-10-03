@@ -309,6 +309,10 @@ export const mockService: DataService = {
 
   requestRide: (input) =>
     transact((db) => {
+      // On-demand rides are picked up as soon as possible, so their pickup time is the booking time.
+      if (input.type === 'SCHEDULED' && new Date(input.pickupTime).getTime() <= Date.now()) {
+        throw new Error('Pick a time in the future.')
+      }
       const ride: Ride = { ...input, id: newId('ride'), status: 'SEARCHING', createdAt: now() }
       db.rides.push(ride)
       dispatch(db, ride)

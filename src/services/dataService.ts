@@ -68,7 +68,7 @@ export interface DataService {
   saveDestination(dest: Omit<Destination, 'id'>): Promise<Destination>
 
   // Rides: house account
-  requestRide(ride: NewRide): Promise<Ride>
+  requestRide(ride: NewRide): Promise<Ride> // throws if a scheduled pickup time is in the past
   getRide(rideId: string): Promise<Ride | undefined>
   listRidesForHouse(houseId: string): Promise<Ride[]>
   listRidesRequestedByOrg(orgId: string): Promise<Ride[]> // rides booked by a partner org's houses
