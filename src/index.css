@@ -87,6 +87,26 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Native password-manager controls sit inside the field and draw a
+     suggestion box under it, so our error reads as if it is inside a
+     second input. Keep the custom show/hide button as the only control. */
+  input[type='password']::-ms-reveal,
+  input[type='password']::-ms-clear {
+    display: none;
+  }
+
+  input[type='password']::-webkit-credentials-auto-fill-button,
+  input[type='password']::-webkit-strong-password-auto-fill-button,
+  input[type='password']::-webkit-contacts-auto-fill-button,
+  input[type='password']::-webkit-caps-lock-indicator {
+    margin: 0;
+    padding: 0;
+    width: 0;
+    height: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   body {
     @apply font-sans text-slate-800 antialiased;
     background-color: #f7f7fc;

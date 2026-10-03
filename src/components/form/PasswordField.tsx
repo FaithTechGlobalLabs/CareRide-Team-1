@@ -35,12 +35,15 @@ export function PasswordField({ id, label, hint, error, showStrength, value, cla
         {label}
       </label>
       <div className="relative">
-        <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" aria-hidden />
+        <span className="pointer-events-none absolute inset-y-0 left-4 z-[1] flex items-center text-slate-400" aria-hidden>
+          <Lock className="h-5 w-5" />
+        </span>
         <input
           id={id}
           type={visible ? 'text' : 'password'}
           className={`${input} pl-11 pr-12`}
           value={value}
+          spellCheck={false}
           aria-invalid={error ? true : undefined}
           aria-describedby={hint || error ? messageId : undefined}
           {...rest}
@@ -48,7 +51,7 @@ export function PasswordField({ id, label, hint, error, showStrength, value, cla
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute inset-y-1 right-1 flex w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          className="absolute inset-y-1 right-1 z-[1] flex w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
           aria-label={visible ? 'Hide password' : 'Show password'}
           aria-pressed={visible}
         >
