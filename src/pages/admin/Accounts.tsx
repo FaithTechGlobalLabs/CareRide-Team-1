@@ -1,4 +1,4 @@
-import { Building2, Car, CheckCircle2, Home, KeyRound, Search, ShieldCheck, Trash2, X } from 'lucide-react'
+import { Building2, Car, CheckCircle2, Eye, Home, KeyRound, Search, ShieldCheck, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { CopyButton } from '../../components/CopyButton'
@@ -13,6 +13,7 @@ import { useData } from '../../hooks/useData'
 import { HOME_FOR, ROLE_LABELS } from '../../logic/homeFor'
 import { dataService } from '../../services'
 import type { User, UserRole } from '../../types'
+import { AccountDetails } from './AccountDetails'
 
 const ROLE_ICONS: Record<UserRole, ReactNode> = {
   PLATFORM_ADMIN: <ShieldCheck className="h-5 w-5" />,
@@ -210,6 +211,7 @@ export function Accounts() {
   const [roles, setRoles] = useState<UserRole[]>([])
   const [open, setOpen] = useState<{ id: string; action: 'reset' | 'delete' }>()
   const [deleted, setDeleted] = useState<string>()
+  const [viewing, setViewing] = useState<User>()
 
   if (currentUser && currentUser.role !== 'PLATFORM_ADMIN') return <Navigate to={HOME_FOR[currentUser.role]} replace />
 
@@ -296,6 +298,14 @@ export function Accounts() {
                 </div>
                 {open?.id !== u.id && (
                   <div className="grid gap-2 sm:flex sm:shrink-0">
+                    <button
+                      type="button"
+                      className={secondaryButton}
+                      onClick={() => setViewing(u)}
+                      aria-label={`View ${u.name}'s details`}
+                    >
+                      <Eye className="h-5 w-5" aria-hidden /> Details
+                    </button>
                     <button type="button" className={secondaryButton} onClick={() => setOpen({ id: u.id, action: 'reset' })}>
                       <KeyRound className="h-5 w-5" aria-hidden /> Reset password
                     </button>
@@ -332,6 +342,8 @@ export function Accounts() {
         })}
       </ul>
       {shown.length === 0 && <p>No accounts match.</p>}
+
+      {viewing && <AccountDetails user={viewing} isSelf={viewing.id === currentUser?.id} onClose={() => setViewing(undefined)} />}
     </div>
   )
 }
