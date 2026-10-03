@@ -10,7 +10,7 @@ import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
 import type { OfferStatus, RideStatus } from '../../types'
 import { formatTime } from '../../logic/formatTime'
-import { wasDropped } from '../../logic/rideAlerts'
+import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
 
 const offerText: Record<OfferStatus, string> = {
   PENDING: 'Waiting for answer',
@@ -59,6 +59,13 @@ export function RideDetail() {
       <div className="no-print">
         <RideCard ride={ride} from={ride.returnOfRideId ? undefined : house?.name} />
       </div>
+
+      {isDriverLate(ride) && (
+        <section role="alert" className={`${card} no-print border-2 border-red-500 bg-red-50 text-red-900`}>
+          <h2 className="text-xl font-bold">⚠ The driver hasn't picked up the client yet</h2>
+          <p className="mt-1">Pickup was at {formatTime(ride.pickupTime)}.</p>
+        </section>
+      )}
 
       {driver && (ride.status === 'ACCEPTED' || ride.status === 'PICKED_UP') && (
         <section className="no-print flex items-start gap-4 rounded-2xl border-2 border-brand-300 bg-brand-50 p-6" role="status">

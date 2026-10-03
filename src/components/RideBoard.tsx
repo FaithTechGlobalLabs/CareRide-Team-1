@@ -3,7 +3,7 @@ import { useApp } from '../hooks/useApp'
 import { useData } from '../hooks/useData'
 import { acceptedMessage } from '../logic/acceptedMessage'
 import { ridePath } from '../logic/homeFor'
-import { wasDropped } from '../logic/rideAlerts'
+import { isDriverLate, wasDropped } from '../logic/rideAlerts'
 import { dataService } from '../services'
 import type { House, Ride } from '../types'
 import { RideCard } from './RideCard'
@@ -23,7 +23,8 @@ export function RideBoard({ rides, houses }: Props) {
 
   const byPickup = (a: Ride, b: Ride) => a.pickupTime.localeCompare(b.pickupTime)
   // A ride whose driver dropped it needs a look too: any printed slip names the wrong driver.
-  const needsAction = (r: Ride) => r.status === 'NEEDS_ATTENTION' || wasDropped(r)
+  // A late driver too: staff may need to call around while the client waits.
+  const needsAction = (r: Ride) => r.status === 'NEEDS_ATTENTION' || wasDropped(r) || isDriverLate(r)
   const needsAttention = rides.filter(needsAction).sort(byPickup)
   const active = rides.filter((r) => !needsAction(r) && !FINISHED.includes(r.status)).sort(byPickup)
   const finished = rides.filter((r) => FINISHED.includes(r.status)).sort((a, b) => byPickup(b, a))
@@ -37,6 +38,7 @@ export function RideBoard({ rides, houses }: Props) {
         ride={r}
         from={houses?.find((h) => h.id === r.houseId)?.name}
         to={ridePath(currentUser?.role, r.id)}
+        alert={isDriverLate(r) ? "The driver hasn't picked up the client yet" : undefined}
       >
         {driver && (r.status === 'ACCEPTED' || r.status === 'PICKED_UP') && (
           <p className="flex w-full items-start gap-2 rounded-xl bg-brand-50 px-4 py-3 font-semibold text-brand-900">

@@ -4,6 +4,7 @@ import { pageTitle } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useCurrentOrg } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
+import { isDriverLate } from '../../logic/rideAlerts'
 import { dataService } from '../../services'
 import { byPickup, isRecent, recentCountsByHouse } from './orgRides'
 
@@ -73,7 +74,12 @@ export function Bookings() {
         {upcoming.length === 0 && <p>No upcoming rides.</p>}
         <div className="space-y-3">
           {upcoming.map((r) => (
-            <RideCard key={r.id} ride={r} from={houseName(r.houseId)}>
+            <RideCard
+              key={r.id}
+              ride={r}
+              from={houseName(r.houseId)}
+              alert={isDriverLate(r) ? "Late: the client hasn't been picked up" : undefined}
+            >
               <p className="w-full text-slate-600">Driver: {driverName(r.driverId)}</p>
             </RideCard>
           ))}
