@@ -14,7 +14,7 @@ Other 4D cycle badges
 
 Overview of the project.
 
-## 📋 Requirements
+## 📋 Requirementss
 
 Details on prerequisites and requirements for setting up the development environment.
 
