@@ -6,28 +6,15 @@ import { useData } from '../hooks/useData'
 import { acceptedMessage } from '../logic/acceptedMessage'
 import { ridePath } from '../logic/homeFor'
 import { dataService } from '../services'
+import type { Ride } from '../types'
+import { markSeen, readSeen } from './seenNotices'
 
 // Only recent answers pop up; older ones are on the rides list.
 const RECENT_MS = 12 * 3_600_000
 
-function seenKey(userId: string): string {
-  return `careride-seen-accepted:${userId}`
-}
-
-function readSeen(userId: string): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(seenKey(userId)) ?? '[]') as string[]
-  } catch {
-    return []
-  }
-}
-
-function writeSeen(userId: string, rideIds: string[]): void {
-  try {
-    localStorage.setItem(seenKey(userId), JSON.stringify(rideIds))
-  } catch {
-    // Ignore: the notice may show again after a reload
-  }
+// One notice per acceptance: if a driver drops the ride and another accepts, that's news again.
+function noticeId(ride: Ride): string {
+  return `${ride.id}:${ride.acceptedAt}`
 }
 
 // Tells the house (or its organization) the moment a driver accepts one of their rides.
@@ -36,7 +23,7 @@ export function RideAcceptedNotice() {
   const userId = currentUser?.id ?? ''
   const houseId = currentUser?.role === 'HOUSE' ? currentUser.houseId : undefined
   const orgId = currentUser?.role === 'ORG_ADMIN' ? currentUser.orgId : undefined
-  const [seen, setSeen] = useState(() => readSeen(userId))
+  const [seen, setSeen] = useState(() => readSeen(userId, 'accepted'))
 
   const recent =
     useData(async () => {
@@ -52,13 +39,11 @@ export function RideAcceptedNotice() {
   const houses = useData(() => dataService.listHouses()) ?? []
 
   const fresh = recent
-    .filter((r) => !seen.includes(r.id))
+    .filter((r) => !seen.includes(noticeId(r)))
     .sort((a, b) => b.acceptedAt!.localeCompare(a.acceptedAt!))
 
-  function dismiss(rideId: string) {
-    const next = [...readSeen(userId), rideId]
-    writeSeen(userId, next)
-    setSeen(next)
+  function dismiss(ride: Ride) {
+    setSeen(markSeen(userId, 'accepted', noticeId(ride)))
   }
 
   return (
@@ -92,7 +77,7 @@ export function RideAcceptedNotice() {
                 <Link
                   to={ridePath(currentUser?.role, ride.id)}
                   className="mt-1 inline-block text-sm font-semibold text-brand-700 underline underline-offset-2"
-                  onClick={() => dismiss(ride.id)}
+                  onClick={() => dismiss(ride)}
                 >
                   View ride
                 </Link>
@@ -101,7 +86,7 @@ export function RideAcceptedNotice() {
                 type="button"
                 className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
                 aria-label="Dismiss"
-                onClick={() => dismiss(ride.id)}
+                onClick={() => dismiss(ride)}
               >
                 <X className="h-5 w-5" />
               </button>

@@ -23,7 +23,7 @@ export type DriverSettings = Pick<
   Driver,
   'available' | 'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
 >
-export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'driverArrivedAt' | 'completedAt' | 'droppedBy'>
+export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'driverArrivedAt' | 'completedAt' | 'droppedBy' | 'cancelledAt'>
 
 // The contract every backend must follow (mock now, real backend later).
 // Screens only talk to this interface, never to storage directly.

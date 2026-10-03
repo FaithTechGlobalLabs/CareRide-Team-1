@@ -15,10 +15,22 @@ export function isExpired(offer: RideOffer, now = new Date()): boolean {
   return offer.status === 'PENDING' && new Date(offer.expiresAt) <= now
 }
 
+// Drivers who lost the race to accept never said no, so they can be asked again (e.g. after a drop)
+function alreadyAsked(ride: Ride, offers: RideOffer[]): string[] {
+  return offers.filter((o) => o.rideId === ride.id && o.status !== 'TAKEN').map((o) => o.driverId)
+}
+
+// A scheduled ride nobody can be asked about right now can wait for a driver whose request hours open
+// before pickup. We'll ask them then.
+export function canWaitForDrivers(ride: Ride, house: House | undefined, drivers: Driver[], offers: RideOffer[]): boolean {
+  if (ride.type !== 'SCHEDULED' || new Date(ride.pickupTime) <= new Date()) return false
+  return matchDrivers(ride, house, drivers, alreadyAsked(ride, offers), new Date(), false).length > 0
+}
+
 // Picks who to ask next, skipping anyone already asked for this ride or busy with a client.
 // Everyone who can take it right now is asked at once, and the first to accept gets it.
 // A preferred driver (e.g. the outbound driver for a return trip) is asked alone first.
-// Returns an empty list when nobody is left, so the ride needs attention.
+// Returns an empty list when nobody can be asked right now.
 export function driversToAsk(
   ride: Ride,
   house: House | undefined,
@@ -26,8 +38,7 @@ export function driversToAsk(
   offers: RideOffer[],
   busyDriverIds: string[] = [],
 ): Driver[] {
-  const alreadyAsked = offers.filter((o) => o.rideId === ride.id).map((o) => o.driverId)
-  const matches = matchDrivers(ride, house, drivers, [...alreadyAsked, ...busyDriverIds])
+  const matches = matchDrivers(ride, house, drivers, [...alreadyAsked(ride, offers), ...busyDriverIds])
   const preferred = matches.find((d) => d.id === ride.preferredDriverId)
   return preferred ? [preferred] : matches
 }
