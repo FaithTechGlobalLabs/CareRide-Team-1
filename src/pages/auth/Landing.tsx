@@ -1,28 +1,36 @@
 import {
-  Accessibility,
   ArrowRight,
+  ArrowUp,
   BadgeCheck,
   Building2,
   Bus,
   CalendarCheck,
   Car,
-  Check,
   CheckCircle2,
   EyeOff,
   HandHeart,
-  LogOut,
   MapPin,
-  Navigation,
   PhoneCall,
+  Sparkles,
   UserCheck,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import logoMark from '../../assets/logo-mark.png'
+import { Faq } from '../../components/landing/Faq'
+import { HeroPreview } from '../../components/landing/HeroPreview'
+import { LandingHeader, type PageSection } from '../../components/landing/LandingHeader'
+import { WelcomeBack } from '../../components/landing/WelcomeBack'
 import { Logo } from '../../components/Logo'
-import { ghostButton, primaryButton, secondaryButton, tones, type Tone } from '../../components/ui'
+import { primaryButton, secondaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
+
+const SECTIONS: PageSection[] = [
+  { id: 'how', label: 'How it works' },
+  { id: 'who', label: "Who it's for" },
+  { id: 'promise', label: 'Our promise' },
+  { id: 'faq', label: 'Questions' },
+]
 
 const STEPS: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
   {
@@ -79,206 +87,135 @@ const PROMISES: { icon: ReactNode; title: string; text: string; tone: Tone }[] =
   { icon: <PhoneCall className="h-5 w-5" />, title: 'Not for emergencies', text: 'In a medical emergency, always call 911.', tone: 'amber' },
 ]
 
-function SectionHeading({
-  eyebrow,
-  title,
-  tone = 'brand',
-  children,
-}: {
-  eyebrow: string
-  title: string
-  tone?: Tone
-  children?: ReactNode
-}) {
+function SectionHeading({ id, eyebrow, title, tone = 'brand', children }: { id: string; eyebrow: string; title: string; tone?: Tone; children?: ReactNode }) {
   return (
     <div className="mx-auto mb-12 max-w-2xl text-center">
       <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${tones[tone].text}`}>{eyebrow}</p>
-      <h2 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h2>
+      <h2 id={id} className="text-3xl font-black tracking-tight sm:text-4xl">
+        {title}
+      </h2>
       {children && <p className="mt-4 text-lg text-slate-600">{children}</p>}
     </div>
   )
 }
 
-// Where the example ride is: the first two steps are done.
-const TRACK = ['Booked', 'Confirmed', 'Picked up', 'Arrived']
-const TRACK_DONE = 2
-
-// Illustrative product preview beside the hero. Fictional example data.
-function HeroPreview() {
+// The hero for visitors: what CareRide is, and a clear way in for new and returning people.
+function Introduction() {
   return (
-    <div className="relative mx-auto w-full max-w-md sm:max-w-lg lg:max-w-none" aria-hidden>
-      <div className="absolute inset-6 rounded-[3rem] bg-brand-gradient opacity-20 blur-3xl" />
-      <div className="absolute -bottom-6 -right-6 h-40 w-40 rounded-full bg-coral-300/40 blur-3xl" />
-      <div className="absolute -left-8 top-1/3 h-36 w-36 rounded-full bg-violet-300/40 blur-3xl" />
-      <div className="relative rounded-[2rem] border border-white/60 bg-white/70 p-5 shadow-2xl sm:rounded-[2.5rem] sm:p-8 shadow-brand-900/10 backdrop-blur">
-        <img src={logoMark} alt="" className="mx-auto h-36 w-36 animate-float sm:h-48 sm:w-48" />
-
-        {/* Highlights sit in their own row so they never cover the logo */}
-        <div className="mt-5 hidden grid-cols-2 gap-3 sm:mt-6 sm:grid">
-          <div className="flex min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tones.violet.tile}`}>
-              <Accessibility className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <p className="whitespace-nowrap text-sm font-bold leading-tight text-ink">Wheelchair ready</p>
-              <p className="mt-0.5 text-xs leading-tight text-slate-500">Matched to needs</p>
-            </div>
-          </div>
-          <div className="flex min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-            <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tones.teal.tile}`}>
-              <Navigation className="h-4 w-4" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
-                <span className="absolute inset-0 animate-ping rounded-full bg-teal-400 opacity-75" />
-                <span className="relative h-2.5 w-2.5 rounded-full border-2 border-white bg-teal-500" />
-              </span>
-            </span>
-            <div className="min-w-0">
-              <p className="whitespace-nowrap text-sm font-bold leading-tight text-ink">On the way</p>
-              <p className="mt-0.5 text-xs leading-tight text-slate-500">Olive · 5 min away</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-900/5 sm:mt-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-bold uppercase tracking-wider text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-teal-500" /> Scheduled · 9:15 am
-            </span>
-            <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-900">Driver confirmed</span>
-          </div>
-          <p className="mt-2 font-display text-lg font-extrabold text-ink">Belkin House → St. Paul's Hospital</p>
-          <p className="mt-1 flex items-start gap-2 text-sm text-slate-600">
-            <Car className="mt-0.5 h-4 w-4 shrink-0" /> Olive · White sedan · Meets in the lobby
-          </p>
-
-          <ol className="mt-4 flex border-t border-slate-100 pt-4">
-            {TRACK.map((step, i) => {
-              const done = i < TRACK_DONE
-              return (
-                <li key={step} className="relative flex flex-1 flex-col items-center gap-1.5">
-                  {i > 0 && (
-                    <span className={`absolute right-1/2 top-2.5 h-0.5 w-full -translate-y-1/2 ${done ? 'bg-teal-500' : 'bg-slate-200'}`} />
-                  )}
-                  <span
-                    className={`relative z-10 flex h-5 w-5 items-center justify-center rounded-full ${
-                      done ? 'bg-teal-500 text-white' : 'border-2 border-slate-200 bg-white'
-                    } ${i === TRACK_DONE - 1 ? 'ring-4 ring-teal-100' : ''}`}
-                  >
-                    {done && <Check className="h-3 w-3" strokeWidth={3} />}
-                  </span>
-                  <span className={`whitespace-nowrap text-[11px] font-semibold ${done ? 'text-ink' : 'text-slate-400'}`}>{step}</span>
-                </li>
-              )
-            })}
-          </ol>
-        </div>
-
+    <div className="text-center lg:text-left">
+      <p className="mb-6 inline-flex animate-fade-up items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-brand-800 shadow-sm min-[360px]:px-4 min-[360px]:text-sm">
+        <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
+          <span className="absolute inset-0 animate-ping rounded-full bg-coral-400 opacity-75" />
+          <span className="relative h-2 w-2 rounded-full bg-coral-500" />
+        </span>
+        Free rides · Now piloting in Vancouver
+      </p>
+      <h1 className="animate-fade-up text-5xl font-black leading-[1.05] tracking-tight [animation-delay:80ms] sm:text-6xl">
+        Free rides to the places <span className="text-brand-gradient">that matter</span>
+      </h1>
+      <p className="mx-auto mt-6 max-w-xl animate-fade-up text-xl leading-relaxed text-slate-600 [animation-delay:160ms] lg:mx-0">
+        CareRide connects housing and social service staff with verified drivers, so people who can't get there on their own still make it to
+        every appointment.
+      </p>
+      <div className="mt-9 flex animate-fade-up flex-col gap-3 [animation-delay:240ms] sm:flex-row sm:justify-center lg:justify-start">
+        <Link to="/register" className={`${primaryButton} min-h-14 px-7 text-lg`}>
+          Get started <ArrowRight className="h-5 w-5" aria-hidden />
+        </Link>
+        <Link to="/signin" className={`${secondaryButton} min-h-14 px-7 text-lg`}>
+          Sign in
+        </Link>
       </div>
+      <p className="mt-4 animate-fade-up text-sm text-slate-500 [animation-delay:280ms]">
+        Just looking?{' '}
+        <Link to="/signin?demo" className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
+          <Sparkles className="h-4 w-4" aria-hidden />
+          Try a demo account
+        </Link>
+      </p>
+      <ul className="mx-auto mt-8 flex w-fit animate-fade-up flex-col items-start gap-2 text-sm font-medium text-slate-600 [animation-delay:320ms] sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
+        {['No app needed for riders', 'Verified drivers', 'No personal data stored'].map((t) => (
+          <li key={t} className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
 
+// Which section is on screen, so the header can highlight it.
+function useActiveSection(ids: string[]): string | undefined {
+  const [active, setActive] = useState<string>()
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id)
+      },
+      { rootMargin: '-45% 0px -50% 0px' }, // a thin band across the middle of the screen
+    )
+    for (const id of ['top', ...ids]) {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    }
+    return () => observer.disconnect()
+  }, [ids])
+  return active
+}
+
+function useScrolledPast(px: number): boolean {
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setPast(window.scrollY > px)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [px])
+  return past
+}
+
+const SECTION_IDS = SECTIONS.map((s) => s.id)
+
 export function Landing() {
-  const { currentUser, signOut } = useApp()
+  const { currentUser } = useApp()
+  const active = useActiveSection(SECTION_IDS)
+  const showBackToTop = useScrolledPast(900)
 
   return (
-    <div className="overflow-x-hidden">
-      <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/75 backdrop-blur-lg">
-        <div className="h-1 bg-spectrum" aria-hidden />
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Logo />
-          <nav className="flex items-center gap-1 sm:gap-2" aria-label="Account">
-            {currentUser ? (
-              <>
-                <button type="button" onClick={signOut} className={ghostButton}>
-                  <LogOut className="h-5 w-5" aria-hidden />
-                  Sign out
-                </button>
-                <Link to={HOME_FOR[currentUser.role]} className={primaryButton}>
-                  <span className="sm:hidden">Dashboard</span>
-                  <span className="hidden sm:inline">Go to dashboard</span>
-                  <ArrowRight className="h-5 w-5" aria-hidden />
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/signin" className={ghostButton}>
-                  Sign in
-                </Link>
-                <span className="hidden sm:block">
-                  <Link to="/register" className={primaryButton}>
-                    Get started
-                  </Link>
-                </span>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+    <div className="overflow-x-clip">
+      <LandingHeader sections={SECTIONS} active={active} />
 
       <main>
-        {/* Hero */}
-        <section className="relative">
+        <section id="top" className="relative scroll-mt-24" aria-label="Welcome">
           <div className="pointer-events-none absolute -top-32 left-1/2 h-[36rem] w-[60rem] -translate-x-1/2 rounded-full bg-gradient-to-b from-brand-100/70 to-transparent blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute -left-24 top-40 h-72 w-72 rounded-full bg-violet-200/40 blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" aria-hidden />
           <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-10 sm:gap-14 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-2 lg:pt-20">
-            <div className="text-center lg:text-left">
-              <p className="mb-6 inline-flex animate-fade-up items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-brand-800 shadow-sm min-[360px]:px-4 min-[360px]:text-sm">
-                <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-                  <span className="absolute inset-0 animate-ping rounded-full bg-coral-400 opacity-75" />
-                  <span className="relative h-2 w-2 rounded-full bg-coral-500" />
-                </span>
-                Free rides · Now piloting in Vancouver
-              </p>
-              <h1 className="animate-fade-up text-5xl font-black leading-[1.05] tracking-tight [animation-delay:80ms] sm:text-6xl">
-                Welcome to <span className="text-brand-gradient">CareRide</span>
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl animate-fade-up text-xl leading-relaxed text-slate-600 [animation-delay:160ms] lg:mx-0">
-                Free, reliable rides to the places that matter, for people who can't get there on their own.
-              </p>
-              <div className="mt-10 flex animate-fade-up flex-col gap-3 [animation-delay:240ms] sm:flex-row sm:justify-center lg:justify-start">
-                {currentUser ? (
-                  <Link to={HOME_FOR[currentUser.role]} className={`${primaryButton} min-h-14 px-7 text-lg`}>
-                    Go to dashboard <ArrowRight className="h-5 w-5" aria-hidden />
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/register" className={`${primaryButton} min-h-14 px-7 text-lg`}>
-                      Get started <ArrowRight className="h-5 w-5" aria-hidden />
-                    </Link>
-                    <Link to="/signin" className={`${secondaryButton} min-h-14 px-7 text-lg`}>
-                      I have an account
-                    </Link>
-                  </>
-                )}
-              </div>
-              <ul className="mx-auto mt-8 flex w-fit animate-fade-up flex-col items-start gap-2 text-sm font-medium text-slate-600 [animation-delay:320ms] sm:mt-10 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
-                {['No app needed for riders', 'Verified drivers', 'No personal data stored'].map((t) => (
-                  <li key={t} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {currentUser ? <WelcomeBack user={currentUser} /> : <Introduction />}
             <div className="animate-fade-up [animation-delay:200ms]">
               <HeroPreview />
             </div>
           </div>
+          <a
+            href="#how"
+            className="relative mx-auto -mt-4 mb-6 hidden w-fit flex-col items-center gap-1 text-xs font-semibold uppercase tracking-widest text-slate-400 transition hover:text-brand-700 lg:flex"
+          >
+            See how it works
+            <ArrowRight className="h-4 w-4 rotate-90 animate-float [animation-duration:2.5s]" aria-hidden />
+          </a>
         </section>
 
-        {/* How it works */}
-        <section className="border-y border-slate-200/70 bg-white py-20" aria-labelledby="how">
+        <section id="how" className="scroll-mt-20 border-y border-slate-200/70 bg-white py-20" aria-labelledby="how-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading eyebrow="How it works" title="From booking to arrival in three steps" tone="teal" />
-            <ol className="grid gap-6 md:grid-cols-3" id="how">
+            <SectionHeading id="how-heading" eyebrow="How it works" title="From booking to arrival in three steps" tone="teal" />
+            <ol className="relative grid gap-6 md:grid-cols-3">
+              <span className="absolute left-[16.6%] right-[16.6%] top-13 hidden h-0.5 bg-gradient-to-r from-coral-200 via-teal-200 to-violet-200 md:block" aria-hidden />
               {STEPS.map((s, i) => (
-                <li key={s.title} className="relative overflow-hidden rounded-3xl border border-slate-200 bg-[#fbfbfe] p-7">
-                  <span className={`absolute right-6 top-6 font-display text-5xl font-black opacity-25 ${tones[s.tone].text}`} aria-hidden>
-                    {i + 1}
-                  </span>
-                  <span className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg ${tones[s.tone].solid} ${tones[s.tone].glow}`} aria-hidden>
+                <li key={s.title} className="relative flex flex-col items-center rounded-3xl border border-slate-200 bg-[#fbfbfe] p-7 text-center">
+                  <span className={`relative mb-5 flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg ${tones[s.tone].solid} ${tones[s.tone].glow}`} aria-hidden>
                     {s.icon}
+                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black text-ink shadow ring-1 ring-slate-200">
+                      {i + 1}
+                    </span>
                   </span>
                   <h3 className="text-xl font-extrabold">{s.title}</h3>
                   <p className="mt-2 text-slate-600">{s.text}</p>
@@ -288,47 +225,57 @@ export function Landing() {
           </div>
         </section>
 
-        {/* Who it's for */}
-        <section className="py-20" aria-labelledby="who">
+        <section id="who" className="scroll-mt-20 py-20" aria-labelledby="who-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading eyebrow="Who it's for" title="One network, built together" tone="violet">
+            <SectionHeading id="who-heading" eyebrow="Who it's for" title="One network, built together" tone="violet">
               CareRide is independent and open to any organization, so every new partner makes the network stronger.
             </SectionHeading>
-            <div className="grid gap-6 md:grid-cols-3" id="who">
-              {AUDIENCES.map((a) => (
-                <Link
-                  key={a.role}
-                  to={`/register?role=${a.role}`}
-                  className={`group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${tones[a.tone].border}`}
-                >
-                  <span className={`absolute inset-x-0 top-0 h-1.5 ${tones[a.tone].solid}`} aria-hidden />
-                  <span className="relative mb-5 h-14 w-14" aria-hidden>
-                    <span className={`absolute inset-0 flex items-center justify-center rounded-2xl transition ${tones[a.tone].tile}`}>
-                      {a.icon}
+            <ul className="grid gap-6 md:grid-cols-3">
+              {AUDIENCES.map((a) => {
+                const inner = (
+                  <>
+                    <span className={`absolute inset-x-0 top-0 h-1.5 ${tones[a.tone].solid}`} aria-hidden />
+                    <span className="relative mb-5 h-14 w-14" aria-hidden>
+                      <span className={`absolute inset-0 flex items-center justify-center rounded-2xl transition ${tones[a.tone].tile}`}>{a.icon}</span>
+                      <span className={`absolute inset-0 flex items-center justify-center rounded-2xl opacity-0 transition group-hover:opacity-100 ${tones[a.tone].solid}`}>
+                        {a.icon}
+                      </span>
                     </span>
-                    <span className={`absolute inset-0 flex items-center justify-center rounded-2xl opacity-0 transition group-hover:opacity-100 ${tones[a.tone].solid}`}>
-                      {a.icon}
-                    </span>
-                  </span>
-                  <h3 className="text-xl font-extrabold">{a.title}</h3>
-                  <p className="mt-2 flex-1 text-slate-600">{a.text}</p>
-                  <span className={`mt-6 inline-flex items-center gap-1.5 font-bold ${tones[a.tone].text}`}>
-                    {a.cta}
-                    <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
-                  </span>
-                </Link>
-              ))}
-            </div>
+                    <h3 className="text-xl font-extrabold">{a.title}</h3>
+                    <p className="mt-2 flex-1 text-slate-600">{a.text}</p>
+                  </>
+                )
+                const cardClass = `group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition duration-200 ${tones[a.tone].border}`
+                return (
+                  <li key={a.role}>
+                    {currentUser ? (
+                      // Already signed in: describe each group, without pushing another sign-up.
+                      <div className={cardClass}>{inner}</div>
+                    ) : (
+                      <Link
+                        to={`/register?role=${a.role}`}
+                        className={`${cardClass} hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100`}
+                      >
+                        {inner}
+                        <span className={`mt-6 inline-flex items-center gap-1.5 font-bold ${tones[a.tone].text}`}>
+                          {a.cta}
+                          <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
+                        </span>
+                      </Link>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
           </div>
         </section>
 
-        {/* Promises */}
-        <section className="border-y border-slate-200/70 bg-white py-20" aria-labelledby="promise">
+        <section id="promise" className="scroll-mt-20 border-y border-slate-200/70 bg-white py-20" aria-labelledby="promise-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading eyebrow="Our promise" title="Dignity and safety, built in" tone="coral" />
-            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" id="promise">
+            <SectionHeading id="promise-heading" eyebrow="Our promise" title="Dignity and safety, built in" tone="coral" />
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {PROMISES.map((p) => (
-                <li key={p.title} className="rounded-2xl p-2">
+                <li key={p.title} className="rounded-3xl border border-slate-200 bg-[#fbfbfe] p-6">
                   <span className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${tones[p.tone].tile}`} aria-hidden>
                     {p.icon}
                   </span>
@@ -340,43 +287,119 @@ export function Landing() {
           </div>
         </section>
 
-        {/* Final call to action */}
-        <section className="px-4 py-20 sm:px-6">
+        <section id="faq" className="scroll-mt-20 py-20" aria-labelledby="faq-heading">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHeading id="faq-heading" eyebrow="Questions" title="Good to know" tone="brand" />
+            <Faq />
+          </div>
+        </section>
+
+        <section className="px-4 pb-20 sm:px-6" aria-label="Get going">
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-brand-gradient px-6 py-16 text-center shadow-2xl shadow-brand-700/20 sm:px-12">
             <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-coral-400/30 blur-2xl" aria-hidden />
             <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-fuchsia-400/30 blur-2xl" aria-hidden />
-            <div className="pointer-events-none absolute bottom-6 right-1/4 h-24 w-24 rounded-full bg-amber-300/25 blur-2xl" aria-hidden />
-            <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Every essential trip deserves a ride.</h2>
-            <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">
-              Join CareRide in a few minutes. It's free for organizations, drivers, and the people they serve.
-            </p>
-            <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                to="/register"
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
-              >
-                Create a free account <ArrowRight className="h-5 w-5" aria-hidden />
-              </Link>
-              <Link
-                to="/signin"
-                className="inline-flex min-h-14 items-center justify-center rounded-xl border border-white/40 px-7 text-lg font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
-              >
-                Sign in
-              </Link>
-            </div>
+            {currentUser ? (
+              <>
+                <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Ready when you are, {currentUser.name}.</h2>
+                <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">Everything for today is on your dashboard.</p>
+                <div className="relative mt-8 flex justify-center">
+                  <Link
+                    to={HOME_FOR[currentUser.role]}
+                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
+                  >
+                    Open your dashboard <ArrowRight className="h-5 w-5" aria-hidden />
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Every essential trip deserves a ride.</h2>
+                <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">
+                  Join CareRide in a few minutes. It's free for organizations, drivers, and the people they serve.
+                </p>
+                <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                  <Link
+                    to="/register"
+                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
+                  >
+                    Create a free account <ArrowRight className="h-5 w-5" aria-hidden />
+                  </Link>
+                  <Link
+                    to="/signin"
+                    className="inline-flex min-h-14 items-center justify-center rounded-xl border border-white/40 px-7 text-lg font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </main>
 
       <footer className="bg-white">
         <div className="h-1 bg-spectrum" aria-hidden />
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:px-6">
-          <Logo size="sm" />
-          <p className="text-center sm:text-right">
-            CareRide is an independent platform. Pilot partners are shown for demonstration only.
-          </p>
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:px-6 md:grid-cols-[1fr_auto_auto] md:gap-16">
+          <div className="space-y-3">
+            <Logo size="sm" />
+            <p className="max-w-sm text-slate-500">CareRide is an independent platform. Pilot partners are shown for demonstration only.</p>
+          </div>
+          <nav aria-label="Footer: on this page">
+            <p className="mb-3 font-bold text-ink">On this page</p>
+            <ul className="space-y-2">
+              {SECTIONS.map((s) => (
+                <li key={s.id}>
+                  <a href={`#${s.id}`} className="text-slate-600 hover:text-brand-700">
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <nav aria-label="Footer: account">
+            <p className="mb-3 font-bold text-ink">Account</p>
+            <ul className="space-y-2">
+              {currentUser ? (
+                <li>
+                  <Link to={HOME_FOR[currentUser.role]} className="text-slate-600 hover:text-brand-700">
+                    Your dashboard
+                  </Link>
+                </li>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/signin" className="text-slate-600 hover:text-brand-700">
+                      Sign in
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register" className="text-slate-600 hover:text-brand-700">
+                      Create an account
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/signin?demo" className="text-slate-600 hover:text-brand-700">
+                      Try a demo
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </nav>
         </div>
       </footer>
+
+      <a
+        href="#top"
+        aria-label="Back to top"
+        tabIndex={showBackToTop ? 0 : -1}
+        aria-hidden={!showBackToTop}
+        className={`fixed bottom-5 right-5 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-lg shadow-slate-900/10 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-0.5 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
+          showBackToTop ? 'opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+        }`}
+      >
+        <ArrowUp className="h-5 w-5" aria-hidden />
+      </a>
     </div>
   )
 }

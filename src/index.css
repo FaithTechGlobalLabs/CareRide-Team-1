@@ -90,6 +90,7 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth; /* in-page links glide; reduced motion turns this off below */
   }
 
   /* Native password-manager controls sit inside the field and draw a
