@@ -4,6 +4,7 @@ import type { User } from '../types'
 import { AppContext } from './appContext'
 
 const SESSION_KEY = 'careride-session-v3'
+const POLL_MS = 4000
 
 // The session lives in sessionStorage, so it survives a reload but not closing the
 // tab or browser: every fresh visit starts signed out on the home page.
@@ -60,6 +61,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', refresh)
     return () => window.removeEventListener('storage', refresh)
   }, [refresh])
+
+  // Check for new ride requests and answers every few seconds while signed in.
+  // This also moves timed-out requests on to other drivers.
+  // TODO: a real backend should push changes instead
+  useEffect(() => {
+    if (!currentUserId) return
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') refresh()
+    }, POLL_MS)
+    return () => window.clearInterval(timer)
+  }, [currentUserId, refresh])
 
   const value = useMemo(
     () => ({

@@ -5,5 +5,5 @@ import { useCurrentOrg } from '../../hooks/useCurrent'
 export function OrgHome() {
   const org = useCurrentOrg()
   if (!org) return null
-  return <Navigate to={org.type === 'TRANSPORT_PROVIDER' ? '/org/drivers' : '/org/houses'} replace />
+  return <Navigate to={org.type === 'TRANSPORT_PROVIDER' ? '/org/drivers' : '/org/rides'} replace />
 }

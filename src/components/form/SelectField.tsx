@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import type { SelectHTMLAttributes } from 'react'
 import { input, label as labelClass } from '../ui'
 import { FieldMessage } from './FieldMessage'
+import { RequiredMark } from './RequiredMark'
 
 type Props = SelectHTMLAttributes<HTMLSelectElement> & {
   id: string
@@ -16,6 +17,7 @@ export function SelectField({ id, label, hint, error, className = '', children, 
     <div className={className}>
       <label htmlFor={id} className={labelClass}>
         {label}
+        {rest.required && <RequiredMark />}
       </label>
       <div className="relative">
         <select

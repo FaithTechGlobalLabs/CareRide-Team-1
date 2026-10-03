@@ -1,4 +1,5 @@
 import type { Driver, House, Ride, User } from '../types'
+import { formatDayTime } from '../logic/formatTime'
 
 interface Props {
   ride: Ride
@@ -18,7 +19,7 @@ export function ClientSlip({ ride, driver, driverUser, house }: Props) {
         </p>
       )}
       <p>
-        <strong>When:</strong> {ride.type === 'ON_DEMAND' ? 'On demand' : new Date(ride.pickupTime).toLocaleString()}
+        <strong>When:</strong> {ride.type === 'ON_DEMAND' ? 'On demand' : formatDayTime(ride.pickupTime)}
       </p>
       <p>
         <strong>Where to wait:</strong> {ride.pickupInstructions ?? ride.pickupAddress}

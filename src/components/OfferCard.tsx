@@ -1,6 +1,7 @@
 import type { Ride, RideOffer } from '../types'
 import { RideCard } from './RideCard'
 import { primaryButton, secondaryButton } from './ui'
+import { formatTime } from '../logic/formatTime'
 
 interface Props {
   offer: RideOffer
@@ -16,7 +17,7 @@ export function OfferCard({ offer, ride, from, driverName, onRespond }: Props) {
     <RideCard ride={ride} from={from}>
       <p className="w-full text-sm text-slate-600">
         {driverName && <>For {driverName} · </>}
-        Please answer by {new Date(offer.expiresAt).toLocaleTimeString()}
+        Please answer by {formatTime(offer.expiresAt)}
       </p>
       <div className="grid grid-cols-2 gap-3 sm:flex">
         <button type="button" className={primaryButton} onClick={() => onRespond(true)}>

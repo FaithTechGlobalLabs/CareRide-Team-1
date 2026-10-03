@@ -5,8 +5,12 @@ import { useCurrentDriver, useCurrentOrg } from '../hooks/useCurrent'
 import { resetDemoData } from '../services/mockService'
 import type { UserRole } from '../types'
 import { AccountMenu } from './AccountMenu'
+import { ConfirmButton } from './ConfirmButton'
+import { IncomingRequests } from './IncomingRequests'
 import { Logo } from './Logo'
-import { ROLE_TONE, type Tone } from './ui'
+import { RideAcceptedNotice } from './RideAcceptedNotice'
+import { RideCancelledNotice } from './RideCancelledNotice'
+import { dangerButton, ROLE_TONE, type Tone } from './ui'
 
 type NavLinkItem = { to: string; label: string }
 
@@ -19,6 +23,7 @@ const ACTIVE_NAV: Record<Tone, { soft: string; solid: string }> = {
 }
 
 const partnerOrgNav: NavLinkItem[] = [
+  { to: '/org/rides', label: 'Rides' },
   { to: '/org/houses', label: 'Houses' },
   { to: '/org/destinations', label: 'Destinations' },
   { to: '/org/drivers', label: 'Our drivers' },
@@ -116,18 +121,29 @@ export function Layout() {
         <Outlet />
       </main>
 
+      {/* Pop-ups: new and cancelled requests for drivers, accepted rides for whoever booked them */}
+      <div className="no-print fixed inset-x-4 bottom-4 z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
+        <RideCancelledNotice />
+        <IncomingRequests />
+        <RideAcceptedNotice />
+      </div>
+
       <footer className="no-print mx-auto max-w-5xl px-4 pb-10 text-sm text-slate-500 sm:px-6">
         Demo data only. CareRide is an independent platform.{' '}
-        <button
-          type="button"
-          className="font-semibold underline-offset-2 hover:underline"
-          onClick={() => {
+        {/* Used before every demo, so it stays visible, but asks first: it wipes everything. */}
+        <ConfirmButton
+          className="inline-flex min-h-12 items-center font-semibold underline-offset-2 hover:underline"
+          title="Reset all demo data?"
+          body="Every ride, account and change goes back to the starting demo."
+          confirmLabel="Yes, reset everything"
+          confirmClassName={dangerButton}
+          onConfirm={() => {
             resetDemoData()
             refresh()
           }}
         >
           Reset demo data
-        </button>
+        </ConfirmButton>
       </footer>
     </div>
   )
