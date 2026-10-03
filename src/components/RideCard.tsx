@@ -4,6 +4,7 @@ import { PURPOSE_LABELS, RIDE_TYPE_LABELS } from '../constants'
 import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
+import { formatDayTime } from '../logic/formatTime'
 
 interface Props {
   ride: Ride
@@ -47,7 +48,7 @@ export function RideCard({ ride, from, to, children }: Props) {
         {ride.destinationName}
       </p>
       <p className="text-slate-600">
-        {ride.type === 'ON_DEMAND' ? 'On demand' : new Date(ride.pickupTime).toLocaleString()}
+        {ride.type === 'ON_DEMAND' ? 'On demand' : formatDayTime(ride.pickupTime)}
       </p>
       <p className="text-slate-600">
         {PURPOSE_LABELS[ride.purpose]} · {needs.join(' · ')}

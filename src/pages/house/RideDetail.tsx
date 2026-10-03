@@ -8,6 +8,7 @@ import { useData } from '../../hooks/useData'
 import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
 import type { OfferStatus, RideStatus } from '../../types'
+import { formatTime } from '../../logic/formatTime'
 
 const offerText: Record<OfferStatus, string> = {
   PENDING: 'Waiting for answer',
@@ -97,7 +98,7 @@ export function RideDetail() {
 
       {ride.status === 'COMPLETED' && ride.completedAt && (
         <p className="no-print font-semibold text-green-800">
-          Arrived. The driver confirmed drop-off at {new Date(ride.completedAt).toLocaleTimeString()}.
+          Arrived. The driver confirmed drop-off at {formatTime(ride.completedAt)}.
         </p>
       )}
 
