@@ -9,6 +9,7 @@ import { ConfirmButton } from './ConfirmButton'
 import { IncomingRequests } from './IncomingRequests'
 import { Logo } from './Logo'
 import { RideAcceptedNotice } from './RideAcceptedNotice'
+import { RideCancelledNotice } from './RideCancelledNotice'
 import { dangerButton, ROLE_TONE, type Tone } from './ui'
 
 type NavLinkItem = { to: string; label: string }
@@ -120,8 +121,9 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Pop-ups: new requests for drivers, accepted rides for whoever booked them */}
+      {/* Pop-ups: new and cancelled requests for drivers, accepted rides for whoever booked them */}
       <div className="no-print fixed inset-x-4 bottom-4 z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
+        <RideCancelledNotice />
         <IncomingRequests />
         <RideAcceptedNotice />
       </div>

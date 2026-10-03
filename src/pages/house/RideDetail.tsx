@@ -8,7 +8,7 @@ import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { acceptedMessage } from '../../logic/acceptedMessage'
 import { dataService } from '../../services'
-import type { OfferStatus, RideStatus } from '../../types'
+import type { OfferStatus, RideOffer, RideStatus } from '../../types'
 import { formatTime } from '../../logic/formatTime'
 import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
 
@@ -18,6 +18,7 @@ const offerText: Record<OfferStatus, string> = {
   DECLINED: 'Declined',
   EXPIRED: 'No answer',
   WITHDRAWN: 'Accepted, then cancelled',
+  TAKEN: 'Another driver accepted first',
 }
 
 // Free options the house can try when no driver accepts.
@@ -26,6 +27,13 @@ const FALLBACKS = ['Used a partner organization van', 'Gave transit directions a
 const CAN_CANCEL: RideStatus[] = ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION']
 const CAN_BOOK_RETURN: RideStatus[] = ['ACCEPTED', 'PICKED_UP', 'COMPLETED']
 const HAS_DRIVER: RideStatus[] = ['ACCEPTED', 'PICKED_UP']
+
+// A driver can be asked twice (e.g. again after another driver drops the ride). Show their latest answer.
+function latestPerDriver(offers: RideOffer[]): RideOffer[] {
+  const latest = new Map<string, RideOffer>()
+  for (const o of offers) if (!latest.has(o.driverId) || o.sentAt >= latest.get(o.driverId)!.sentAt) latest.set(o.driverId, o)
+  return [...latest.values()]
+}
 
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
@@ -46,15 +54,18 @@ export function RideDetail() {
   const driverName = (driverId: string) =>
     users.find((u) => u.id === drivers.find((d) => d.id === driverId)?.userId)?.name ?? 'Driver'
 
-  async function cancel(reason: string) {
-    await dataService.cancelRide(id, reason)
+  // The ride can change while this page is open (e.g. the driver picks the client up), so say why an action failed
+  async function run(action: () => Promise<unknown>) {
+    try {
+      await action()
+    } catch (err) {
+      alert((err as Error).message)
+    }
     refresh()
   }
 
-  async function retry() {
-    await dataService.retryRide(id)
-    refresh()
-  }
+  const cancel = (reason: string) => run(() => dataService.cancelRide(id, reason))
+  const retry = () => run(() => dataService.retryRide(id))
 
   return (
     <div className="space-y-6">
@@ -165,12 +176,9 @@ export function RideDetail() {
         <h2 className="mb-3 text-xl font-bold">Drivers asked</h2>
         {offers.length === 0 && <p>No drivers asked yet.</p>}
         <ul className="space-y-1">
-          {offers.map((o) => (
+          {latestPerDriver(offers).map((o) => (
             <li key={o.id}>
-              {driverName(o.driverId)}:{' '}
-              <strong>
-                {o.status === 'EXPIRED' && ride.driverId && !o.respondedAt ? 'Another driver accepted first' : offerText[o.status]}
-              </strong>
+              {driverName(o.driverId)}: <strong>{offerText[o.status]}</strong>
             </li>
           ))}
         </ul>

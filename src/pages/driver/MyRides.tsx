@@ -15,8 +15,13 @@ export function MyRides() {
   const rides = useData(() => dataService.listMyRides(driverId), driverId) ?? []
   const houses = useData(() => dataService.listHouses()) ?? []
 
+  // A ride can change under the driver (e.g. the house cancels it), so say why a step didn't work
   async function run(action: () => Promise<unknown>) {
-    await action()
+    try {
+      await action()
+    } catch (err) {
+      alert((err as Error).message)
+    }
     refresh()
   }
 

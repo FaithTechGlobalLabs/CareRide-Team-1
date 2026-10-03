@@ -11,8 +11,9 @@ export interface MatchPreview {
 }
 
 // How many drivers could take this ride, and if none, a plain reason why.
+// A scheduled ride also counts drivers whose request hours open before pickup: they're asked then.
 export function previewDriverMatch(needs: RideNeeds, house: House, drivers: Driver[], now = new Date()): MatchPreview {
-  const count = matchDrivers(needs as Ride, house, drivers, [], now).length
+  const count = matchDrivers(needs as Ride, house, drivers, [], now, needs.type === 'ON_DEMAND').length
   if (count > 0) return { count }
   return { count, reason: guessReason(needs, house, drivers, now) }
 }
@@ -35,7 +36,7 @@ function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Dat
       case 'wheelchair':
         return !needs.needsWheelchair || d.wheelchairAccessible
       case 'schedule':
-        return isWithinRequestHours(d.requestHours, now)
+        return needs.type !== 'ON_DEMAND' || isWithinRequestHours(d.requestHours, now)
       case 'notice':
         return needs.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)
     }
