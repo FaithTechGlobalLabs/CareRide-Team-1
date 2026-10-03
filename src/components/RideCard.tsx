@@ -10,6 +10,7 @@ interface Props {
   ride: Ride
   from?: string // pickup label, e.g. the house name
   to?: string // link to the ride's detail page
+  statusLabel?: string // override badge text when the default is for another role
   children?: ReactNode // action buttons
   alert?: string // one-line reason the ride needs action, shown in red
 }
@@ -26,7 +27,7 @@ const ACCENT: Record<Ride['status'], string> = {
   CANCELLED: 'border-l-slate-300',
 }
 
-export function RideCard({ ride, from, to, children, alert }: Props) {
+export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
   const highlight = ride.status === 'NEEDS_ATTENTION' || alert ? 'border-red-300 bg-red-50/40' : ''
   const needs = [
     `${ride.passengers} ${ride.passengers === 1 ? 'person' : 'people'}`,
@@ -43,7 +44,7 @@ export function RideCard({ ride, from, to, children, alert }: Props) {
           {ride.returnOfRideId && ' · Return trip'}
           {ride.clientName && ` · ${ride.clientName}`}
         </span>
-        <StatusBadge status={ride.status} />
+        <StatusBadge status={ride.status} label={statusLabel} />
       </div>
       <p className="break-words text-lg font-semibold">
         {from ? `${from} → ` : ''}
@@ -60,7 +61,7 @@ export function RideCard({ ride, from, to, children, alert }: Props) {
           View details
         </Link>
       )}
-      {children && <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">{children}</div>}
+      {children && <div className="mt-4 grid w-full gap-3 sm:flex sm:flex-wrap">{children}</div>}
     </div>
   )
 }
