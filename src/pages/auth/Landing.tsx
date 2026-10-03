@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   EyeOff,
   HandHeart,
+  LogOut,
   MapPin,
   Navigation,
   PhoneCall,
@@ -178,7 +179,7 @@ function HeroPreview() {
 }
 
 export function Landing() {
-  const { currentUser } = useApp()
+  const { currentUser, signOut } = useApp()
 
   return (
     <div className="overflow-x-hidden">
@@ -188,11 +189,17 @@ export function Landing() {
           <Logo />
           <nav className="flex items-center gap-1 sm:gap-2" aria-label="Account">
             {currentUser ? (
-              <Link to={HOME_FOR[currentUser.role]} className={primaryButton}>
-                <span className="sm:hidden">Dashboard</span>
-                <span className="hidden sm:inline">Go to dashboard</span>
-                <ArrowRight className="h-5 w-5" aria-hidden />
-              </Link>
+              <>
+                <button type="button" onClick={signOut} className={ghostButton}>
+                  <LogOut className="h-5 w-5" aria-hidden />
+                  Sign out
+                </button>
+                <Link to={HOME_FOR[currentUser.role]} className={primaryButton}>
+                  <span className="sm:hidden">Dashboard</span>
+                  <span className="hidden sm:inline">Go to dashboard</span>
+                  <ArrowRight className="h-5 w-5" aria-hidden />
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/signin" className={ghostButton}>
