@@ -1,3 +1,4 @@
+import type { DriverEtaHint } from '../logic/driverEta'
 import type {
   Destination,
   Driver,
@@ -140,7 +141,7 @@ export interface DataService {
   listRidesForOrg(orgId: string): Promise<Ride[]> // rides taken by the org's drivers
   respondToOffer(offerId: string, accept: boolean): Promise<Ride>
   dropRide(rideId: string, driverId: string): Promise<Ride>
-  markOnTheWay(rideId: string, etaMinutes?: number): Promise<Ride> // driver set off, with an optional ETA
+  markOnTheWay(rideId: string, eta?: DriverEtaHint): Promise<Ride> // driver set off; ETA is from now, or offset from pickup
   markDriverArrived(rideId: string): Promise<Ride> // driver is at the pickup ("I'm here")
   markPickedUp(rideId: string): Promise<Ride>
   markCompleted(rideId: string): Promise<Ride>

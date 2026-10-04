@@ -124,7 +124,7 @@ export interface Ride {
   createdAt: string
   acceptedAt?: string // when a driver said yes
   driverOnTheWayAt?: string // driver set off for the pickup
-  driverEta?: string // optional: when the driver expects to reach the pickup
+  driverEta?: string // optional: when the driver expects to reach the pickup (scheduled: pickup time plus early/late)
   driverArrivedAt?: string // driver tapped "I'm here" at pickup
   pickedUpAt?: string
   completedAt?: string

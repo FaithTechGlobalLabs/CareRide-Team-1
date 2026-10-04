@@ -798,8 +798,17 @@ export const supabaseService: DataService = {
   dropRide: (rideId, driverId) =>
     rideCall('drop_ride', { p_ride_id: rideId, p_driver_id: driverId }, "We couldn't give up this ride."),
 
-  markOnTheWay: (rideId, etaMinutes) =>
-    rideCall('advance_ride', { p_ride_id: rideId, p_step: 'ON_THE_WAY', p_eta_minutes: etaMinutes ?? null }, "We couldn't update this ride."),
+  markOnTheWay: (rideId, eta) =>
+    rideCall(
+      'advance_ride',
+      {
+        p_ride_id: rideId,
+        p_step: 'ON_THE_WAY',
+        p_eta_minutes: eta?.minutes ?? null,
+        p_eta_from_pickup: eta?.relativeTo === 'pickup',
+      },
+      "We couldn't update this ride.",
+    ),
   markDriverArrived: (rideId) => rideCall('advance_ride', { p_ride_id: rideId, p_step: 'ARRIVED' }, "We couldn't update this ride."),
   markPickedUp: (rideId) => rideCall('advance_ride', { p_ride_id: rideId, p_step: 'PICKED_UP' }, "We couldn't update this ride."),
   markCompleted: (rideId) => rideCall('advance_ride', { p_ride_id: rideId, p_step: 'COMPLETED' }, "We couldn't update this ride."),

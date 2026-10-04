@@ -43,7 +43,7 @@ Additional partner and driver accounts appear on the sign-in page. Demo records 
 2. **Request an on-demand ride.** Choose St. Paul's Hospital, enter a fictional name, and request one passenger without wheelchair access. Submit the request.
 3. **Open a second tab at the same local URL.** Sign in as **Frank**, who receives requests at any time in the seed data, and accept the offer.
 4. **Return to the Belkin House tab.** Review the confirmation and print the client's ride slip if desired.
-5. **On Frank's Rides page**, follow the trip steps: **I'm on my way** (optionally pick an ETA), **I'm here**, **Client is in the car**, then **Client dropped off**. Watch the trip timeline update in the Belkin House tab.
+5. **On Frank's Rides page**, follow the trip steps: **I'm on my way** (for an on-demand ride, optionally how far away you are; for a scheduled ride, whether you'll be early or late), **I'm here**, **Client is in the car**, then **Client dropped off**. Watch the trip timeline update in the Belkin House tab.
 6. **Check the Belkin House view.** The ride is complete. Choose **Book the return trip** to explore the linked return workflow.
 
 Tabs on the same browser origin share ride data while keeping their own sign-in sessions. Changes synchronize through browser storage events and a four-second refresh while a signed-in tab is visible. Separate browsers, devices, and origins have independent demo data.

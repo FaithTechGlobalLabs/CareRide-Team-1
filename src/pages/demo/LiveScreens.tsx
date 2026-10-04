@@ -43,7 +43,7 @@ export function LiveScreens({ index, onChange }: Props) {
     indexRef.current = index
   })
 
-  // Fresh data every time the slide opens, so times like "arriving in 10 min" are about now.
+  // Fresh data every time the slide opens, so scheduled times like "on time for 2:15 PM" are about now.
   // The staff frame loads once; after that it moves between pages inside the app.
   useEffect(() => {
     let active = true
