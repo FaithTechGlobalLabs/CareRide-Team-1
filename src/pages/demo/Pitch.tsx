@@ -1,4 +1,20 @@
-import { Bell, CalendarCheck, ClipboardList, HandHeart, Heart, PhoneCall, PhoneOff, Undo2, Unlink, Users, type LucideIcon } from 'lucide-react'
+import {
+  ArrowRight,
+  Bot,
+  CalendarCheck,
+  Check,
+  ClipboardList,
+  Clock,
+  GitBranch,
+  GitPullRequest,
+  HandHeart,
+  PhoneOff,
+  Search,
+  Share2,
+  Undo2,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import logoMark from '../../assets/logo-mark.png'
 import { tones, type Tone } from '../../components/ui'
@@ -11,38 +27,105 @@ interface Props {
   onStep: (step: number) => void
 }
 
+// How we worked, and who did what, from the repo's pull requests
+const PROCESS = [
+  { icon: Bot, text: 'Each of us worked with a coding agent' },
+  { icon: GitPullRequest, text: 'Over 40 pull requests in two days' },
+  { icon: Users, text: 'User testing shaped the last round' },
+]
+const TEAM = [
+  { name: 'Adi', did: ['Product strategy and app setup', 'Sign-in, booking, and dashboard design', 'Driver and admin workflows'] },
+  { name: 'Noah', did: ['Simpler booking form', 'Step-by-step trips for drivers', 'Cloudflare deploy and Android app'] },
+  { name: 'Gilbert', did: ['Day-to-day flows and partner notes', 'Calling, late-ride alerts, and safeguards', 'User testing changes and this demo'] },
+]
+
+export const REPO_URL = 'github.com/FaithTechGlobalLabs/CareRide-Team-1'
+
 export function Pitch({ slide, step, onStep }: Props) {
   const id = SLIDES[slide].id
   return (
     <div key={id} className="flex min-h-0 flex-1 animate-fade-up flex-col">
       {id === 'title' && (
-        <section className="m-auto flex flex-col items-center py-6 text-center">
-          <img src={logoMark} alt="" className="h-36 w-36 animate-float" />
+        <section className="m-auto flex flex-col items-center py-2 text-center">
+          <img src={logoMark} alt="" className="h-24 w-24 animate-float" />
           <Wordmark />
-          <p className="mt-4 max-w-4xl text-balance text-3xl font-bold text-slate-700 md:text-5xl">Helping neighbours get where they need to go.</p>
-          <p className="mt-10 text-xl text-slate-500">HACKVAN 2026 · Adi, Noah, Gilbert</p>
+          <p className="mt-4 max-w-5xl text-balance text-3xl font-extrabold text-slate-700 md:text-4xl">
+            Clients at transitional housing may be unable to use phones. Without the ability to book rides, they can miss the care they need.
+          </p>
+          <p className="mt-3 text-xl font-bold text-slate-500">Belkin Communities of Hope · The Salvation Army, Vancouver</p>
+          <p className="mt-6 flex items-center gap-2 text-2xl font-bold text-brand-700">
+            <GitBranch className="h-6 w-6" aria-hidden /> {REPO_URL}
+          </p>
+          <p className="mt-3 text-xl font-bold text-slate-500">Adi, Noah, Gilbert</p>
         </section>
       )}
-      {id === 'story' && (
-        <Slide kicker="One morning at Belkin House" title="A resident has an appointment at St. Paul’s.">
-          <p className="text-center text-4xl font-bold text-slate-600">They don’t have a smartphone.</p>
-          <p className="mt-6 text-center text-4xl font-black text-brand-600">How do they get there?</p>
-        </Slide>
-      )}
       {id === 'problem' && (
-        <Slide kicker="The problem" title="Getting to care shouldn’t depend on having a smartphone.">
+        <Slide title="How do you get to an appointment without a phone?">
           <Points
             items={[
-              { icon: PhoneOff, tone: 'coral', title: 'Ride apps assume a smartphone' },
-              { icon: Unlink, tone: 'violet', title: 'No shared way to request or track rides' },
-              { icon: PhoneCall, tone: 'amber', title: 'Staff arrange rides by hand' },
+              { icon: Users, tone: 'coral', title: 'Clients are often unable to use technology' },
+              { icon: PhoneOff, tone: 'violet', title: 'Uber, Lyft, and taxis need phones to book rides' },
+              { icon: Search, tone: 'amber', title: 'Case workers search for rides with no easy system' },
             ]}
           />
-          <p className="mt-8 text-center text-3xl font-bold text-coral-600">Without a ride, people can miss appointments.</p>
+          <p className="mt-5 text-center text-3xl font-extrabold text-coral-600">Without a ride, they can miss the care they need.</p>
         </Slide>
       )}
-      {id === 'heard' && (
-        <Slide kicker="We ran a user testing session" title="A few big lessons.">
+      {id === 'impact' && (
+        <Slide title="What changes if this works.">
+          <Points
+            items={[
+              { icon: HandHeart, tone: 'coral', title: 'People get to appointments, no phone needed' },
+              { icon: Clock, tone: 'brand', title: 'Staff spend less time finding rides' },
+              { icon: Share2, tone: 'violet', title: 'Organizations share drivers, instead of each going it alone' },
+            ]}
+          />
+        </Slide>
+      )}
+      {id === 'approach' && (
+        <Slide title="A working MVP, built around staff.">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <List
+              heading="Our angle"
+              items={['Staff book rides for residents', 'Residents need no phone, app, or account', 'Drivers accept or decline each request']}
+            />
+            <List
+              heading="Our assumptions"
+              items={['Staff are the right people to book', 'Drivers will sign up to give rides', 'A printed slip is enough for the resident']}
+            />
+          </div>
+        </Slide>
+      )}
+      {id === 'live' && <LiveScreens index={step} onChange={onStep} />}
+      {id === 'story' && (
+        <Slide title="Built together, with coding agents.">
+          <div className="flex flex-wrap justify-center gap-3">
+            {PROCESS.map(({ icon: Icon, text }) => (
+              <span key={text} className="flex items-center gap-2 rounded-full bg-brand-50 px-4 py-2 text-lg font-bold text-brand-800 ring-1 ring-brand-100">
+                <Icon className="h-5 w-5" aria-hidden /> {text}
+              </span>
+            ))}
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            {TEAM.map(({ name, did }) => (
+              <div key={name} className="rounded-2xl border border-slate-200/80 bg-white px-6 py-5 shadow-sm">
+                <h3 className="text-3xl font-extrabold">{name}</h3>
+                <ul className="mt-2 space-y-1 text-lg font-bold text-slate-600">
+                  {did.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Placeholder>A success</Placeholder>
+            <Placeholder>A challenge</Placeholder>
+          </div>
+        </Slide>
+      )}
+      {id === 'lessons' && (
+        <Slide title="A few big lessons.">
           <div className="mx-auto grid max-w-5xl gap-4">
             <div className="grid grid-cols-[1fr_auto_1fr] gap-5 px-7 text-base font-bold uppercase tracking-wider text-slate-400">
               <span>What we learned</span>
@@ -55,25 +138,27 @@ export function Pitch({ slide, step, onStep }: Props) {
           </div>
         </Slide>
       )}
-      {id === 'live' && <LiveScreens index={step} onChange={onStep} />}
-      {id === 'values' && (
-        <Slide kicker="What guided us" title="Simple for everyone involved.">
-          <Points
-            items={[
-              { icon: HandHeart, tone: 'coral', title: 'Residents need no phone or app' },
-              { icon: Bell, tone: 'brand', title: 'Staff can follow every ride' },
-              { icon: Users, tone: 'violet', title: 'Any organization can join' },
-            ]}
-          />
-        </Slide>
-      )}
       {id === 'thanks' && (
-        <section className="m-auto flex flex-col items-center py-6 text-center">
-          <Heart className="h-20 w-20 animate-float fill-coral-500 text-coral-500" aria-hidden />
-          <h2 className="mt-6 text-7xl font-black md:text-8xl">Thank you.</h2>
-          <p className="mt-6 max-w-4xl text-balance text-3xl font-bold text-slate-700 md:text-4xl">Questions?</p>
-          <p className="mt-10 text-xl text-slate-500">Adi, Noah, Gilbert · Inspired by Belkin Communities of Hope</p>
-        </section>
+        <Slide title="Getting to care, without needing a phone.">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <List
+                bare
+                heading="Next steps"
+                icon={ArrowRight}
+                items={['Start with professional drivers', 'Connect a real backend', 'Map directions for drivers', 'A mobile app']}
+              />
+              <Placeholder className="mt-4">How it fits Belkin House’s current tools</Placeholder>
+            </div>
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="text-xl font-extrabold uppercase tracking-wider text-slate-400">How you can help</h3>
+              <p className="mt-4 text-2xl font-bold">Please contact the team to get involved.</p>
+              <p className="mt-6 flex items-center gap-2 whitespace-nowrap text-lg font-bold text-brand-700">
+                <GitBranch className="h-5 w-5" aria-hidden /> {REPO_URL}
+              </p>
+            </div>
+          </div>
+        </Slide>
       )}
     </div>
   )
@@ -88,12 +173,12 @@ function Wordmark() {
   )
 }
 
-function Slide({ kicker, title, children }: { kicker: string; title: string; children: ReactNode }) {
+// The slide's kicker sits in the deck's header
+function Slide({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="m-auto w-full max-w-6xl py-2">
-      <div className="text-center text-lg font-bold uppercase tracking-wider text-brand-600">{kicker}</div>
-      <h2 className="mx-auto mt-2 max-w-5xl text-balance text-center text-5xl font-black leading-[1.1] md:text-6xl">{title}</h2>
-      <div className="mt-8">{children}</div>
+      <h2 className="mx-auto max-w-5xl text-balance text-center text-5xl font-black leading-[1.1] md:text-6xl">{title}</h2>
+      <div className="mt-6">{children}</div>
     </section>
   )
 }
@@ -104,13 +189,13 @@ function Points({ items }: { items: { icon: LucideIcon; tone: Tone; title: strin
       {items.map(({ icon: Icon, tone, title }, i) => (
         <div
           key={title}
-          className="flex animate-fade-up flex-col items-center rounded-2xl border border-slate-200/80 bg-white p-6 text-center shadow-sm"
+          className="flex animate-fade-up flex-col items-center rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-sm"
           style={{ animationDelay: `${0.15 + i * 0.12}s` }}
         >
           <span className={`flex h-16 w-16 items-center justify-center rounded-2xl ${tones[tone].tile}`} aria-hidden>
             <Icon className="h-8 w-8" />
           </span>
-          <h3 className="mt-5 text-balance text-3xl font-extrabold leading-snug">{title}</h3>
+          <h3 className="mt-4 text-balance text-3xl font-extrabold leading-snug">{title}</h3>
         </div>
       ))}
     </div>
@@ -126,5 +211,30 @@ function Heard({ icon: Icon, heard, changed }: { icon: LucideIcon; heard: string
       </span>
       <p className="text-2xl font-extrabold">{changed}</p>
     </div>
+  )
+}
+
+// `bare` drops the card, for a list inside a card of its own
+function List({ heading, items, icon: Icon = Check, bare = false }: { heading: string; items: string[]; icon?: LucideIcon; bare?: boolean }) {
+  return (
+    <div className={bare ? '' : 'rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm'}>
+      <h3 className="text-xl font-extrabold uppercase tracking-wider text-slate-400">{heading}</h3>
+      <ul className="mt-4 space-y-3">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-3 text-2xl font-bold">
+            <Icon className="mt-1 h-6 w-6 shrink-0 text-brand-600" aria-hidden /> {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// Something only the team can fill in. Deliberately loud, so it can't be presented by accident.
+function Placeholder({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 px-4 py-2 text-center text-lg font-semibold text-amber-800 ${className}`}>
+      To add: {children}
+    </p>
   )
 }

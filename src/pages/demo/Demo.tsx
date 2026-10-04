@@ -9,7 +9,7 @@ import { SLIDES } from './slides'
 const clamp = (n: number, max: number) => Math.min(max, Math.max(0, n))
 const toIndex = (v: string | null) => (Number(v ?? 1) || 1) - 1
 
-// Presenter page: the pitch deck. Stepped slides (the ride overview, the real screens) click through one moment at a time.
+// Presenter page: the pitch deck. Stepped slides (the real screens) click through one moment at a time.
 // Where you are lives in the URL (?slide=4&step=3) so any moment can be linked to.
 // Keys: → / ← / PageDown / PageUp / Space step through everything (clickers work), N shows notes, F goes full screen.
 export function Demo() {
@@ -49,10 +49,13 @@ export function Demo() {
   })
 
   return (
-    <div className="mx-auto flex h-dvh max-w-[1500px] flex-col gap-3 px-4 py-3 lg:px-6">
-      <header className="no-print flex flex-wrap items-center gap-x-5 gap-y-2">
+    <div className="mx-auto flex h-dvh max-w-[1500px] flex-col gap-3 px-4 py-3 font-display lg:px-6">
+      <header className="no-print grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         <Logo size="sm" to="/demo" />
-        <div className="ml-auto flex items-center gap-1">
+        <div key={slide} className="animate-fade-up text-center text-lg font-extrabold uppercase tracking-wider text-brand-600">
+          {SLIDES[slide].kicker}
+        </div>
+        <div className="flex items-center justify-self-end">
           <span className="mr-2 text-sm font-semibold text-slate-400">
             {slide + 1} / {SLIDES.length}
           </span>
@@ -102,7 +105,10 @@ export function Demo() {
       </nav>
 
       {notes && (
-        <aside aria-label="Speaker notes" className="fixed inset-x-4 bottom-14 z-10 mx-auto max-w-3xl rounded-2xl bg-ink/95 p-5 text-white shadow-2xl">
+        <aside
+          aria-label="Speaker notes"
+          className="fixed inset-x-4 bottom-14 z-10 mx-auto max-w-3xl rounded-2xl bg-ink/95 p-5 font-sans text-white shadow-2xl"
+        >
           <div className="mb-2 text-xs font-bold uppercase tracking-wider text-brand-200">Notes · {SLIDES[slide].label}</div>
           <ul className="list-disc space-y-1 pl-5 text-[15px] leading-relaxed">
             {SLIDES[slide].notes.map((n) => (

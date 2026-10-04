@@ -2,21 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { dataService } from '../services'
 import type { User } from '../types'
 import { AppContext } from './appContext'
+import { DEMO_FRAME_USER as FRAME_USER, DEMO_REFRESH } from './demoFrame'
 
 const SESSION_KEY = 'careride-session-v3'
 const POLL_MS = 4000
-
-// The /demo deck shows the real app in frames, one per role. Frames share the tab's sessionStorage,
-// so each says who it is with ?as=<user id>. Only honoured inside a frame on the /demo page.
-// The mock backend lives in the browser anyway; a real backend must ignore this.
-const FRAME_USER = (() => {
-  try {
-    if (window.parent === window || window.parent.location.pathname !== '/demo') return ''
-    return new URLSearchParams(window.location.search).get('as') ?? ''
-  } catch {
-    return ''
-  }
-})()
 
 // The session lives in sessionStorage, so it survives a reload but not closing the
 // tab or browser: every fresh visit starts signed out on the home page.
@@ -70,8 +59,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [version])
 
-  // Keep two open tabs (e.g. a house and a driver) in sync during the demo
+  // Keep two open tabs (e.g. a house and a driver) in sync during the demo.
+  // In a /demo frame, the deck says when instead.
   useEffect(() => {
+    if (FRAME_USER) {
+      const onMessage = (e: MessageEvent) => {
+        if (e.source === window.parent && e.data === DEMO_REFRESH) refresh()
+      }
+      window.addEventListener('message', onMessage)
+      return () => window.removeEventListener('message', onMessage)
+    }
     window.addEventListener('storage', refresh)
     return () => window.removeEventListener('storage', refresh)
   }, [refresh])
@@ -80,7 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // This also moves timed-out requests on to other drivers.
   // TODO: a real backend should push changes instead
   useEffect(() => {
-    if (!currentUserId) return
+    if (!currentUserId || FRAME_USER) return
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') refresh()
     }, POLL_MS)

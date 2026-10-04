@@ -2,6 +2,7 @@
 // The driver is Maya in the demo data; the slide just says "the driver".
 // Every moment is made with the real data service, so the screens always match the current app.
 import { ridePath } from '../../logic/homeFor'
+import { toLocalInput } from '../../logic/pickupTime'
 import { estimateFare } from '../../logic/estimateFare'
 import { dataService } from '../../services'
 import { STORAGE_KEY, resetDemoData } from '../../services/mockService'
@@ -12,7 +13,15 @@ const DRIVER = 'u-olive' // Maya, the driver shown
 const FRANK = 'd-frank'
 const MAYA = 'd-olive'
 
-type Moment = 'start' | 'booked' | 'accepted' | 'onTheWay' | 'pickedUp' | 'droppedOff'
+export type Moment = 'start' | 'booked' | 'accepted' | 'onTheWay' | 'arrived' | 'pickedUp' | 'droppedOff'
+
+// A button press shown on one screen on the way into a step. The press is only shown, not made, unless `click` is set
+// (for buttons that just change the screen, like choosing an ETA). `then` is the moment the data moves to afterwards.
+export interface Tap {
+  label: string // the button's text, or how it starts
+  click?: boolean
+  then?: Moment
+}
 
 export interface LiveStep {
   short: string
@@ -22,6 +31,7 @@ export interface LiveStep {
   staff: 'request' | 'ride' // the booking form, or the ride's page
   staffScroll?: string // text of a heading to scroll the staff frame to
   driverScroll: string // id of the section to scroll the driver's phone to
+  action?: { by: 'staff' | 'driver'; taps: Tap[] } // played when stepping forward; the other screen catches up after
 }
 
 export const LIVE_STEPS: LiveStep[] = [
@@ -40,8 +50,17 @@ export const LIVE_STEPS: LiveStep[] = [
     moment: 'booked',
     staff: 'ride',
     driverScroll: 'requests-title',
+    action: { by: 'staff', taps: [{ label: 'Request ride', then: 'booked' }] },
   },
-  { short: 'Accepted', title: 'A driver accepts', caption: 'Staff are told right away.', moment: 'accepted', staff: 'ride', driverScroll: 'current-title' },
+  {
+    short: 'Accepted',
+    title: 'A driver accepts',
+    caption: 'Staff are told right away.',
+    moment: 'accepted',
+    staff: 'ride',
+    driverScroll: 'current-title',
+    action: { by: 'driver', taps: [{ label: 'Accept', then: 'accepted' }] },
+  },
   {
     short: 'Slip',
     title: 'A slip for the resident',
@@ -58,6 +77,13 @@ export const LIVE_STEPS: LiveStep[] = [
     moment: 'onTheWay',
     staff: 'ride',
     driverScroll: 'current-title',
+    action: {
+      by: 'driver',
+      taps: [
+        { label: '10 min', click: true },
+        { label: 'I’m on my way', then: 'onTheWay' },
+      ],
+    },
   },
   {
     short: 'Picked up',
@@ -66,6 +92,13 @@ export const LIVE_STEPS: LiveStep[] = [
     moment: 'pickedUp',
     staff: 'ride',
     driverScroll: 'current-title',
+    action: {
+      by: 'driver',
+      taps: [
+        { label: 'I’m here', then: 'arrived' },
+        { label: 'Client is in the car', then: 'pickedUp' },
+      ],
+    },
   },
   {
     short: 'Dropped off',
@@ -73,7 +106,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Staff know the resident has arrived.',
     moment: 'droppedOff',
     staff: 'ride',
-    driverScroll: 'current-title',
+    driverScroll: 'past-title',
+    action: { by: 'driver', taps: [{ label: 'Client dropped off', then: 'droppedOff' }] },
   },
 ]
 
@@ -82,6 +116,9 @@ export interface LiveDemo {
   rideId: string
   warning?: string // the story couldn't be told as written, e.g. a driver is outside their request hours
 }
+
+const PICKUP_AT = 'Front lobby'
+const DRAFT = { type: 'SCHEDULED', customAddress: '', passengers: 1, riderNames: [''], needsWheelchair: false, needsAssistance: false, notes: '' }
 
 export const frameSrc = (path: string, as: 'partner' | 'driver') => `${path}?as=${as === 'partner' ? PARTNER : DRIVER}`
 
@@ -107,7 +144,6 @@ async function build(): Promise<LiveDemo> {
   const snapshots: LiveDemo['snapshots'] = {}
   const snap = (moment: Moment) => (snapshots[moment] = localStorage.getItem(STORAGE_KEY) ?? '')
   const problems: string[] = []
-  snap('start')
 
   const [house] = await dataService.listHouses('org-belkin')
   const dest = (await dataService.listDestinations('org-belkin')).find((d) => d.id === 'dest-stp-belkin')!
@@ -123,11 +159,18 @@ async function build(): Promise<LiveDemo> {
     estimatedFareSaved: estimateFare(),
   }
 
+  // The booking form opens filled in with this ride, as if staff had just typed it
+  localStorage.setItem(
+    `careride-ride-draft:${PARTNER}`,
+    JSON.stringify({ ...DRAFT, destinationId: dest.id, pickupTime: toLocalInput(pickup.getTime()), pickupInstructions: PICKUP_AT }),
+  )
+  snap('start')
+
   const ride = await dataService.requestRide({
     ...base,
     pickupAddress: house.address,
     pickupTime: pickup.toISOString(),
-    pickupInstructions: 'Front lobby',
+    pickupInstructions: PICKUP_AT,
     destinationId: dest.id,
     destinationName: dest.name,
     destinationAddress: dest.address,
@@ -147,6 +190,7 @@ async function build(): Promise<LiveDemo> {
   await at(() => dataService.markOnTheWay(ride.id, 10))
   snap('onTheWay')
   await at(() => dataService.markDriverArrived(ride.id))
+  snap('arrived')
   await at(() => dataService.markPickedUp(ride.id))
   snap('pickedUp')
   await at(() => dataService.markCompleted(ride.id))
@@ -161,7 +205,7 @@ async function build(): Promise<LiveDemo> {
 
 export const staffPath = (demo: LiveDemo, step: LiveStep) => (step.staff === 'request' ? '/partner/request' : ridePath(demo.rideId))
 
-export function showSnapshot(demo: LiveDemo, step: LiveStep): void {
-  const data = demo.snapshots[step.moment]
+export function showSnapshot(demo: LiveDemo, moment: Moment): void {
+  const data = demo.snapshots[moment]
   if (data && localStorage.getItem(STORAGE_KEY) !== data) localStorage.setItem(STORAGE_KEY, data)
 }
