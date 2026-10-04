@@ -61,7 +61,7 @@ export const tones: Record<Tone, { tile: string; solid: string; text: string; bo
 
 export const ROLE_TONE: Record<UserRole, Tone> = {
   PLATFORM_ADMIN: 'brand',
-  ORG_ADMIN: 'violet',
-  HOUSE: 'coral',
+  ORG_ADMIN: 'amber',
+  PARTNER: 'violet',
   DRIVER: 'teal',
 }

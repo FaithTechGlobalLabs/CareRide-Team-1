@@ -8,15 +8,16 @@ import { card, ghostButton, pageTitle, primaryButton } from '../../components/ui
 import { useApp } from '../../hooks/useApp'
 import { useCurrentDriver } from '../../hooks/useCurrent'
 import { requestHoursError } from '../../logic/requestHours'
+import { MAX_NAME, tooLong } from '../../logic/validate'
 import { dataService } from '../../services'
 import type { DriverSettings } from '../../services/dataService'
 
-type Editable = Omit<DriverSettings, 'available'>
+type Editable = DriverSettings
 
 function validate(s: Editable): FieldErrors {
   return {
     requestHours: requestHoursError(s.requestHours),
-    vehicle: s.vehicle.trim() ? undefined : 'Describe your vehicle so clients can find it.',
+    vehicle: s.vehicle.trim() ? tooLong(s.vehicle, MAX_NAME) : 'Describe your vehicle so clients can find it.',
     serviceCities: s.serviceCities.length ? undefined : 'Pick at least one city.',
   }
 }
@@ -73,11 +74,6 @@ export function Settings() {
   const changeVehicle = ({ vehicle, seats, wheelchairAccessible, serviceCities }: DriverDraft) =>
     change({ vehicle, seats, wheelchairAccessible, serviceCities })
 
-  async function setAvailable(available: boolean) {
-    await dataService.updateDriver(driver!.id, { available })
-    refresh()
-  }
-
   async function save() {
     if (Object.values(errors).some(Boolean)) {
       setShowErrors(true)
@@ -105,10 +101,12 @@ export function Settings() {
     <div className="space-y-6 pb-28">
       <div>
         <h1 className={`${pageTitle} mb-2`}>Request settings</h1>
-        <p className="text-lg text-slate-600">Choose when CareRide asks you for help. You always decide which rides to take.</p>
+        <p className="text-lg text-slate-600">
+          Choose when CareRide asks you for help. You always decide which rides to take: just decline the ones that don't suit you.
+        </p>
       </div>
 
-      <RequestStatusCard driver={driver} onPause={setAvailable} />
+      <RequestStatusCard driver={driver} />
 
       <Section
         icon={<CalendarClock className="h-6 w-6" />}

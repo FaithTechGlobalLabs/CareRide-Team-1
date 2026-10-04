@@ -1,4 +1,4 @@
-import { Building2, Bus, Car, Home, Mail, MapPin, Pencil, Plus, Trash2, User as UserIcon } from 'lucide-react'
+import { Building2, Car, Mail, MapPin, Pencil, Plus, Trash2, User as UserIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import {
   DriverAboutFields,
@@ -16,6 +16,7 @@ import { TextField } from '../../../components/form/TextField'
 import { secondaryButton, type Tone } from '../../../components/ui'
 import { BACKGROUND_LABELS, CITIES } from '../../../constants'
 import { describeRequestHours, formatNotice } from '../../../logic/requestHours'
+import { MAX_NAME, tooLong } from '../../../logic/validate'
 import { SUGGESTED_DESTINATIONS, type RegisterDraft, type RegisterRole } from './draft'
 
 export interface StepProps {
@@ -28,22 +29,15 @@ export interface StepProps {
 const ROLES: { value: RegisterRole; title: string; description: string; icon: ReactNode; tone: Tone }[] = [
   {
     value: 'PARTNER',
-    title: 'Book rides for the people we serve',
-    description: 'For shelters, housing, and social service organizations.',
+    title: 'Partner organization',
+    description: 'Book rides for the people you serve. For shelters, housing, and social service organizations.',
     icon: <Building2 className="h-6 w-6" />,
     tone: 'violet',
   },
   {
-    value: 'PROVIDER',
-    title: 'Give rides with our vehicles',
-    description: 'For organizations with vans or drivers that can take bookings.',
-    icon: <Bus className="h-6 w-6" />,
-    tone: 'amber',
-  },
-  {
     value: 'DRIVER',
-    title: 'Drive with CareRide',
-    description: 'For taxi and rideshare drivers who want to give free rides.',
+    title: 'Driver',
+    description: 'Give free rides when it suits you. For taxi and rideshare drivers.',
     icon: <Car className="h-6 w-6" />,
     tone: 'teal',
   },
@@ -114,7 +108,6 @@ export function AccountStep({ draft, update, errors }: StepProps) {
 }
 
 export function OrganizationStep({ draft, update, errors }: StepProps) {
-  const provider = draft.role === 'PROVIDER'
   return (
     <div className="space-y-5">
       <TextField
@@ -122,110 +115,34 @@ export function OrganizationStep({ draft, update, errors }: StepProps) {
         label="Organization name"
         autoComplete="organization"
         icon={<Building2 className="h-5 w-5" />}
-        placeholder={provider ? 'e.g. Community Van Share' : 'e.g. The Salvation Army'}
+        placeholder="e.g. Belkin House"
+        hint="Use the name of the place rides start from."
         value={draft.orgName}
         error={errors.orgName}
         onChange={(e) => update({ orgName: e.target.value })}
         data-autofocus
       />
+      <AddressPicker
+        id="address"
+        label="Street address"
+        value={draft.address}
+        selected={Boolean(draft.placeId)}
+        error={errors.address}
+        onQueryChange={(address) => update({ address, placeId: undefined })}
+        onSelect={(place) => update({ address: place.address, city: place.city, placeId: place.id })}
+      />
       <TextField
         id="orgPhone"
-        label="Main phone number"
+        label="Front desk phone"
         type="tel"
         inputMode="tel"
         autoComplete="tel"
         placeholder="604-555-0123"
+        hint="Drivers call this if they can't find the client."
         value={draft.orgPhone}
         error={errors.orgPhone}
         onChange={(e) => update({ orgPhone: e.target.value })}
       />
-      <TextField
-        id="notifications"
-        label="Send new bookings to"
-        optional={!provider}
-        placeholder="Phone or email"
-        hint={
-          provider
-            ? 'We let you know here whenever one of your drivers gets a ride request.'
-            : 'Only needed if your organization has its own drivers.'
-        }
-        value={draft.notifications}
-        error={errors.notifications}
-        onChange={(e) => update({ notifications: e.target.value })}
-      />
-    </div>
-  )
-}
-
-export function HouseStep({ draft, update, errors }: StepProps) {
-  const house = draft.house
-  const setHouse = (patch: Partial<RegisterDraft['house']>) => update({ house: { ...house, ...patch } })
-
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Add a house now?">
-        <ChoiceCard
-          name="addHouse"
-          value="yes"
-          checked={draft.addHouse}
-          onChange={() => update({ addHouse: true })}
-          title="Add one now"
-          description="Recommended. It takes a minute."
-        />
-        <ChoiceCard
-          name="addHouse"
-          value="no"
-          checked={!draft.addHouse}
-          onChange={() => update({ addHouse: false })}
-          title="Later"
-          description="Add houses from your dashboard."
-        />
-      </div>
-
-      {draft.addHouse && (
-        <div className="animate-fade-up space-y-5 rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
-          <TextField
-            id="houseName"
-            label="House name"
-            icon={<Home className="h-5 w-5" />}
-            placeholder="e.g. Belkin House"
-            value={house.name}
-            error={errors.houseName}
-            onChange={(e) => setHouse({ name: e.target.value })}
-            data-autofocus
-          />
-          <AddressPicker
-            id="houseAddress"
-            label="Street address"
-            value={house.address}
-            selected={Boolean(house.placeId)}
-            error={errors.houseAddress}
-            onQueryChange={(address) => setHouse({ address, placeId: undefined })}
-            onSelect={(place) => setHouse({ address: place.address, city: place.city, placeId: place.id })}
-          />
-          <TextField
-            id="housePhone"
-            label="Front desk phone"
-            type="tel"
-            inputMode="tel"
-            value={house.phone}
-            error={errors.housePhone}
-            onChange={(e) => setHouse({ phone: e.target.value })}
-          />
-          <TextField
-            id="houseEmail"
-            label="Sign-in email for this house"
-            type="email"
-            inputMode="email"
-            optional
-            icon={<Mail className="h-5 w-5" />}
-            hint="Staff at the house share one account. We'll create a temporary password for it."
-            value={house.email}
-            error={errors.houseEmail}
-            onChange={(e) => setHouse({ email: e.target.value })}
-          />
-        </div>
-      )}
     </div>
   )
 }
@@ -249,6 +166,15 @@ export function DestinationsStep({ draft, update }: StepProps) {
   function addCustom() {
     if (!name.trim() || !address.trim()) {
       setFormError('Add a name and an address.')
+      return
+    }
+    const long = tooLong(name, MAX_NAME) ?? tooLong(address, MAX_NAME)
+    if (long) {
+      setFormError(long)
+      return
+    }
+    if (draft.destinations.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
+      setFormError('You already added a place with this name.')
       return
     }
     update({ destinations: [...draft.destinations, { key: crypto.randomUUID(), name: name.trim(), address: address.trim(), city }] })
@@ -385,41 +311,23 @@ export function ReviewStep({ draft, goTo }: StepProps) {
         stepId="account"
         goTo={goTo}
         rows={[
-          ['Name', draft.name],
+          [draft.role === 'PARTNER' ? 'Contact' : 'Name', draft.name],
           ['Email', draft.email],
           ['Password', '•'.repeat(Math.min(draft.password.length, 12))],
         ]}
       />
 
-      {draft.role !== 'DRIVER' && (
-        <ReviewSection
-          title="Organization"
-          stepId="organization"
-          goTo={goTo}
-          rows={[
-            ['Name', draft.orgName],
-            ['Phone', draft.orgPhone],
-            ...(draft.notifications ? ([['New bookings to', draft.notifications]] as [string, string][]) : []),
-          ]}
-        />
-      )}
-
       {draft.role === 'PARTNER' && (
         <>
           <ReviewSection
-            title="First house"
-            stepId="house"
+            title="Organization"
+            stepId="organization"
             goTo={goTo}
-            rows={
-              draft.addHouse
-                ? [
-                    ['House', draft.house.name],
-                    ['Address', `${draft.house.address}, ${draft.house.city}`],
-                    ['Phone', draft.house.phone],
-                    ['Sign-in email', draft.house.email || 'Not set'],
-                  ]
-                : [['House', 'Adding later']]
-            }
+            rows={[
+              ['Name', draft.orgName],
+              ['Address', [draft.address, draft.city].filter(Boolean).join(', ')],
+              ['Front desk', draft.orgPhone],
+            ]}
           />
           <ReviewSection
             title="Destinations"

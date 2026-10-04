@@ -1,12 +1,11 @@
 import { BellRing, Check, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { PURPOSE_LABELS } from '../constants'
 import { useApp } from '../hooks/useApp'
-import { useCurrentDriver } from '../hooks/useCurrent'
 import { useData } from '../hooks/useData'
+import { passengersLabel } from '../logic/rideText'
 import { dataService } from '../services'
-import type { Ride, RideOffer } from '../types'
+import type { Ride } from '../types'
 import { ghostButton, primaryButton, secondaryButton } from './ui'
 
 interface Answered {
@@ -15,25 +14,20 @@ interface Answered {
   error?: string
 }
 
-// Pops up on every page when a ride request arrives, so drivers don't have to keep checking.
-// Drivers see their own requests; an org admin sees requests sent to the org's drivers.
+// Pops up on every page when a ride request reaches a transport provider's drivers, so the provider can answer for them.
+// Drivers don't get this pop-up: their requests are front and centre on their own Rides page.
 export function IncomingRequests() {
   const { currentUser, users, refresh } = useApp()
-  const driver = useCurrentDriver()
   const [later, setLater] = useState<string[]>([])
   const [answered, setAnswered] = useState<Answered>()
 
-  const isDriver = currentUser?.role === 'DRIVER'
   const orgId = currentUser?.role === 'ORG_ADMIN' ? currentUser.orgId : undefined
-  const key = isDriver ? driver?.id : orgId
 
   const offers = useData(async () => {
-    let pending: RideOffer[] = []
-    if (isDriver && driver?.status === 'APPROVED') pending = await dataService.listMyOffers(driver.id)
-    else if (orgId) pending = await dataService.listOffersForOrg(orgId)
+    const pending = orgId ? await dataService.listOffersForOrg(orgId) : []
     const rides = await Promise.all(pending.map((o) => dataService.getRide(o.rideId)))
     return pending.flatMap((offer, i) => (rides[i] ? [{ offer, ride: rides[i] }] : []))
-  }, key)
+  }, orgId)
   const houses = useData(() => dataService.listHouses()) ?? []
   const orgDrivers = useData(() => (orgId ? dataService.listDrivers(orgId) : Promise.resolve([])), orgId) ?? []
 
@@ -65,11 +59,11 @@ export function IncomingRequests() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-bold">
-            {answered.error ?? (answered.accepted ? "You've got the ride. We've told the house." : 'Request declined.')}
+            {answered.error ?? (answered.accepted ? "Your driver has the ride. We've told the partner." : 'Request declined.')}
           </p>
           {answered.accepted && !answered.error && (
             <Link
-              to={isDriver ? '/driver/my-rides' : '/org/bookings'}
+              to="/org/bookings"
               className="text-sm font-semibold text-teal-700 underline underline-offset-2"
               onClick={() => setAnswered(undefined)}
             >
@@ -112,7 +106,7 @@ export function IncomingRequests() {
           </p>
           <p className="text-slate-600">{describePickup(ride)}</p>
           <p className="text-slate-600">
-            {PURPOSE_LABELS[ride.purpose]} · {ride.passengers} {ride.passengers === 1 ? 'person' : 'people'}
+            {passengersLabel(ride.passengers)}
             {ride.needsWheelchair && ' · Wheelchair'}
             {ride.needsAssistance && ' · Needs help'}
           </p>

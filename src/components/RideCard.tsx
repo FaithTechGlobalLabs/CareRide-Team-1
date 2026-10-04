@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { PURPOSE_LABELS, RIDE_TYPE_LABELS } from '../constants'
+import { RIDE_TYPE_LABELS } from '../constants'
 import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 import { formatDayTime } from '../logic/formatTime'
+import { passengersLabel, riderLabel } from '../logic/rideText'
 
 interface Props {
   ride: Ride
@@ -29,8 +30,9 @@ const ACCENT: Record<Ride['status'], string> = {
 
 export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
   const highlight = ride.status === 'NEEDS_ATTENTION' || alert ? 'border-red-300 bg-red-50/40' : ''
+  const riders = riderLabel(ride)
   const needs = [
-    `${ride.passengers} ${ride.passengers === 1 ? 'person' : 'people'}`,
+    passengersLabel(ride.passengers),
     ride.needsWheelchair && 'Wheelchair',
     ride.needsAssistance && 'Needs help',
   ].filter(Boolean)
@@ -42,7 +44,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {RIDE_TYPE_LABELS[ride.type]}
           {ride.returnOfRideId && ' · Return trip'}
-          {ride.clientName && ` · ${ride.clientName}`}
+          {riders && ` · ${riders}`}
         </span>
         <StatusBadge status={ride.status} label={statusLabel} />
       </div>
@@ -54,7 +56,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
         {ride.type === 'ON_DEMAND' ? 'On demand' : formatDayTime(ride.pickupTime)}
       </p>
       <p className="text-slate-600">
-        {PURPOSE_LABELS[ride.purpose]} · {needs.join(' · ')}
+        {needs.join(' · ')}
       </p>
       {to && (
         <Link to={to} className="mt-2 inline-block font-semibold text-brand-700 underline underline-offset-2 hover:text-violet-700">

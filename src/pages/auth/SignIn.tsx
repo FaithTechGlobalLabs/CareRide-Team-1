@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, Building2, Car, Home, Loader2, Mail, ShieldCheck, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowRight, Building2, Car, Loader2, Mail, ShieldCheck, Sparkles } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import logoMark from '../../assets/logo-mark.png'
@@ -9,19 +9,37 @@ import { TextField } from '../../components/form/TextField'
 import { primaryButton, ROLE_TONE, tones } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
+import { EMAIL } from '../../logic/validate'
 import { dataService } from '../../services'
 import { DEMO_EMAIL_DOMAIN, DEMO_PASSWORD } from '../../services/seed'
 import type { User, UserRole } from '../../types'
 
+// The two kinds of people who sign in. Picking one first keeps the page about them.
+type Audience = 'PARTNER' | 'DRIVER'
+
+const AUDIENCES: Record<Audience, { label: string; icon: ReactNode; subtitle: string; register: string; registerLabel: string }> = {
+  PARTNER: {
+    label: 'Partner organization',
+    icon: <Building2 className="h-5 w-5" />,
+    subtitle: 'Sign in to book and track rides for the people you serve.',
+    register: '/register?role=partner',
+    registerLabel: 'Register your organization',
+  },
+  DRIVER: {
+    label: 'Driver',
+    icon: <Car className="h-5 w-5" />,
+    subtitle: 'Sign in to see ride requests and your trips.',
+    register: '/register?role=driver',
+    registerLabel: 'Become a driver',
+  },
+}
+
 // Demo accounts, grouped by what each kind of account does.
 const ROLE_GROUPS: { role: UserRole; title: string; text: string; icon: ReactNode }[] = [
-  { role: 'HOUSE', title: 'House staff', text: 'Book rides for clients and track them.', icon: <Home className="h-5 w-5" /> },
+  { role: 'PARTNER', title: 'Partner organizations', text: 'Book rides for clients and track them.', icon: <Building2 className="h-5 w-5" /> },
   { role: 'DRIVER', title: 'Drivers', text: 'Accept ride requests and drive trips.', icon: <Car className="h-5 w-5" /> },
-  { role: 'ORG_ADMIN', title: 'Organization admins', text: 'Manage houses, drivers, and bookings.', icon: <Building2 className="h-5 w-5" /> },
   { role: 'PLATFORM_ADMIN', title: 'CareRide admin', text: 'Approve organizations and drivers.', icon: <ShieldCheck className="h-5 w-5" /> },
 ]
-
-const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
 
 // Remembers who last signed in on this device, so returning staff only type a password.
 const LAST_EMAIL_KEY = 'careride:last-email'
@@ -75,9 +93,15 @@ export function SignIn() {
   const [params] = useSearchParams()
   // Phones show one side at a time. /signin?demo opens on the demo accounts.
   const [pane, setPane] = useState<Pane>(() => (params.has('demo') ? 'demo' : 'form'))
+  // /signin?as=driver opens on the driver side
+  const [audience, setAudience] = useState<Audience>(() => (params.get('as') === 'driver' ? 'DRIVER' : 'PARTNER'))
+  const who = AUDIENCES[audience]
 
+  // The chosen kind of account comes first; the admin is always last
   const demoUsers = users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN))
-  const groups = ROLE_GROUPS.map((g) => ({ ...g, users: demoUsers.filter((u) => u.role === g.role) })).filter((g) => g.users.length > 0)
+  const groups = ROLE_GROUPS.map((g) => ({ ...g, users: demoUsers.filter((u) => u.role === g.role) }))
+    .filter((g) => g.users.length > 0)
+    .sort((a, b) => Number(b.role === audience) - Number(a.role === audience))
   const hasDemo = groups.length > 0
 
   function finish(user: User) {
@@ -104,7 +128,7 @@ export function SignIn() {
     e.preventDefault()
     const found: typeof fieldErrors = {}
     if (!email.trim()) found.email = 'Enter your email.'
-    else if (!EMAIL_PATTERN.test(email.trim())) found.email = "That doesn't look like an email. Check for typos."
+    else if (!EMAIL.test(email.trim())) found.email = "That doesn't look like an email. Check for typos."
     if (!password) found.password = 'Enter your password.'
     setFieldErrors(found)
     if (found.email) return focusField('email')
@@ -117,7 +141,30 @@ export function SignIn() {
       <div className="my-auto">
         <img src={logoMark} alt="" className="mb-5 h-14 w-14" />
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Welcome back</h1>
-        <p className="mt-1.5 text-slate-600">Sign in to book or give rides.</p>
+
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1" role="radiogroup" aria-label="I'm signing in as a">
+          {(Object.keys(AUDIENCES) as Audience[]).map((a) => {
+            const on = audience === a
+            return (
+              <button
+                key={a}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => setAudience(a)}
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
+                  on ? `bg-white text-ink shadow-md` : 'text-slate-500 hover:text-ink'
+                }`}
+              >
+                <span className={on ? tones[ROLE_TONE[a]].text : ''} aria-hidden>
+                  {AUDIENCES[a].icon}
+                </span>
+                {AUDIENCES[a].label}
+              </button>
+            )
+          })}
+        </div>
+        <p className="mt-3 text-slate-600">{who.subtitle}</p>
 
         <div className="mt-8 space-y-5">
           <TextField
@@ -178,8 +225,8 @@ export function SignIn() {
 
       <p className="mt-8 border-t border-slate-100 pt-6 text-center text-sm text-slate-600">
         New to CareRide?{' '}
-        <Link to="/register" className="font-semibold text-brand-700 hover:underline">
-          Create an account
+        <Link to={who.register} className="font-semibold text-brand-700 hover:underline">
+          {who.registerLabel}
         </Link>
       </p>
     </form>

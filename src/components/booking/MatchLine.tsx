@@ -25,8 +25,8 @@ export function MatchLine({ match }: { match?: MatchPreview }) {
     <p role="status" className="flex gap-2.5 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900 ring-1 ring-amber-300">
       <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
       <span>
-        <strong>No driver fits this ride right now:</strong> {match.reason} You can still send it. If nobody accepts, the ride turns
-        red with other options.
+        <strong>No driver fits this ride right now:</strong> {match.reason} You can still send it. If nobody accepts by the pickup
+        time, it's cancelled and you'll see other options.
       </span>
     </p>
   )

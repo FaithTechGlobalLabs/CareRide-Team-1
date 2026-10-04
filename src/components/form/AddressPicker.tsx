@@ -24,7 +24,7 @@ export function AddressPicker({
   value,
   selected,
   error,
-  hint = 'Search and pick a matching address so drivers can find the house.',
+  hint = 'Search and pick a matching address so drivers can find you.',
   autoFocus,
   onQueryChange,
   onSelect,

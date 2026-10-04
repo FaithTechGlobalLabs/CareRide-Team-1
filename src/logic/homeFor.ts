@@ -4,18 +4,18 @@ import type { UserRole } from '../types'
 export const HOME_FOR: Record<UserRole, string> = {
   PLATFORM_ADMIN: '/admin',
   ORG_ADMIN: '/org',
-  HOUSE: '/house',
+  PARTNER: '/partner',
   DRIVER: '/driver',
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   PLATFORM_ADMIN: 'CareRide admin',
-  ORG_ADMIN: 'Organization admin',
-  HOUSE: 'House account',
+  ORG_ADMIN: 'Transport provider',
+  PARTNER: 'Partner organization',
   DRIVER: 'Driver',
 }
 
-// Where a ride's detail page lives for whoever booked it.
-export function ridePath(role: UserRole | undefined, rideId: string): string {
-  return role === 'ORG_ADMIN' ? `/org/ride/${rideId}` : `/house/ride/${rideId}`
+// Where a ride's detail page lives for the partner organization that booked it.
+export function ridePath(rideId: string): string {
+  return `/partner/ride/${rideId}`
 }

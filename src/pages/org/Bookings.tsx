@@ -7,6 +7,7 @@ import { useData } from '../../hooks/useData'
 import { isDriverLate } from '../../logic/rideAlerts'
 import { dataService } from '../../services'
 import { byPickup, isRecent, recentCountsByHouse } from './orgRideLists'
+import type { Ride } from '../../types'
 
 // Ride requests sent to this organization's drivers. The org can answer for them,
 // and sees its drivers' upcoming and recent rides.
@@ -38,7 +39,9 @@ export function Bookings() {
   }
 
   const upcoming = rides.filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP').sort(byPickup)
-  const recent = rides.filter((r) => isRecent(r)).sort((a, b) => byPickup(b, a))
+  // Most recent first
+  const finishedAt = (r: Ride) => r.completedAt ?? r.cancelledAt ?? r.pickupTime
+  const recent = rides.filter((r) => isRecent(r)).sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
 
   return (
     <div className="space-y-8">

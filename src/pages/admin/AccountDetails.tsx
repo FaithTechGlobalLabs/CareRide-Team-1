@@ -20,7 +20,6 @@ interface Details {
   house?: House
   driver?: Driver
   rides: Ride[]
-  houseCount?: number
   driverCount?: number
 }
 
@@ -33,17 +32,14 @@ async function loadDetails(user: User): Promise<Details> {
     const driver = (await dataService.listDrivers()).find((d) => d.userId === user.id)
     return { org, driver, rides: driver ? await dataService.listMyRides(driver.id) : [] }
   }
-  if (user.role === 'HOUSE') {
+  if ((user.role === 'PARTNER' || user.role === 'ORG_ADMIN') && org) {
     const house = user.houseId ? (await dataService.listHouses()).find((h) => h.id === user.houseId) : undefined
-    return { org, house, rides: house ? await dataService.listRidesForHouse(house.id) : [] }
-  }
-  if (user.role === 'ORG_ADMIN' && org) {
-    const [houses, drivers] = await Promise.all([dataService.listHouses(org.id), dataService.listDrivers(org.id)])
-    // Rides the org booked through its houses, plus rides its own drivers gave
-    const booked = (await Promise.all(houses.map((h) => dataService.listRidesForHouse(h.id)))).flat()
+    const drivers = await dataService.listDrivers(org.id)
+    // Rides the partner booked, plus rides its own drivers gave
+    const booked = house ? await dataService.listRidesForHouse(house.id) : []
     const given = await dataService.listRidesForOrg(org.id)
     const rides = [...new Map([...booked, ...given].map((r) => [r.id, r])).values()]
-    return { org, rides, houseCount: houses.length, driverCount: drivers.length }
+    return { org, house, rides, driverCount: drivers.length }
   }
   return { org, rides: [] }
 }
@@ -132,7 +128,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
             <p className="mt-1 flex flex-wrap items-center gap-2">
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${tone.tile}`}>{ROLE_LABELS[user.role]}</span>
               {driver && <StatusPill status={driver.status} />}
-              {!driver && org && user.role === 'ORG_ADMIN' && <StatusPill status={org.status} />}
+              {!driver && org && (user.role === 'ORG_ADMIN' || user.role === 'PARTNER') && <StatusPill status={org.status} />}
             </p>
           </div>
           <button
@@ -194,7 +190,6 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                     {driver.wheelchairAccessible && ' · Wheelchair accessible'}
                   </Row>
                   <Row label="Cities">{driver.serviceCities.join(', ') || 'None'}</Row>
-                  <Row label="Requests">{driver.available ? 'On' : 'Paused by driver'}</Row>
                   <Row label="Request hours">{describeRequestHours(driver.requestHours)}</Row>
                   <Row label="Notice">{formatNotice(driver.minNoticeHours)}</Row>
                   <Row label="Licence">{driver.licenceFile ?? 'Missing'}</Row>
@@ -203,12 +198,12 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
               )}
 
               {house && (
-                <Section title="House">
+                <Section title="Pickup location">
                   <Row label="Name">{house.name}</Row>
                   <Row label="Address" copy={`${house.address}, ${house.city}`}>
                     {house.address}, {house.city}
                   </Row>
-                  <Row label="House phone">{house.phone}</Row>
+                  <Row label="Front desk phone">{house.phone}</Row>
                 </Section>
               )}
 
@@ -223,7 +218,6 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                     {org.contactName} · {org.contactPhone}
                   </Row>
                   {org.bookingNotifications && <Row label="New bookings to">{org.bookingNotifications}</Row>}
-                  {details.houseCount !== undefined && <Row label="Houses">{details.houseCount}</Row>}
                   {details.driverCount !== undefined && <Row label="Own drivers">{details.driverCount}</Row>}
                 </Section>
               )}
@@ -231,8 +225,8 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
               {user.role === 'DRIVER' && !driver && (
                 <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">This account has no driver profile.</p>
               )}
-              {user.role === 'HOUSE' && !house && (
-                <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">This account isn't linked to a house.</p>
+              {user.role === 'PARTNER' && !house && (
+                <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">This account has no pickup location.</p>
               )}
             </>
           )}

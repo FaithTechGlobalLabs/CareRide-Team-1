@@ -3,7 +3,6 @@ import {
   ArrowUp,
   BadgeCheck,
   Building2,
-  Bus,
   CalendarCheck,
   Car,
   CheckCircle2,
@@ -15,11 +14,10 @@ import {
   UserCheck,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { Faq } from '../../components/landing/Faq'
 import { HeroPreview } from '../../components/landing/HeroPreview'
 import { LandingHeader, type PageSection } from '../../components/landing/LandingHeader'
-import { WelcomeBack } from '../../components/landing/WelcomeBack'
 import { Logo } from '../../components/Logo'
 import { primaryButton, secondaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
@@ -35,14 +33,14 @@ const SECTIONS: PageSection[] = [
 const STEPS: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
   {
     icon: <CalendarCheck className="h-6 w-6" />,
-    title: 'A house books the ride',
-    text: 'Staff pick a saved destination and a time. It takes a few taps.',
+    title: 'A partner books the ride',
+    text: 'Staff pick a saved destination and a time. It takes about a minute.',
     tone: 'coral',
   },
   {
     icon: <UserCheck className="h-6 w-6" />,
     title: 'A verified driver accepts',
-    text: 'We ask suitable drivers one at a time. If nobody can go, the house knows right away.',
+    text: 'Every suitable driver is asked, and the first to say yes gets it. If nobody can go, staff know right away.',
     tone: 'teal',
   },
   {
@@ -63,14 +61,6 @@ const AUDIENCES: { role: string; icon: ReactNode; title: string; text: string; c
     tone: 'violet',
   },
   {
-    role: 'provider',
-    icon: <Bus className="h-7 w-7" />,
-    title: 'Transport providers',
-    text: 'Put your vans and drivers to work where they matter most. Get bookings in one place.',
-    cta: 'Offer your vehicles',
-    tone: 'amber',
-  },
-  {
     role: 'driver',
     icon: <Car className="h-7 w-7" />,
     title: 'Professional drivers',
@@ -81,7 +71,7 @@ const AUDIENCES: { role: string; icon: ReactNode; title: string; text: string; c
 ]
 
 const PROMISES: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
-  { icon: <EyeOff className="h-5 w-5" />, title: 'No personal data', text: 'We never store client names, phone numbers, or history.', tone: 'violet' },
+  { icon: <EyeOff className="h-5 w-5" />, title: 'Only what the ride needs', text: 'Riders need no account, phone, or app. Staff share only what the driver needs.', tone: 'violet' },
   { icon: <BadgeCheck className="h-5 w-5" />, title: 'Verified drivers', text: 'Every driver and organization is reviewed before the first ride.', tone: 'teal' },
   { icon: <HandHeart className="h-5 w-5" />, title: 'Free first', text: 'Free options come before paid ones, every time.', tone: 'coral' },
   { icon: <PhoneCall className="h-5 w-5" />, title: 'Not for emergencies', text: 'In a medical emergency, always call 911.', tone: 'amber' },
@@ -133,7 +123,7 @@ function Introduction() {
         </Link>
       </p>
       <ul className="mx-auto mt-8 flex w-fit animate-fade-up flex-col items-start gap-2 text-sm font-medium text-slate-600 [animation-delay:320ms] sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
-        {['No app needed for riders', 'Verified drivers', 'No personal data stored'].map((t) => (
+        {['No app needed for riders', 'Verified drivers', 'No rider accounts'].map((t) => (
           <li key={t} className="flex items-center gap-1.5">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
           </li>
@@ -180,6 +170,9 @@ export function Landing() {
   const active = useActiveSection(SECTION_IDS)
   const showBackToTop = useScrolledPast(900)
 
+  // Signed-in people go straight to their dashboard: that's where everything they can do is
+  if (currentUser) return <Navigate to={HOME_FOR[currentUser.role]} replace />
+
   return (
     <div className="overflow-x-clip">
       <LandingHeader sections={SECTIONS} active={active} />
@@ -190,7 +183,7 @@ export function Landing() {
           <div className="pointer-events-none absolute -left-24 top-40 h-72 w-72 rounded-full bg-violet-200/40 blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" aria-hidden />
           <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-10 sm:gap-14 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-2 lg:pt-20">
-            {currentUser ? <WelcomeBack user={currentUser} /> : <Introduction />}
+            <Introduction />
             <div className="animate-fade-up [animation-delay:200ms]">
               <HeroPreview />
             </div>
@@ -230,7 +223,7 @@ export function Landing() {
             <SectionHeading id="who-heading" eyebrow="Who it's for" title="One network, built together" tone="violet">
               CareRide is independent and open to any organization, so every new partner makes the network stronger.
             </SectionHeading>
-            <ul className="grid gap-6 md:grid-cols-3">
+            <ul className="grid gap-6 mx-auto max-w-4xl md:grid-cols-2">
               {AUDIENCES.map((a) => {
                 const inner = (
                   <>
@@ -248,21 +241,16 @@ export function Landing() {
                 const cardClass = `group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition duration-200 ${tones[a.tone].border}`
                 return (
                   <li key={a.role}>
-                    {currentUser ? (
-                      // Already signed in: describe each group, without pushing another sign-up.
-                      <div className={cardClass}>{inner}</div>
-                    ) : (
-                      <Link
-                        to={`/register?role=${a.role}`}
-                        className={`${cardClass} hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100`}
-                      >
-                        {inner}
-                        <span className={`mt-6 inline-flex items-center gap-1.5 font-bold ${tones[a.tone].text}`}>
-                          {a.cta}
-                          <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
-                        </span>
-                      </Link>
-                    )}
+                    <Link
+                      to={`/register?role=${a.role}`}
+                      className={`${cardClass} hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100`}
+                    >
+                      {inner}
+                      <span className={`mt-6 inline-flex items-center gap-1.5 font-bold ${tones[a.tone].text}`}>
+                        {a.cta}
+                        <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />
+                      </span>
+                    </Link>
                   </li>
                 )
               })}
@@ -298,41 +286,26 @@ export function Landing() {
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-brand-gradient px-6 py-16 text-center shadow-2xl shadow-brand-700/20 sm:px-12">
             <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-coral-400/30 blur-2xl" aria-hidden />
             <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-fuchsia-400/30 blur-2xl" aria-hidden />
-            {currentUser ? (
-              <>
-                <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Ready when you are, {currentUser.name}.</h2>
-                <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">Everything for today is on your dashboard.</p>
-                <div className="relative mt-8 flex justify-center">
-                  <Link
-                    to={HOME_FOR[currentUser.role]}
-                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
-                  >
-                    Open your dashboard <ArrowRight className="h-5 w-5" aria-hidden />
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Every essential trip deserves a ride.</h2>
-                <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">
-                  Join CareRide in a few minutes. It's free for organizations, drivers, and the people they serve.
-                </p>
-                <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                  <Link
-                    to="/register"
-                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
-                  >
-                    Create a free account <ArrowRight className="h-5 w-5" aria-hidden />
-                  </Link>
-                  <Link
-                    to="/signin"
-                    className="inline-flex min-h-14 items-center justify-center rounded-xl border border-white/40 px-7 text-lg font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
-                  >
-                    Sign in
-                  </Link>
-                </div>
-              </>
-            )}
+            <>
+              <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Every essential trip deserves a ride.</h2>
+              <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/85">
+                Join CareRide in a few minutes. It's free for partner organizations, drivers, and the people they serve.
+              </p>
+              <div className="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link
+                  to="/register"
+                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-7 text-lg font-bold text-brand-700 shadow-lg transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50 active:scale-[0.98]"
+                >
+                  Create a free account <ArrowRight className="h-5 w-5" aria-hidden />
+                </Link>
+                <Link
+                  to="/signin"
+                  className="inline-flex min-h-14 items-center justify-center rounded-xl border border-white/40 px-7 text-lg font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
+                >
+                  Sign in
+                </Link>
+              </div>
+            </>
           </div>
         </section>
       </main>
@@ -359,31 +332,21 @@ export function Landing() {
           <nav aria-label="Footer: account">
             <p className="mb-3 font-bold text-ink">Account</p>
             <ul className="space-y-2">
-              {currentUser ? (
-                <li>
-                  <Link to={HOME_FOR[currentUser.role]} className="text-slate-600 hover:text-brand-700">
-                    Your dashboard
-                  </Link>
-                </li>
-              ) : (
-                <>
-                  <li>
-                    <Link to="/signin" className="text-slate-600 hover:text-brand-700">
-                      Sign in
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/register" className="text-slate-600 hover:text-brand-700">
-                      Create an account
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/signin?demo" className="text-slate-600 hover:text-brand-700">
-                      Try a demo
-                    </Link>
-                  </li>
-                </>
-              )}
+              <li>
+                <Link to="/signin" className="text-slate-600 hover:text-brand-700">
+                  Sign in
+                </Link>
+              </li>
+              <li>
+                <Link to="/register" className="text-slate-600 hover:text-brand-700">
+                  Create an account
+                </Link>
+              </li>
+              <li>
+                <Link to="/signin?demo" className="text-slate-600 hover:text-brand-700">
+                  Try a demo
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

@@ -8,18 +8,15 @@ import { Approvals } from './pages/admin/Approvals'
 import { Landing } from './pages/auth/Landing'
 import { Register } from './pages/auth/register/Register'
 import { SignIn } from './pages/auth/SignIn'
-import { MyRides } from './pages/driver/MyRides'
-import { Requests } from './pages/driver/Requests'
+import { DriverHome } from './pages/driver/DriverHome'
 import { Settings } from './pages/driver/Settings'
-import { Dashboard } from './pages/house/Dashboard'
-import { RequestRide } from './pages/house/RequestRide'
-import { RideDetail } from './pages/house/RideDetail'
 import { Bookings } from './pages/org/Bookings'
 import { Destinations } from './pages/org/Destinations'
 import { Drivers } from './pages/org/Drivers'
-import { Houses } from './pages/org/Houses'
 import { OrgHome } from './pages/org/OrgHome'
-import { OrgRides } from './pages/org/OrgRides'
+import { Dashboard } from './pages/partner/Dashboard'
+import { RequestRide } from './pages/partner/RequestRide'
+import { RideDetail } from './pages/partner/RideDetail'
 
 // "/home" always lands on the right main page for whoever is signed in.
 function RoleHome() {
@@ -39,19 +36,18 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/admin" element={<Approvals />} />
           <Route path="/admin/accounts" element={<Accounts />} />
+          {/* Transport providers: hidden from sign-up for now, but existing ones still work */}
           <Route path="/org" element={<OrgHome />} />
-          <Route path="/org/houses" element={<Houses />} />
-          <Route path="/org/destinations" element={<Destinations />} />
           <Route path="/org/drivers" element={<Drivers />} />
           <Route path="/org/bookings" element={<Bookings />} />
-          <Route path="/org/rides" element={<OrgRides />} />
-          <Route path="/org/request" element={<RequestRide />} />
-          <Route path="/org/ride/:id" element={<RideDetail />} />
-          <Route path="/house" element={<Dashboard />} />
-          <Route path="/house/request" element={<RequestRide />} />
-          <Route path="/house/ride/:id" element={<RideDetail />} />
-          <Route path="/driver" element={<Requests />} />
-          <Route path="/driver/my-rides" element={<MyRides />} />
+          <Route path="/partner" element={<Dashboard />} />
+          <Route path="/partner/request" element={<RequestRide />} />
+          <Route path="/partner/ride/:id" element={<RideDetail />} />
+          <Route path="/partner/destinations" element={<Destinations />} />
+          <Route path="/partner/drivers" element={<Drivers />} />
+          <Route path="/partner/bookings" element={<Bookings />} />
+          <Route path="/driver" element={<DriverHome />} />
+          <Route path="/driver/my-rides" element={<Navigate to="/driver" replace />} />
           <Route path="/driver/settings" element={<Settings />} />
         </Route>
       </Route>

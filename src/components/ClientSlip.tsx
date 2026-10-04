@@ -1,5 +1,6 @@
 import type { Driver, House, Ride, User } from '../types'
 import { formatDayTime } from '../logic/formatTime'
+import { riderLabel } from '../logic/rideText'
 
 interface Props {
   ride: Ride
@@ -13,9 +14,9 @@ export function ClientSlip({ ride, driver, driverUser, house }: Props) {
   return (
     <div className="rounded-xl border-2 border-dashed border-slate-400 bg-white p-6 text-xl leading-relaxed">
       <h2 className="mb-4 text-2xl font-bold">Your ride</h2>
-      {ride.clientName && (
+      {riderLabel(ride) && (
         <p>
-          <strong>Name:</strong> {ride.clientName}
+          <strong>{(ride.riderNames?.filter(Boolean).length ?? 0) > 1 ? 'Names' : 'Name'}:</strong> {riderLabel(ride)}
         </p>
       )}
       <p>
@@ -35,7 +36,7 @@ export function ClientSlip({ ride, driver, driverUser, house }: Props) {
       </p>
       <p className="mt-4 font-semibold">Please be ready on time. If you miss the ride, it can't wait for you.</p>
       <p className="mt-2">
-        <strong>Questions?</strong> Call {house ? `${house.name} at ${house.phone}` : 'your house'}
+        <strong>Questions?</strong> Call {house ? `${house.name} at ${house.phone}` : 'the front desk'}
       </p>
     </div>
   )

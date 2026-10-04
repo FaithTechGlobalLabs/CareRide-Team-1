@@ -6,7 +6,7 @@
 
 **Free rides to essential services. Less coordination for staff. One less barrier to care.**
 
-CareRide connects housing and social service organizations with drivers and transport providers who can offer free rides. Staff book on a client's behalf, drivers accept suitable requests, and everyone involved can follow the trip through to drop-off. The client needs no smartphone, app, payment, or account.
+CareRide connects housing and social service organizations with volunteer drivers who can offer free rides. Staff book on a client's behalf, drivers accept suitable requests, and everyone involved can follow the trip through to drop-off. The client needs no smartphone, app, payment, or account.
 
 Built for **HACKVAN 2026**, inspired by the transportation needs of **Belkin Communities of Hope** in Vancouver.
 
@@ -26,22 +26,20 @@ CareRide brings those steps into one shared workflow: **request a ride, find a d
 
 | Participant | What they can do |
 | --- | --- |
-| **House staff** | Use one shared account per housing location to request rides, track progress, print reminders, and book return trips. |
-| **Partner organizations** | Manage houses, saved destinations, and their own drivers; book rides and oversee requests across their locations. |
-| **Transport providers** | Manage drivers, review incoming bookings, and coordinate rides delivered by their team. |
-| **Drivers** | Accept or decline requests, report arrival and trip progress, and choose when to receive requests. |
+| **Partner organizations** | Front desk staff share one account per location to request, change, and track rides, print reminders, book return trips, and manage saved destinations and their own drivers. |
+| **Drivers** | Accept or decline requests, follow each trip step by step, share an optional ETA, and choose when to receive requests. |
 | **Platform administrators** | Approve organizations and drivers, manage sign-in accounts, and reset passwords. |
 | **Clients** | Ask staff for a ride and travel to their destination, without managing an account. |
 
-Partner organizations and transport providers share the organization administrator role, with workflows tailored to the organization type.
+Transport providers (organizations that only give rides) are hidden for now. Their accounts remain in the seed data for future work.
 
 ## How it works
 
-1. **Staff request a ride.** Choose a saved destination or enter an address, select scheduled or on-demand pickup, and provide passenger count, travel needs, and meeting instructions.
+1. **Staff request a ride.** Choose a saved destination or enter an address, pick a time on the calendar or ask for a driver now, and add passengers (optionally by name), travel needs, and meeting instructions. The form warns early if no driver fits, and an unfinished request is kept if staff leave the page.
 2. **CareRide finds eligible drivers.** Matching considers approval, service city, passenger capacity, wheelchair access, request hours, and advance notice for scheduled trips.
 3. **A driver accepts.** Eligible drivers are normally asked together; the first acceptance assigns the ride. A preferred driver, such as the outbound driver for a return trip, is asked first on their own.
 4. **Staff prepare the client.** The ride detail page shows the assigned driver and vehicle, with a printable reminder for clients without a phone.
-5. **The driver reports progress.** “I'm here,” “Picked up,” and “Dropped off: tell the house” keep staff informed through completion.
+5. **The driver reports progress.** “I'm on my way” (with an optional ETA), “I'm here,” “Client is in the car,” and “Client dropped off” show on the partner's trip timeline. Each step can be undone if tapped by mistake.
 6. **Staff arrange the return if needed.** A return is a separate, linked ride with the route reversed and the original driver preferred.
 
 ```mermaid
@@ -55,17 +53,17 @@ flowchart LR
     G --> B
 ```
 
-If a request cannot be covered, staff see **Needs attention** and can retry or consider the suggested free alternatives. A driver who can no longer make an accepted ride can release it so CareRide asks other drivers. Cancellations and no-shows have explicit outcomes.
+If a request cannot be covered, staff see **Needs attention** and can ask again, change the time or details, or open transit directions. **A request nobody accepts is cancelled automatically at the pickup time** (or 30 minutes after booking, for on-demand rides), so staff can make other plans. Staff can change a ride until pickup; changing the time, place, or passengers after a driver accepted asks that driver to confirm again first. A driver who can no longer make an accepted ride can release it so CareRide asks other drivers.
 
 **Request hours control when a driver receives offers**, rather than guaranteeing availability at the pickup time. Drivers decide whether each trip works for them. Offers expire after **5 minutes for on-demand rides** or **60 minutes for scheduled rides**.
 
 ### What is included
 
-- **Booking built around staff:** frequently visited destinations, saved locations, custom addresses, trip purposes, passenger counts, wheelchair requirements, and assistance notes.
-- **Driver controls:** vehicle details, passenger capacity, service cities, weekly request hours, minimum notice, and a pause switch for incoming requests.
-- **Clear ride tracking:** request and offer history, acceptance and cancellation notices, arrival confirmation, current rides, and past rides.
-- **Organization onboarding:** registration for partner organizations, transport providers, and independent drivers, followed by administrator approval.
-- **Offline reminders:** large-text printable ride slips with pickup instructions, driver, vehicle, and a house contact number.
+- **Booking built around staff:** frequently visited destinations, custom addresses, a calendar that hides past times, a passenger limit based on the largest vehicle, optional passenger names, wheelchair requirements, and assistance notes.
+- **Driver controls:** vehicle details, passenger capacity, service cities, weekly request hours, and minimum notice. Drivers simply decline requests that don't suit them.
+- **Clear ride tracking:** a live trip timeline, request and offer history, acceptance and cancellation notices, Google Maps directions for drivers, and past rides with the most recent first.
+- **Onboarding:** separate sign-up and sign-in for partner organizations and drivers, followed by administrator approval.
+- **Offline reminders:** large-text printable ride slips with pickup instructions, driver, vehicle, and a front desk phone number.
 - **Impact reporting:** completed rides, estimated fare savings, approved organizations, and approved drivers.
 - **Responsive interface:** layouts for desktop and mobile, plain-language actions, and statuses communicated with both text and color.
 
@@ -98,22 +96,20 @@ Open **Sign in** and choose a one-tap demo account, or use one of the credential
 
 | Account | Email | Explore |
 | --- | --- | --- |
-| Belkin House | `belkin@careride.demo` | Book and track a client's ride. |
+| Belkin House | `belkin@careride.demo` | Book, change, and track a client's ride. |
 | Frank | `frank@careride.demo` | Accept requests and complete rides. |
-| Salvation Army Admin | `salvationarmy@careride.demo` | Manage houses, destinations, drivers, and bookings. |
-| Community Van Share Admin | `vanshare@careride.demo` | Coordinate bookings for a transport provider. |
 | CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
 
-Additional house and driver accounts appear on the sign-in page. Demo records are fictional except for public place names; some house addresses are placeholders.
+Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names. **Partner pickup addresses are placeholders** (“Address to confirm”), so drivers are asked to call the front desk instead of getting directions to the pickup.
 
 ### Walk through a complete ride
 
 1. **Sign in as Belkin House.** For a clean starting point, use **Reset demo data** in the footer and confirm the reset.
 2. **Request an on-demand ride.** Choose St. Paul's Hospital, enter a fictional name, and request one passenger without wheelchair access. Submit the request.
 3. **Open a second tab at the same local URL.** Sign in as **Frank**, who receives requests at any time in the seed data, and accept the offer.
-4. **Return to the house tab.** Review the confirmation and print the client's ride slip if desired.
-5. **In Frank's My rides page**, select **I'm here**, then **Picked up**, then **Dropped off: tell the house**.
-6. **Check the house view.** The ride is complete. Choose **Book the return trip** to explore the linked return workflow.
+4. **Return to the Belkin House tab.** Review the confirmation and print the client's ride slip if desired.
+5. **On Frank's Rides page**, follow the trip steps: **I'm on my way** (optionally pick an ETA), **I'm here**, **Client is in the car**, then **Client dropped off**. Watch the trip timeline update in the Belkin House tab.
+6. **Check the Belkin House view.** The ride is complete. Choose **Book the return trip** to explore the linked return workflow.
 
 Tabs on the same browser origin share ride data while keeping their own sign-in sessions. Changes synchronize through browser storage events and a four-second refresh while a signed-in tab is visible. Separate browsers, devices, and origins have independent demo data.
 
@@ -139,7 +135,7 @@ Pages access application data through a typed **`DataService`** contract. The cu
 
 ```text
 src/
-├── pages/          Role-specific screens: auth, house, driver, org, admin
+├── pages/          Role-specific screens: auth, partner, driver, org, admin
 ├── components/     Shared UI, forms, ride cards, notices, and printable slips
 ├── context/        Current user, session state, and refresh coordination
 ├── hooks/          Data loading and current-user helpers
@@ -169,7 +165,7 @@ To introduce a real backend, implement `DataService` and select it in [src/servi
 | `npm run preview` | Serve an existing production build locally. |
 | `npm run deploy` | Deploy the existing `dist/` build using Wrangler. |
 
-There is currently no automated test suite or `npm test` script. For changes to ride behavior, run lint and build, then exercise the house and driver workflows in separate tabs, including declines, cancellations, and uncovered requests where relevant.
+There is currently no automated test suite or `npm test` script. For changes to ride behavior, run lint and build, then exercise the partner and driver workflows in separate tabs, including declines, cancellations, and uncovered requests where relevant.
 
 ### Deployment
 
