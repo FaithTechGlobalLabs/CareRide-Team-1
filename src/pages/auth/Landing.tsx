@@ -65,8 +65,8 @@ const AUDIENCES: { role: string; icon: ReactNode; title: string; text: string; c
   {
     role: 'driver',
     icon: <Car className="h-7 w-7" />,
-    title: 'Professional drivers',
-    text: 'Taxi and rideshare drivers: give a free ride when it suits your schedule.',
+    title: 'Drivers',
+    text: 'Give a free ride when it suits your schedule.',
     cta: 'Become a driver',
     tone: 'teal',
   },

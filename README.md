@@ -90,34 +90,19 @@ Open the local URL printed by Vite, normally **http://localhost:5173**.
 
 If you use nvm, run `nvm install` and `nvm use` in the repository before installing dependencies.
 
-**No environment variables, API keys, database setup, or backend server are required for the demo.** Seed data loads automatically.
+**No environment variables, API keys, database setup, or backend server are required for the demo.** The app starts with a CareRide admin account and no organizations or drivers.
 
 ## Try the demo
 
-Open **Sign in** and choose a one-tap demo account, or use one of the credentials below. All seeded demo accounts use the password **`careride`**.
+Open **Sign in** and use the CareRide admin demo account. The password is **`careride`**.
 
 | Account | Email | Explore |
 | --- | --- | --- |
-| Belkin House | `belkin@careride.demo` | Book and track a client's ride. |
-| Frank | `frank@careride.demo` | Accept requests and complete rides. |
-| Salvation Army Admin | `salvationarmy@careride.demo` | Manage houses, destinations, drivers, and bookings. |
-| Community Van Share Admin | `vanshare@careride.demo` | Coordinate bookings for a transport provider. |
 | CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
 
-Additional house and driver accounts appear on the sign-in page. Demo records are fictional except for public place names; some house addresses are placeholders.
+The app starts with no organizations or drivers. Register new accounts from the landing page; the admin Approvals page counts them from stored data.
 
-### Walk through a complete ride
-
-1. **Sign in as Belkin House.** For a clean starting point, use **Reset demo data** in the footer and confirm the reset.
-2. **Request an on-demand ride.** Choose St. Paul's Hospital, enter a fictional name, and request one passenger without wheelchair access. Submit the request.
-3. **Open a second tab at the same local URL.** Sign in as **Frank**, who receives requests at any time in the seed data, and accept the offer.
-4. **Return to the house tab.** Review the confirmation and print the client's ride slip if desired.
-5. **In Frank's My rides page**, select **I'm here**, then **Picked up**, then **Dropped off: tell the house**.
-6. **Check the house view.** The ride is complete. Choose **Book the return trip** to explore the linked return workflow.
-
-Tabs on the same browser origin share ride data while keeping their own sign-in sessions. Changes synchronize through browser storage events and a four-second refresh while a signed-in tab is visible. Separate browsers, devices, and origins have independent demo data.
-
-**Reset demo data restores every account, ride, and setting to the seeded state for that browser origin.** Use fictional information throughout the walkthrough.
+**Reset demo data restores the empty starting state for that browser origin.** Use fictional information throughout.
 
 ## Developer guide
 

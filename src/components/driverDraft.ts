@@ -7,7 +7,6 @@ export type DriverDraft = NewDriverUser & NewDriver
 export const emptyDriverDraft: DriverDraft = {
   name: '',
   phone: '',
-  background: 'TAXI',
   vehicle: '',
   wheelchairAccessible: false,
   seats: 3,
@@ -21,7 +20,3 @@ export function splitDriverDraft({ name, phone, ...driver }: DriverDraft): [NewD
 }
 
 export type FieldErrors = Record<string, string | undefined>
-
-export function needsProfessionalProof(value: Pick<DriverDraft, 'background'>): boolean {
-  return value.background === 'TAXI' || value.background === 'RIDESHARE'
-}

@@ -2,7 +2,7 @@ import { Mail, Phone, X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { CopyButton } from '../../components/CopyButton'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
-import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
+import { ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
@@ -188,7 +188,6 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
 
               {driver && (
                 <Section title="Driver profile">
-                  <Row label="Drives as">{BACKGROUND_LABELS[driver.background]}</Row>
                   <Row label="Vehicle">
                     {driver.vehicle} · {driver.seats} {driver.seats === 1 ? 'space' : 'spaces'}
                     {driver.wheelchairAccessible && ' · Wheelchair accessible'}
@@ -197,8 +196,6 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                   <Row label="Requests">{driver.available ? 'On' : 'Paused by driver'}</Row>
                   <Row label="Request hours">{describeRequestHours(driver.requestHours)}</Row>
                   <Row label="Notice">{formatNotice(driver.minNoticeHours)}</Row>
-                  <Row label="Licence">{driver.licenceFile ?? 'Missing'}</Row>
-                  {driver.proofFile && <Row label="Professional proof">{driver.proofFile}</Row>}
                 </Section>
               )}
 
