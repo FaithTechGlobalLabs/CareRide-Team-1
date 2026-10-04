@@ -30,6 +30,7 @@ export function RouteMap({ pickup, dropoff, driver, className }: Props) {
   useEffect(() => {
     if (!ridePath?.length || !box.current) return
     let live = true
+    let framed: { remove: () => void } | undefined
 
     ;(async () => {
       try {
@@ -48,9 +49,14 @@ export function RouteMap({ pickup, dropoff, driver, className }: Props) {
             zoomControl: true,
             gestureHandling: 'cooperative',
             clickableIcons: false,
+            heading: 0,
+            tilt: 0,
+            headingInteractionEnabled: false,
+            tiltInteractionEnabled: false,
           })
         }
         const m = map.current
+        m.setOptions({ heading: 0, tilt: 0, headingInteractionEnabled: false, tiltInteractionEnabled: false })
 
         drawn.current.forEach((d) => d.setMap(null))
         drawn.current = []
@@ -82,6 +88,21 @@ export function RouteMap({ pickup, dropoff, driver, className }: Props) {
         pin(ridePath[ridePath.length - 1], 'B', RIDE_COLOR, 'Drop-off')
         if (approachPath?.length) pin(approachPath[0], '•', APPROACH_COLOR, 'You')
 
+        // fitBounds frames the route. After that settles, step out one zoom level and keep north up.
+        let fitting = false
+        const listeners = [
+          m.addListener('bounds_changed', () => {
+            fitting = true
+          }),
+          m.addListener('idle', () => {
+            if (!fitting) return
+            listeners.forEach((l) => l.remove())
+            if (!live) return
+            const zoom = m.getZoom()
+            m.moveCamera({ heading: 0, tilt: 0, zoom: zoom == null ? undefined : Math.max(0, zoom - 1) })
+          }),
+        ]
+        framed = { remove: () => listeners.forEach((l) => l.remove()) }
         m.fitBounds(bounds, 32)
       } catch (err) {
         console.warn('Google Maps failed to draw', err)
@@ -91,6 +112,7 @@ export function RouteMap({ pickup, dropoff, driver, className }: Props) {
 
     return () => {
       live = false
+      framed?.remove()
     }
   }, [ridePath, approachPath])
 

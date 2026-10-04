@@ -41,7 +41,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert, aside }
       )}
       <div className={aside ? 'flex flex-col gap-4 sm:flex-row sm:items-start' : undefined}>
         <div className="min-w-0 flex-1">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className={`mb-3 flex flex-wrap items-center gap-2 ${aside ? 'justify-between sm:justify-start' : 'justify-between'}`}>
             <span className="text-sm font-semibold text-slate-500">
               {RIDE_TYPE_LABELS[ride.type]}
               {ride.returnOfRideId && ' · Return trip'}
