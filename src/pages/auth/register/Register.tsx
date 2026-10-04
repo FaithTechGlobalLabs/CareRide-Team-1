@@ -208,10 +208,6 @@ export function Register() {
     if (!result) saveDraft(draft, stepId)
   }, [draft, stepId, result])
 
-  useEffect(() => {
-    setFurthest((reached) => Math.max(reached, index))
-  }, [index])
-
   // Move focus to the new step so keyboard and screen reader users land in the right place
   useEffect(() => {
     if (firstRender.current) {
@@ -236,6 +232,8 @@ export function Register() {
     setDirection(dir)
     setErrors({})
     setStepId(to)
+    const next = flow.indexOf(to)
+    if (next >= 0) setFurthest((reached) => Math.max(reached, next))
   }
 
   function goToStep(i: number) {
