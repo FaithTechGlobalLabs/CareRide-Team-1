@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  /** Git commit baked at `vite build`. Cloudflare Workers Builds sets this from WORKERS_CI_COMMIT_SHA. */
+  readonly VITE_COMMIT_SHA?: string
   /** Which backend the app talks to. Defaults to 'mock' when unset. */
   readonly VITE_DATA_BACKEND?: 'mock' | 'supabase'
   readonly VITE_SUPABASE_URL?: string
