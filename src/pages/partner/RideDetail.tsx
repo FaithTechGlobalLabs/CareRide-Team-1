@@ -25,6 +25,7 @@ import { useData } from '../../hooks/useData'
 import { acceptedMessage } from '../../logic/acceptedMessage'
 import { noDriverDeadline } from '../../logic/dispatch'
 import { previewDriverMatch } from '../../logic/driverMatchPreview'
+import { driverEtaDetail } from '../../logic/driverEta'
 import { formatDayTime, formatTime } from '../../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../../logic/maps'
 import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
@@ -66,7 +67,7 @@ interface Stage {
 
 // Where the ride is, from booking to drop-off, so staff can see it move.
 function stagesFor(ride: Ride): Stage[] {
-  const eta = ride.driverEta && !ride.driverArrivedAt ? `Expected by ${formatTime(ride.driverEta)}` : undefined
+  const eta = ride.driverEta && !ride.driverArrivedAt ? driverEtaDetail(ride) : undefined
   return [
     { label: 'Requested', at: ride.createdAt },
     { label: 'Driver accepted', at: ride.acceptedAt && ride.driverId ? ride.acceptedAt : undefined },

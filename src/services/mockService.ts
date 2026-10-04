@@ -15,6 +15,7 @@ import {
   partnerCloseCancelsRide,
   pickupTimeAfterEdit,
 } from '../logic/dispatch'
+import { etaTimestamp } from '../logic/driverEta'
 import { faresSavedFor } from '../logic/estimateFare'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
@@ -658,13 +659,12 @@ export const mockService: DataService = {
       return ride
     }),
 
-  markOnTheWay: (rideId, etaMinutes) =>
+  markOnTheWay: (rideId, eta) =>
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       requireStatus(ride, ['ACCEPTED'], cantChange(ride))
       ride.driverOnTheWayAt = now()
-      ride.driverEta =
-        etaMinutes && etaMinutes > 0 ? new Date(Date.now() + Math.round(etaMinutes) * 60_000).toISOString() : undefined
+      ride.driverEta = eta ? etaTimestamp(ride, eta) : undefined
       return ride
     }),
 

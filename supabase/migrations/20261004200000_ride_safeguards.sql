@@ -158,7 +158,12 @@ $$;
 -- No-show: arrive, then wait. Matches src/logic/dispatch.ts NO_SHOW_WAIT_MINUTES.
 -- ---------------------------------------------------------------------------
 
-create or replace function public.advance_ride(p_ride_id uuid, p_step text, p_eta_minutes integer default null)
+create or replace function public.advance_ride(
+  p_ride_id uuid,
+  p_step text,
+  p_eta_minutes integer default null,
+  p_eta_from_pickup boolean default false
+)
 returns public.rides
 language plpgsql security definer set search_path = ''
 as $$
@@ -172,7 +177,11 @@ begin
       if r.status <> 'ACCEPTED' then raise exception '%', private.cant_change(r.status) using errcode = 'P0001'; end if;
       update public.rides set
         driver_on_the_way_at = now(),
-        driver_eta = case when p_eta_minutes > 0 then now() + make_interval(mins => least(p_eta_minutes, 600)) end
+        driver_eta = case
+          when p_eta_minutes is null then null
+          when p_eta_from_pickup then r.pickup_time + make_interval(mins => greatest(-120, least(p_eta_minutes, 180)))
+          when p_eta_minutes > 0 then now() + make_interval(mins => least(p_eta_minutes, 600))
+        end
       where id = r.id;
     when 'ARRIVED' then
       if r.status <> 'ACCEPTED' then
