@@ -5,6 +5,7 @@ import { AuthShell } from '../../components/auth/AuthShell'
 import { TextField } from '../../components/form/TextField'
 import { primaryButton } from '../../components/ui'
 import { EMAIL } from '../../logic/validate'
+import { isNative } from '../../native/platform'
 import { dataService } from '../../services'
 
 const panel = 'animate-fade-up rounded-3xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5 sm:p-10'
@@ -45,6 +46,9 @@ export function ForgotPassword() {
             If <strong className="break-all">{email.trim()}</strong> has a CareRide account, we've sent it a link to choose a new
             password.
           </p>
+          {isNative && (
+            <p className="mt-4 text-slate-600">The link opens the CareRide website. Choose your new password there, then come back here and sign in.</p>
+          )}
           <p className="mt-4 text-sm text-slate-500">Can't find it? Check your spam folder, or ask your organization's admin.</p>
           <Link to="/signin" className={`${primaryButton} mt-8 w-full`}>
             Back to sign in

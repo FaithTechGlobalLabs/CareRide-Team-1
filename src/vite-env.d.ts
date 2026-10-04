@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_DATA_BACKEND?: 'mock' | 'supabase'
   readonly VITE_SUPABASE_URL?: string
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string
+  /** The website email links open (confirm, reset password). Needed for the Android app; the website uses its own address. */
+  readonly VITE_PUBLIC_SITE_URL?: string
   /** Optional. Turns on drive times and route maps for drivers. */
   readonly VITE_GOOGLE_MAPS_API_KEY?: string
   /** Optional. Defaults to Google's DEMO_MAP_ID. */

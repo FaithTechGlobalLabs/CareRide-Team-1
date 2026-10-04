@@ -204,7 +204,18 @@ Without those build variables, production stays on the localStorage mock. For an
 
 ### Android app
 
-The same Vite build is packaged as an Android app with Capacitor. Partner and driver phones do not share demo data yet, so walk through a ride on one phone by switching accounts.
+The same Vite build is packaged as an Android app with Capacitor. A default build uses the demo (mock) data, which stays on each phone, so walk through a ride on one phone by switching accounts.
+
+**Shared data with Supabase:** the app reads the same `VITE_` settings as the website when it's built. To make phones share real data (a partner books on one phone and the driver accepts on another), put these in `.env.local` before running `npm run android:apk`:
+
+```dotenv
+VITE_DATA_BACKEND=supabase
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_KEY
+VITE_PUBLIC_SITE_URL=https://careride-team-1.careride.workers.dev
+```
+
+`VITE_PUBLIC_SITE_URL` is the website that confirmation and reset-password emails open. The app's own address (`https://localhost`) can't be opened from an email, so people confirm or reset on the website, then sign in in the app. Add that address with `/**` under Supabase **Authentication → URL Configuration → Redirect URLs**. Sign-ins stay on the phone until the person signs out. The APK that GitHub Actions builds has no `.env.local`, so it uses the demo data.
 
 **Requirements:** Android Studio with the Android SDK (API 36), or `nix develop` in this repository, which provides Node 22, JDK 21, and the SDK. JDK 21 is required for Gradle.
 
