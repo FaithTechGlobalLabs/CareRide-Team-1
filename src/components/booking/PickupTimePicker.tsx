@@ -46,14 +46,13 @@ function dayClass(on: boolean, isTodayCell: boolean, past: boolean): string {
   const base =
     'relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none'
   if (past) return `${base} text-slate-300`
-  if (on && isTodayCell) return `${base} bg-brand-600 text-white ring-2 ring-coral-300`
   if (on) return `${base} bg-brand-600 text-white`
-  if (isTodayCell) return `${base} bg-coral-50 text-coral-800 ring-2 ring-coral-400`
+  if (isTodayCell) return `${base} text-brand-700 ring-1 ring-inset ring-brand-600 hover:bg-brand-50`
   return `${base} text-ink hover:bg-slate-100`
 }
 
 // A calendar and a list of times in the app's own style. Past days and times can't be picked.
-// Today and the current time stay marked so staff can see "now" while they choose a pickup.
+// Today is outlined and the current time is shown above the list so staff can see "now" while they choose a pickup.
 export function PickupTimePicker({ id, value, onChange, now, error, hint }: Props) {
   const parsed = parseLocalInput(value)
   const selected = Number.isNaN(parsed) ? undefined : parsed
@@ -167,12 +166,6 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   className={dayClass(on, isTodayCell, past)}
                 >
                   {new Date(day).getDate()}
-                  {isTodayCell && (
-                    <span
-                      className={`absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full ${on ? 'bg-white' : 'bg-coral-500'}`}
-                      aria-hidden
-                    />
-                  )}
                 </button>
               )
             })}
@@ -182,20 +175,12 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
         <div className="flex min-h-0 flex-col border-t border-slate-200 bg-slate-50/70 sm:border-l sm:border-t-0">
           <div className="border-b border-slate-200 px-4 py-3">
             <p className="text-sm font-semibold text-ink">{isToday ? 'Today' : dayName}</p>
-            {isToday && <p className="mt-0.5 text-xs font-medium text-slate-500">{dayName}</p>}
+            {isToday && (
+              <p className="mt-0.5 text-xs font-medium text-slate-500">
+                {dayName} · Now {time(now)}
+              </p>
+            )}
           </div>
-          {isToday && (
-            <div className="border-b border-coral-200 bg-coral-50 px-3 py-2">
-              <div
-                role="status"
-                className="flex min-h-11 items-center justify-between rounded-xl bg-white px-3 text-sm font-semibold text-coral-700 ring-2 ring-coral-400"
-                aria-label={`Current time, ${time(now)}`}
-              >
-                <span>{time(now)}</span>
-                <span className="text-xs font-bold">Now</span>
-              </div>
-            </div>
-          )}
           <div ref={listRef} className="relative max-h-72 space-y-1.5 overflow-y-auto p-3" role="group" aria-label={`Times on ${dayName}`}>
             {slots.length === 0 && <p className="px-1 py-2 text-sm text-slate-500">No times left today. Pick another day.</p>}
             {slots.map((slot, i) => {
@@ -212,7 +197,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                 >
                   {time(slot)}
                   {isToday && i === 0 && (
-                    <span className={`text-xs font-bold ${on ? 'text-white/80' : 'text-coral-600'}`}>Soonest</span>
+                    <span className={`text-xs font-bold ${on ? 'text-white/80' : 'text-slate-500'}`}>Soonest</span>
                   )}
                 </button>
               )
