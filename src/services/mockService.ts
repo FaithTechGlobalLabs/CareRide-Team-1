@@ -663,7 +663,10 @@ export const mockService: DataService = {
       return {
         ridesCompleted: completed.length,
         moneySaved: completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0),
-        organizations: db.organizations.filter((o) => o.status === 'APPROVED').length,
+        // Deleting an account keeps its organization for history, so only count ones someone can still sign in to
+        organizations: db.organizations.filter(
+          (o) => o.status === 'APPROVED' && db.users.some((u) => u.orgId === o.id && (u.role === 'PARTNER' || u.role === 'ORG_ADMIN')),
+        ).length,
         verifiedDrivers: db.drivers.filter((d) => d.status === 'APPROVED').length,
       }
     }),
