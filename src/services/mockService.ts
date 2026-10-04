@@ -8,7 +8,7 @@ import { seed, type Database } from './seed'
 // Hackathon backend: keeps everything in the browser's localStorage.
 // Swap this file for a real backend later; screens won't need to change.
 
-const STORAGE_KEY = 'careride-db-v4'
+const STORAGE_KEY = 'careride-db-v5'
 
 const OPEN: RideStatus[] = ['SEARCHING', 'OFFERED']
 

@@ -1,4 +1,4 @@
-import type { DriverBackground, OrgType, RideType, TripPurpose } from './types'
+import type { OrgType, RideType, TripPurpose } from './types'
 
 export const RIDE_TYPE_LABELS: Record<RideType, string> = {
   SCHEDULED: 'Scheduled',
@@ -17,13 +17,6 @@ export const PURPOSE_LABELS: Record<TripPurpose, string> = {
   HOUSING: 'Housing',
   LEGAL_OR_ID: 'Legal or ID',
   OTHER: 'Other essential trip',
-}
-
-export const BACKGROUND_LABELS: Record<DriverBackground, string> = {
-  TAXI: 'Taxi driver',
-  RIDESHARE: 'Rideshare driver',
-  ORG_DRIVER: 'Driver for an organization',
-  INDEPENDENT: 'Independent volunteer',
 }
 
 export const ORG_TYPE_LABELS: Record<OrgType, string> = {

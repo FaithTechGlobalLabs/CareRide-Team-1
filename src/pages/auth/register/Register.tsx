@@ -12,8 +12,6 @@ import {
   emptyRegisterDraft,
   validateAccount,
   validateRequestHours,
-  validateDocuments,
-  validateDriverAbout,
   validateHouse,
   validateOrganization,
   validateRole,
@@ -25,8 +23,6 @@ import {
   AccountStep,
   RequestHoursStep,
   DestinationsStep,
-  DocumentsStep,
-  DriverAboutStep,
   HouseStep,
   OrganizationStep,
   ReviewStep,
@@ -41,10 +37,8 @@ type StepId =
   | 'organization'
   | 'house'
   | 'destinations'
-  | 'about'
   | 'vehicle'
   | 'requests'
-  | 'documents'
   | 'review'
 
 interface StepDef {
@@ -91,13 +85,6 @@ const STEPS: Record<StepId, StepDef> = {
     subtitle: () => 'These show up as one-tap choices when booking. You can change them anytime.',
     Component: DestinationsStep,
   },
-  about: {
-    title: 'About you',
-    heading: (d) => `Nice to meet you${d.name ? `, ${d.name.split(' ')[0]}` : ''}`,
-    subtitle: () => 'We’re starting with professional drivers, who are already vetted.',
-    Component: DriverAboutStep,
-    validate: validateDriverAbout,
-  },
   vehicle: {
     title: 'Vehicle',
     heading: () => 'Your vehicle',
@@ -113,13 +100,6 @@ const STEPS: Record<StepId, StepDef> = {
     Component: RequestHoursStep,
     validate: validateRequestHours,
   },
-  documents: {
-    title: 'Documents',
-    heading: () => 'Verify your identity',
-    subtitle: () => 'The CareRide team checks these before you get any rides.',
-    Component: DocumentsStep,
-    validate: validateDocuments,
-  },
   review: {
     title: 'Review',
     heading: () => 'Everything look right?',
@@ -131,13 +111,13 @@ const STEPS: Record<StepId, StepDef> = {
 const FLOWS: Record<RegisterRole, StepId[]> = {
   PARTNER: ['role', 'account', 'organization', 'house', 'destinations', 'review'],
   PROVIDER: ['role', 'account', 'organization', 'review'],
-  DRIVER: ['role', 'account', 'about', 'vehicle', 'requests', 'documents', 'review'],
+  DRIVER: ['role', 'account', 'vehicle', 'requests', 'review'],
 }
 
 const ROLE_PARAM: Record<string, RegisterRole> = { partner: 'PARTNER', provider: 'PROVIDER', driver: 'DRIVER' }
 
 // The draft survives a refresh (but never the password).
-const DRAFT_KEY = 'careride-register-draft-v2'
+const DRAFT_KEY = 'careride-register-draft-v3'
 
 function loadDraft(roleParam: string | null): { draft: RegisterDraft; stepId: StepId } {
   const fromParam = roleParam ? ROLE_PARAM[roleParam] : undefined

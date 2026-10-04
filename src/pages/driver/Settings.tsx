@@ -69,7 +69,7 @@ export function Settings() {
   }
 
   // DriverVehicleFields works on a whole driver draft; keep only the vehicle fields it changes
-  const vehicleDraft = { ...current, name: '', phone: '', background: driver.background } as DriverDraft
+  const vehicleDraft = { ...current, name: '', phone: '' } as DriverDraft
   const changeVehicle = ({ vehicle, seats, wheelchairAccessible, serviceCities }: DriverDraft) =>
     change({ vehicle, seats, wheelchairAccessible, serviceCities })
 

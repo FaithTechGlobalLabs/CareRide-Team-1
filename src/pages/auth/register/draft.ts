@@ -1,4 +1,4 @@
-import { emptyDriverDraft, needsProfessionalProof, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
+import { emptyDriverDraft, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
 import { CITIES, MIN_PASSWORD_LENGTH } from '../../../constants'
 import { requestHoursError } from '../../../logic/requestHours'
 
@@ -35,7 +35,7 @@ export const emptyRegisterDraft: RegisterDraft = {
   addHouse: true,
   house: { name: '', address: '', city: CITIES[0], phone: '', email: '' },
   destinations: [],
-  driver: { ...emptyDriverDraft, background: 'TAXI' },
+  driver: { ...emptyDriverDraft },
 }
 
 // Common destinations a partner organization can add with one tap.
@@ -70,6 +70,7 @@ export function validateAccount(d: RegisterDraft): FieldErrors {
         ? undefined
         : 'That email doesn’t look right. Check for typos.',
     password: d.password.length >= MIN_PASSWORD_LENGTH ? undefined : `Use at least ${MIN_PASSWORD_LENGTH} characters.`,
+    phone: d.role === 'DRIVER' && !isPhone(d.driver.phone) ? 'Please enter a 10-digit phone number.' : undefined,
   })
 }
 
@@ -99,10 +100,6 @@ export function validateHouse(d: RegisterDraft): FieldErrors {
   })
 }
 
-export function validateDriverAbout(d: RegisterDraft): FieldErrors {
-  return compact({ phone: isPhone(d.driver.phone) ? undefined : 'Please enter a 10-digit phone number.' })
-}
-
 export function validateVehicle(d: RegisterDraft): FieldErrors {
   return compact({
     vehicle: d.driver.vehicle.trim() ? undefined : 'Describe your vehicle so clients can find it.',
@@ -112,12 +109,4 @@ export function validateVehicle(d: RegisterDraft): FieldErrors {
 
 export function validateRequestHours(d: RegisterDraft): FieldErrors {
   return compact({ requestHours: requestHoursError(d.driver.requestHours) })
-}
-
-export function validateDocuments(d: RegisterDraft): FieldErrors {
-  return compact({
-    licenceFile: d.driver.licenceFile ? undefined : 'Please add your driver’s licence.',
-    proofFile:
-      needsProfessionalProof(d.driver) && !d.driver.proofFile ? 'Please add proof you drive professionally.' : undefined,
-  })
 }

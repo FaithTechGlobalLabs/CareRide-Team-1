@@ -119,6 +119,7 @@ export function meetsNotice(minNoticeHours: number, when: Date, now = new Date()
 }
 
 export const NOTICE_OPTIONS = [
+  { hours: 0, text: "I don't need notice" },
   { hours: 1, text: '1 hour' },
   { hours: 2, text: '2 hours' },
   { hours: 4, text: '4 hours' },
@@ -128,4 +129,8 @@ export const NOTICE_OPTIONS = [
 
 export function formatNotice(hours: number): string {
   return NOTICE_OPTIONS.find((o) => o.hours === hours)?.text ?? (hours < 24 ? `${hours} hours` : `${hours / 24} days`)
+}
+
+export function noticeLabel(hours: number): string {
+  return hours === 0 ? formatNotice(hours) : `${formatNotice(hours)} notice`
 }

@@ -40,8 +40,6 @@ export interface User {
   houseId?: string // set on a house account
 }
 
-export type DriverBackground = 'TAXI' | 'RIDESHARE' | 'ORG_DRIVER' | 'INDEPENDENT'
-
 // A stretch of one day. Can't cross midnight.
 export interface TimeWindow {
   from: string // "HH:MM", 24-hour
@@ -57,15 +55,12 @@ export interface Driver {
   id: string
   userId: string
   orgId?: string // set if the driver belongs to an organization
-  background: DriverBackground
   vehicle: string
   wheelchairAccessible: boolean
   seats: number // spaces for passengers
   serviceCities: string[]
   requestHours: RequestHours
-  minNoticeHours: number // how far ahead a ride must be booked
-  licenceFile?: string // demo: file name only
-  proofFile?: string // demo: proof of professional driving, file name only
+  minNoticeHours: number // how far ahead a ride must be booked; 0 means no notice needed
   status: VerificationStatus
   available: boolean // false = paused, gets no requests
 }

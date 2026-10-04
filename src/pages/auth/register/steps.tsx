@@ -1,8 +1,6 @@
 import { Building2, Bus, Car, Home, Mail, MapPin, Pencil, Plus, Trash2, User as UserIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import {
-  DriverAboutFields,
-  DriverDocumentFields,
   DriverRequestFields,
   DriverVehicleFields,
 } from '../../../components/DriverFields'
@@ -14,7 +12,7 @@ import { PasswordField } from '../../../components/form/PasswordField'
 import { SelectField } from '../../../components/form/SelectField'
 import { TextField } from '../../../components/form/TextField'
 import { secondaryButton, type Tone } from '../../../components/ui'
-import { BACKGROUND_LABELS, CITIES } from '../../../constants'
+import { CITIES } from '../../../constants'
 import { describeRequestHours, formatNotice } from '../../../logic/requestHours'
 import { SUGGESTED_DESTINATIONS, type RegisterDraft, type RegisterRole } from './draft'
 
@@ -43,7 +41,7 @@ const ROLES: { value: RegisterRole; title: string; description: string; icon: Re
   {
     value: 'DRIVER',
     title: 'Drive with CareRide',
-    description: 'For taxi and rideshare drivers who want to give free rides.',
+    description: 'Give free rides when it suits your schedule.',
     icon: <Car className="h-6 w-6" />,
     tone: 'teal',
   },
@@ -109,6 +107,20 @@ export function AccountStep({ draft, update, errors }: StepProps) {
         error={errors.password}
         onChange={(e) => update({ password: e.target.value })}
       />
+      {draft.role === 'DRIVER' && (
+        <TextField
+          id="driver-phone"
+          label="Mobile phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="604-555-0123"
+          hint="We use this to reach you about a ride."
+          value={draft.driver.phone}
+          error={errors.phone}
+          onChange={(e) => update({ driver: { ...draft.driver, phone: e.target.value } })}
+        />
+      )}
     </div>
   )
 }
@@ -330,22 +342,12 @@ export function DestinationsStep({ draft, update }: StepProps) {
   )
 }
 
-export function DriverAboutStep({ draft, update, errors }: StepProps) {
-  return (
-    <DriverAboutFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} showName={false} />
-  )
-}
-
 export function VehicleStep({ draft, update, errors }: StepProps) {
   return <DriverVehicleFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
 
 export function RequestHoursStep({ draft, update, errors }: StepProps) {
   return <DriverRequestFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
-}
-
-export function DocumentsStep({ draft, update, errors }: StepProps) {
-  return <DriverDocumentFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
 
 // ---- Review
@@ -388,6 +390,7 @@ export function ReviewStep({ draft, goTo }: StepProps) {
           ['Name', draft.name],
           ['Email', draft.email],
           ['Password', '•'.repeat(Math.min(draft.password.length, 12))],
+          ...(draft.role === 'DRIVER' ? ([['Phone', d.phone]] as [string, string][]) : []),
         ]}
       />
 
@@ -433,15 +436,6 @@ export function ReviewStep({ draft, goTo }: StepProps) {
       {draft.role === 'DRIVER' && (
         <>
           <ReviewSection
-            title="About you"
-            stepId="about"
-            goTo={goTo}
-            rows={[
-              ['Phone', d.phone],
-              ['Drives as', BACKGROUND_LABELS[d.background]],
-            ]}
-          />
-          <ReviewSection
             title="Vehicle"
             stepId="vehicle"
             goTo={goTo}
@@ -458,15 +452,6 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             rows={[
               ['Send requests', describeRequestHours(d.requestHours)],
               ['Notice', formatNotice(d.minNoticeHours)],
-            ]}
-          />
-          <ReviewSection
-            title="Documents"
-            stepId="documents"
-            goTo={goTo}
-            rows={[
-              ['Licence', d.licenceFile ?? 'Missing'],
-              ...(d.proofFile ? ([['Proof', d.proofFile]] as [string, string][]) : []),
             ]}
           />
         </>
