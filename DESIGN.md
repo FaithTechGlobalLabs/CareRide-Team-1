@@ -56,8 +56,8 @@ We keep the existing CareRide blue/aqua identity (from the heart-road logo) as t
 | Primary | `brand-600` | `#1d4fe0` | Primary buttons, links, active nav |
 | Primary hover | `brand-700` | `#1a3fba` | Hover/pressed |
 | Primary tint | `brand-50` / `brand-100` | `#eef4ff` / `#dbe7ff` | Selected rows, info panels |
-| Accent red | `coral-600` | `#e03c24` | Urgent/unfilled, destructive, "needs attention" |
-| Accent red (SA-inspired) | `care-red` | `oklch(0.56 0.2 30)` | "Needs attention" status, small highlights |
+| Accent red | `coral-600` | `#e03c24` | Urgent/unfilled, destructive, "needs action" |
+| Accent red (SA-inspired) | `care-red` | `oklch(0.56 0.2 30)` | "No driver available" status, small highlights |
 | Accent yellow | `sun-400` | `oklch(0.837 0.164 84)` | "Waiting for driver" status, org admin role |
 | Yellow tint | `sun-50` / `sun-100` | `oklch(0.987 0.022 95)` / `oklch(0.962 0.059 95)` | Notice banners |
 | Success | `emerald-600` | `#059669` | Accepted / completed |
@@ -99,14 +99,14 @@ Matches `RideStatus` in `src/types/index.ts` and the labels in `StatusBadge.tsx`
 | `ACCEPTED` | Green tint | Check | "Driver confirmed" |
 | `PICKED_UP` | Cyan tint | Car | "Picked up" |
 | `COMPLETED` | Slate tint | Check-circle | "Completed" |
-| `NEEDS_ATTENTION` | Care red fill, white text | Alert triangle | "Needs attention" |
+| `NEEDS_ATTENTION` | Care red fill, white text | Alert triangle | "No driver available" |
 | `NO_SHOW` | Coral tint | User-x | "Client didn't show" |
 | `CANCELLED` | Slate, muted | X-circle | "Cancelled" |
 | `CANCELLED`, sent on transit | Teal tint | Bus | "Sent on transit" |
 
 Done in v0.2: `StatusBadge` follows this table, with the icon beside the words (`STATUS_ICON`). The short phone label in the ride list uses the same icons. Status is never shown by colour alone.
 
-On a `RideCard`, the badge carries the status. Only a ride that needs someone gets more: a light red strip across the top of the card that says why in words ("No driver has accepted yet", "Late: the client hasn't been picked up"). Finished rides (completed, no-show, cancelled) turn their route grey, so live rides stand out.
+On a `RideCard`, the badge carries the status. Only a ride that needs someone gets more: a light red strip across the top of the card that says why in words ("The driver hasn't arrived yet. Give them a call"). On the partner dashboard these rides stay in Upcoming, listed first under "Needs action", each with what happened and the next step. Finished rides (completed, no-show, cancelled) turn their route grey, so live rides stand out.
 
 ## 4. Typography
 
@@ -181,7 +181,7 @@ Plain, kind, and brief. Speak to staff and drivers as capable colleagues.
 | --- | --- |
 | "Beneficiary transportation request submitted" | "Ride booked. We're finding a driver." |
 | "Error 422: validation failed" | "Add a pickup time to continue." |
-| "No drivers available" | "No driver has accepted yet. You can rebook or call the backup." |
+| "Needs attention" | "No driver available. Ask drivers again, change the time, or send on transit." |
 | "Clients in need" | "Clients" |
 
 - Use "client" or "passenger", as the app does on main. Never "case", "subject", or "the homeless".

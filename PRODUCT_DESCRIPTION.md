@@ -136,7 +136,7 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 - A driver is eligible when they are approved, taking requests, serve the house's city, have enough spaces, fit wheelchair needs, are available at pickup time, and got enough notice.
 - Wheelchair-accessible and larger vehicles are asked last unless needed, so they stay free for rides that need them.
 - If a driver declines or doesn't answer in time (5 minutes for essential, 60 for scheduled), it goes to the next driver.
-- If nobody is left, or the pickup time passes without a driver, the ride turns red as **Needs attention**, with the free fallback options.
+- If nobody is left, or the pickup time passes without a driver, the ride turns red as **No driver available**, with the free fallback options.
 - A ride never silently disappears.
 
 ### 8.5 Accept or decline (drivers and transport providers)
@@ -430,7 +430,7 @@ Rules every backend must enforce:
 | `/org/destinations` | Partner org admin | Add destinations (point B) |
 | `/org/drivers` | Org admin | Add the org's own drivers and their availability |
 | `/org/bookings` | Org admin | Requests for the org's drivers (accept/decline) and upcoming rides |
-| `/house` | House account | Rides: needs attention, upcoming, past; impact counter |
+| `/house` | House account | Rides: upcoming (needing action first), past; impact counter |
 | `/house/request` | House account | Book a ride (`?returnOf=<id>` books the return trip) |
 | `/house/ride/:id` | House account | Status, drivers asked, slip, fallbacks, return trip |
 | `/driver` | Driver | Pause switch and incoming requests |
