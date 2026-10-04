@@ -128,12 +128,18 @@ function Introduction() {
         CareRide helps housing and social service staff get the people they support to essential appointments. Verified drivers give their time,
         and every request stays in view until the person gets there.
       </p>
-      <div className="mt-9 flex animate-fade-up flex-col gap-3 [animation-delay:240ms] sm:flex-row sm:justify-center lg:justify-start">
+      <div className="mt-9 flex animate-fade-up flex-col gap-3 [animation-delay:240ms] sm:flex-row sm:flex-wrap sm:items-center sm:justify-center lg:justify-start">
         <Link to="/register" className={`${primaryButton} min-h-14 px-7 text-lg`}>
           Get started <ArrowRight className="h-5 w-5" aria-hidden />
         </Link>
         <Link to="/signin" className={`${secondaryButton} min-h-14 px-7 text-lg`}>
           Sign in
+        </Link>
+        <Link
+          to="/demo"
+          className="inline-flex min-h-14 items-center justify-center rounded-full px-3 text-lg font-semibold text-brand-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+        >
+          See a ride
         </Link>
       </div>
       {/* One row on tablets, a list on phones and beside the preview: never two plus one */}
@@ -388,6 +394,11 @@ export function Landing() {
                 <li>
                   <Link to="/register?role=driver" className="text-slate-600 hover:text-brand-700">
                     Become a driver
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/demo" className="text-slate-600 hover:text-brand-700">
+                    See a ride
                   </Link>
                 </li>
               </ul>

@@ -4,6 +4,7 @@ import { primaryButton, secondaryButton } from './ui'
 interface Props {
   className: string
   children: ReactNode // the button's label
+  label?: string // accessible name, when the visible label isn't enough on its own
   title: string // e.g. "Cancel this ride?"
   body?: ReactNode // what will happen, in plain words
   confirmLabel: string // e.g. "Yes, cancel the ride"
@@ -17,6 +18,7 @@ interface Props {
 export function ConfirmButton({
   className,
   children,
+  label,
   title,
   body,
   confirmLabel,
@@ -29,7 +31,7 @@ export function ConfirmButton({
 
   return (
     <>
-      <button type="button" className={className} disabled={disabled} onClick={() => dialog.current?.showModal()}>
+      <button type="button" className={className} disabled={disabled} aria-label={label} onClick={() => dialog.current?.showModal()}>
         {children}
       </button>
       <dialog

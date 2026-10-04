@@ -212,7 +212,7 @@ export function DriverHome() {
               <RideCard key={r.id} ride={r} from={houseOf(r)?.name} statusLabel={driverRideStatusLabel(r)}>
                 <details className="group w-full">
                   <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 font-semibold text-brand-700 marker:content-none [&::-webkit-details-marker]:hidden">
-                    <ChevronDown className="h-5 w-5 transition group-open:rotate-180" aria-hidden />
+                    <ChevronDown className="details-chevron h-5 w-5 transition group-open:rotate-180" aria-hidden />
                     Pickup details and steps
                   </summary>
                   <div className="mt-3">{tripActions(r)}</div>
