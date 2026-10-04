@@ -10,11 +10,12 @@ interface Props {
   pickup: string
   dropoff: string
   driver?: LatLng // shown with a dashed line to the pickup, before the client is in the car
+  className?: string // replaces the default height so a request card can keep the map compact
 }
 
 // The ride on a map: pickup (A) to drop-off (B), plus where the driver is now if they shared it.
 // The drive times beside it say the same thing in words, for anyone who can't use the map.
-export function RouteMap({ pickup, dropoff, driver }: Props) {
+export function RouteMap({ pickup, dropoff, driver, className }: Props) {
   const available = useMapsAvailable()
   const ride = useRoute(pickup, dropoff, true)
   const approach = useRoute(driver, driver ? pickup : undefined, true)
@@ -100,7 +101,7 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
       ref={box}
       role="region"
       aria-label="Route map"
-      className={`h-56 w-full overflow-hidden rounded-xl bg-slate-100 sm:h-64 ${ride.status === 'loading' ? 'animate-pulse' : ''}`}
+      className={`overflow-hidden rounded-xl bg-slate-100 ${className ?? 'h-56 w-full sm:h-64'} ${ride.status === 'loading' ? 'animate-pulse' : ''}`}
     />
   )
 }
