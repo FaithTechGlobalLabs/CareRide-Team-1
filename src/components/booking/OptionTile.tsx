@@ -8,6 +8,7 @@ interface Props {
   onChange: () => void
   title: string
   description?: string
+  note?: string // extra line that shouldn't truncate, e.g. a hospital wait time
   icon?: ReactNode
   badge?: string
   dashed?: boolean // for an "add your own" option
@@ -16,7 +17,7 @@ interface Props {
 }
 
 // A compact selectable card. Uses a real radio or checkbox, so arrow keys, space, and screen readers work.
-export function OptionTile({ type = 'radio', name, checked, onChange, title, description, icon, badge, dashed, invalid, autoFocus }: Props) {
+export function OptionTile({ type = 'radio', name, checked, onChange, title, description, note, icon, badge, dashed, invalid, autoFocus }: Props) {
   return (
     <label
       className={`group flex min-h-16 cursor-pointer select-none items-center gap-3 rounded-xl border-2 px-4 py-3 transition duration-150 active:scale-[0.99] has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
@@ -42,6 +43,7 @@ export function OptionTile({ type = 'radio', name, checked, onChange, title, des
           {badge && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{badge}</span>}
         </span>
         {description && <span className="block truncate text-sm text-slate-500">{description}</span>}
+        {note && <span className="mt-0.5 block text-sm font-medium text-slate-600">{note}</span>}
       </span>
       <span
         className={`flex h-6 w-6 shrink-0 items-center justify-center border-2 transition ${type === 'radio' ? 'rounded-full' : 'rounded-md'} ${

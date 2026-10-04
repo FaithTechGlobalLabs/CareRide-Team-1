@@ -31,11 +31,13 @@ import { DEFAULT_PICKUP_INSTRUCTIONS } from '../../constants'
 import { DEMO_FRAME_USER } from '../../context/demoFrame'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
+import { useHospitalWaitTimes } from '../../hooks/useHospitalWaitTimes'
 import { maxPassengers } from '../../logic/capacity'
 import { ON_DEMAND_GIVE_UP_MINUTES } from '../../logic/dispatch'
 import { previewDriverMatch, type MatchCheck, type MatchPreview } from '../../logic/driverMatchPreview'
 import { estimateFare } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
+import { matchWaitTime, waitNote, waitSummary } from '../../logic/hospitalWaitTimes'
 import { houseAddress } from '../../logic/maps'
 import { describePickup, parseLocalInput, quickPicks, toLocalInput } from '../../logic/pickupTime'
 import { sortByPopularity } from '../../logic/popularDestinations'
@@ -259,6 +261,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
   const destinations = useData(() => dataService.listDestinations(user.orgId), user.orgId) ?? []
   // Anonymous eligibility only: enough to say how many drivers could take the ride, not who
   const drivers = useData(() => dataService.listDriverPool())
+  const waits = useHospitalWaitTimes()
   const sorted = sortByPopularity(destinations, pastRides, house.id)
 
   // When the form was opened. The default pickup times are based on it.
@@ -359,6 +362,17 @@ function RideForm({ mode, source, house, user }: FormProps) {
   const usedBefore = new Set(pastRides.map((r) => r.destinationId))
   const q = query.trim().toLowerCase()
   const listed = q ? sorted.filter((d) => `${d.name} ${d.address}`.toLowerCase().includes(q)) : sorted
+  const listedWaits = listed.flatMap((d) => {
+    const wait = matchWaitTime(d.name, d.address, waits)
+    return wait ? [wait] : []
+  })
+  const chosenWait = isReturn
+    ? undefined
+    : saved
+      ? matchWaitTime(saved.name, saved.address, waits)
+      : form.destinationId === CUSTOM
+        ? matchWaitTime(form.customAddress, form.customAddress, waits)
+        : undefined
 
   // A return trip goes from where the outbound one went, back to the partner's address
   const returnFrom =
@@ -568,19 +582,23 @@ function RideForm({ mode, source, house, user }: FormProps) {
                     </div>
                   )}
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {listed.map((d) => (
-                      <OptionTile
-                        key={d.id}
-                        name="destination"
-                        checked={form.destinationId === d.id}
-                        onChange={() => update({ destinationId: d.id })}
-                        title={d.name}
-                        description={d.address}
-                        icon={<MapPin className="h-5 w-5" />}
-                        badge={usedBefore.has(d.id) ? 'Used before' : undefined}
-                        invalid={!!shown.destination}
-                      />
-                    ))}
+                    {listed.map((d) => {
+                      const wait = matchWaitTime(d.name, d.address, waits)
+                      return (
+                        <OptionTile
+                          key={d.id}
+                          name="destination"
+                          checked={form.destinationId === d.id}
+                          onChange={() => update({ destinationId: d.id })}
+                          title={d.name}
+                          description={d.address}
+                          note={wait ? waitNote(wait) : undefined}
+                          icon={<MapPin className="h-5 w-5" />}
+                          badge={usedBefore.has(d.id) ? 'Used before' : undefined}
+                          invalid={!!shown.destination}
+                        />
+                      )
+                    })}
                     <OptionTile
                       name="destination"
                       checked={form.destinationId === CUSTOM}
@@ -595,7 +613,15 @@ function RideForm({ mode, source, house, user }: FormProps) {
                   {q && listed.length === 0 && (
                     <p className="mt-3 text-sm text-slate-500">No saved place matches “{query.trim()}”. Choose “Somewhere else” to type the address.</p>
                   )}
-                  <FieldMessage id="destination-message" error={shown.destination} />
+                  <FieldMessage
+                    id="destination-message"
+                    error={shown.destination}
+                    hint={
+                      listedWaits.length > 0
+                        ? 'Wait times are to be seen right now. More urgent needs go first.'
+                        : undefined
+                    }
+                  />
                 </fieldset>
 
                 {form.destinationId === CUSTOM && (
@@ -610,6 +636,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                     placeholder="e.g. 1081 Burrard St, Vancouver"
                     value={form.customAddress}
                     error={shown.customAddress}
+                    hint={chosenWait ? waitNote(chosenWait) : undefined}
                     onChange={(e) => update({ customAddress: e.target.value })}
                   />
                 )}
@@ -788,6 +815,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
             from={from}
             to={to}
             when={form.type === 'ON_DEMAND' ? 'As soon as possible' : pickupValid ? describePickup(pickupMs, now) : undefined}
+            wait={chosenWait ? waitSummary(chosenWait) : undefined}
             rider={riderLabel(form)}
             passengers={form.passengers}
             needs={[...(form.needsWheelchair ? ['Wheelchair'] : []), ...(form.needsAssistance ? ['Help in and out'] : [])]}
