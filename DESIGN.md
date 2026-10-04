@@ -214,7 +214,7 @@ Motion was left as it was in v0.2 (fade-up entrances, the `pop` overshoot, the f
 
 - **The road shows progress.** On a `RideCard` the pickup dot fills once a driver confirms, a small dot travels the road while the client is in the car, and the whole route turns green on arrival. The next-pickup panel shows the same stages as four stops (`RideProgress`, `rideStage`).
 - **Status changes are seen and heard.** A badge that changes on screen settles in with a soft brand ring, and a polite live region reads the new status. Nothing animates on first load.
-- **Confetti is for milestones only:** a driver's 1st, 5th, 10th, 25th and every 50th ride. Other drop-offs get a calm check and a thank-you.
+- **Confetti on every drop-off.** Milestones (a driver's 1st, 5th, 10th, 25th and every 50th ride) also get their own title, such as "That's 10 rides. Thank you!".
 - **Impact in words.** Drivers see how many people they've helped, beside their numbers.
 - **A buzz for new requests.** The Android app gives a short vibration when a new request reaches a driver. Not on first load, and never on the web.
 - **No names for now.** Messages don't add a driver's or client's name, since the data may not match what is happening on the ground.
@@ -251,7 +251,7 @@ Still open: Inter as the body face (kept by choice) and motion (left alone by ch
 
 ## Changelog
 
-- **v0.3 (2026-10-04):** Delight that carries information: the route fills in as the ride goes, a progress road on the next-pickup panel, status changes announced, confetti only for milestones, a driver impact line, and a buzz for new requests on Android.
+- **v0.3 (2026-10-04):** Delight that carries information: the route fills in as the ride goes, a progress road on the next-pickup panel, status changes announced, milestone titles on the drop-off thank-you, a driver impact line, and a buzz for new requests on Android.
 - **v0.2.1 (2026-10-04):** Status badges get icons. Ride cards lose the coloured top bar: the route is drawn as a short blue road, and only rides that need action get a red note strip. Decorative bars removed from landing audience cards and the hero preview.
 - **v0.2 (2026-10-03):** Applied the draft to the code. Added the canvas and OKLCH accent tokens, the road rule signature, and the role tone table. Removed gradients, glows, blur and violet across the app.
 - **v0.1:** First draft for team review.

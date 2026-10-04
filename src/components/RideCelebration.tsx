@@ -1,4 +1,4 @@
-import { CircleCheck, PartyPopper, Undo2 } from 'lucide-react'
+import { PartyPopper, Undo2 } from 'lucide-react'
 import { useEffect, useRef, type CSSProperties } from 'react'
 import type { Ride } from '../types'
 import { primaryButton } from './ui'
@@ -21,7 +21,7 @@ const confetti = Array.from({ length: PIECES }, (_, i) => {
   }
 })
 
-// Confetti is kept for milestones so it still means something: the first ride, then 5, 10, 25 and every 50.
+// Every drop-off gets confetti. Milestones (the first ride, then 5, 10, 25 and every 50) also get their own title.
 function isMilestone(count: number): boolean {
   return count === 1 || count === 5 || count === 10 || count === 25 || (count > 0 && count % 50 === 0)
 }
@@ -56,30 +56,28 @@ export function RideCelebration({ ride, count, onClose, onUndo }: Props) {
       className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-xl p-8 text-center text-ink shadow-xl backdrop:bg-slate-900/50"
     >
       {/* Inside the dialog so it draws above the backdrop */}
-      {milestone && (
-        <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
-          {confetti.map((c, i) => (
-            <span
-              key={i}
-              className="absolute top-0 block animate-confetti"
-              style={
-                {
-                  left: c.left,
-                  width: c.size,
-                  height: c.round ? c.size : c.size * 1.6,
-                  background: c.colour,
-                  borderRadius: c.round ? '9999px' : '2px',
-                  animationDelay: c.delay,
-                  '--drift': c.drift,
-                  '--spin': c.spin,
-                } as CSSProperties
-              }
-            />
-          ))}
-        </div>
-      )}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+        {confetti.map((c, i) => (
+          <span
+            key={i}
+            className="absolute top-0 block animate-confetti"
+            style={
+              {
+                left: c.left,
+                width: c.size,
+                height: c.round ? c.size : c.size * 1.6,
+                background: c.colour,
+                borderRadius: c.round ? '9999px' : '2px',
+                animationDelay: c.delay,
+                '--drift': c.drift,
+                '--spin': c.spin,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </div>
       <span className="mx-auto mb-4 flex h-16 w-16 animate-pop items-center justify-center rounded-xl bg-teal-700 text-white" aria-hidden>
-        {milestone ? <PartyPopper className="h-8 w-8" /> : <CircleCheck className="h-8 w-8" />}
+        <PartyPopper className="h-8 w-8" />
       </span>
       <h2 id="celebrate-title" className="font-display text-2xl font-extrabold tracking-tight">
         {milestone ? milestoneTitle(count) : 'Ride complete. Thank you!'}
