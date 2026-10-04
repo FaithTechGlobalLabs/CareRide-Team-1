@@ -419,3 +419,7 @@ enabled = true
 # (admin_deactivate_account verifies an active platform admin), so the gateway check is off.
 [functions.admin-delete-account]
 verify_jwt = false
+
+# Same pattern: deactivate_my_account checks the signed-in driver or partner.
+[functions.delete-my-account]
+verify_jwt = false
