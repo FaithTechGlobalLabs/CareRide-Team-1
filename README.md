@@ -1,307 +1,105 @@
 <p align="center">
-  <img src="public/assets/logo.png" alt="CareRide" width="240" />
+  <img src="public/assets/logo.png" alt="CareRide" width="220" />
 </p>
 
-# CareRide
+<p align="center">
+  <img src="docs/images/hero.svg" alt="Care shouldn't depend on a ride. Free rides to essential care, for people with no phone, no app, and no way to pay." width="100%" />
+</p>
 
-**Free rides to essential services. Less coordination for staff. One less barrier to care.**
+<p align="center">
+  <a href="https://careride-team-1.careride.workers.dev/"><b>Live app</b></a> ·
+  <a href="https://careride-team-1.careride.workers.dev/demo"><b>Pitch deck</b></a> ·
+  <a href="#try-it-in-two-minutes"><b>Try it</b></a> ·
+  <a href="docs/DEVELOPMENT.md"><b>Developer guide</b></a>
+</p>
 
-CareRide connects housing and social service organizations with volunteer drivers who can offer free rides. Staff book on a client's behalf, drivers accept suitable requests, and everyone involved can follow the trip through to drop-off. The client needs no smartphone, app, payment, or account.
+<p align="center">
+  <img alt="Not-for-profit" src="https://img.shields.io/badge/not--for--profit-built_for_social_good-f5573f?style=flat-square" />
+  <img alt="HACKVAN 2026" src="https://img.shields.io/badge/HACKVAN-2026-3b2fd6?style=flat-square" />
+  <img alt="Web and Android" src="https://img.shields.io/badge/web_%2B_android-responsive-14b8a6?style=flat-square" />
+  <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-1f63f0?style=flat-square" />
+</p>
 
-Built for **HACKVAN 2026**, inspired by the transportation needs of **Belkin Communities of Hope** in Vancouver.
+<br />
 
-**[Live app](https://careride-team-1.careride.workers.dev/) · [Pitch deck](https://careride-team-1.careride.workers.dev/demo) · [Get started](#get-started) · [Try the demo](#try-the-demo) · [How it works](#how-it-works) · [Developer guide](#developer-guide)**
+<p align="center">
+  <img src="docs/images/home.png" alt="The CareRide home page: 'Care shouldn't depend on a ride', with a scheduled ride from Belkin House to St. Paul's Hospital showing the driver confirmed." width="100%" />
+</p>
 
-> **Project status:** Working hackathon MVP with a browser-based mock backend. CareRide is an independent platform; organizations and public place names used in the demo do not imply an official partnership or endorsement.
+## The problem
 
-## Why CareRide exists
+A hospital visit, a housing interview, or a trip to social services can all hinge on one thing: **getting there.**
 
-A medical appointment, a housing meeting, or a visit to social services can depend on something as simple as getting there. For people without a smartphone or the confidence to navigate a ride-hailing app, arranging that trip often falls to housing staff.
+For many people supported by housing and social service organizations, that is the hardest part. They may not have a smartphone or a way to pay, or they may not feel confident using a ride-hailing app. When the ride falls through, **the appointment is missed, and so is the care.**
 
-Meanwhile, willing drivers, community vehicles, and transport providers are scattered across organizations. Staff spend time calling around, coordinating pickups, and checking whether a client arrived.
+The help does exist. There are drivers willing to give their time and organizations with vans. But it is scattered, so front-desk staff spend hours phoning around and still can't tell whether the person arrived.
 
-CareRide brings those steps into one shared workflow: **request a ride, find a driver, confirm the pickup, and close the loop at drop-off.**
+## What CareRide does
 
-## Who it serves
+CareRide is a free, not-for-profit platform that connects **housing and social service staff** with **verified volunteer drivers**. It turns all that phoning around into one shared request that stays visible until the person gets there.
 
-| Participant | What they can do |
-| --- | --- |
-| **Partner organizations** | Front desk staff share one account per location to request, change, and track rides, print reminders, book return trips, and manage saved destinations and their own drivers. |
-| **Drivers** | Accept or decline requests, follow each trip step by step, share an optional ETA, and choose when to receive requests. |
-| **Platform administrators** | Approve organizations and drivers, manage sign-in accounts, and reset passwords. |
-| **Clients** | Ask staff for a ride and travel to their destination, without managing an account. |
+<p align="center">
+  <img src="docs/images/journey.svg" alt="One ride, start to finish: staff request, a driver says yes, the client is picked up at the front desk, and staff see them arrive." width="100%" />
+</p>
 
-Transport providers (organizations that only give rides) are hidden for now. Their accounts remain in the seed data for future work.
+1. **Staff send one request.** They pick where the person needs to go and when, which takes about a minute. The rider needs no phone, app, account, or money.
+2. **The right drivers are asked.** CareRide matches requests on service area, request hours, seats, and wheelchair access. The first driver to accept takes the ride.
+3. **Nothing slips through.** Staff watch each step: *on the way*, *here*, *in the car*, *dropped off*. If no one can go, staff see that right away and can make other plans.
+4. **The trip home is one tap.** A return ride is linked to the original, with the same driver asked first.
 
-## How it works
+For clients without a phone, staff can print a large-text ride slip showing the driver, the vehicle, and where to meet.
 
-1. **Staff request a ride.** Choose a saved destination or enter an address, pick a time on the calendar or ask for a driver now, and add passengers (optionally by name), travel needs, and meeting instructions. The form warns early if no driver fits, and an unfinished request is kept if staff leave the page.
-2. **CareRide finds eligible drivers.** Matching considers approval, service city, passenger capacity, wheelchair access, request hours, and advance notice for scheduled trips.
-3. **A driver accepts.** Eligible drivers are normally asked together; the first acceptance assigns the ride. A preferred driver, such as the outbound driver for a return trip, is asked first on their own.
-4. **Staff prepare the client.** The ride detail page shows the assigned driver and vehicle, with a printable reminder for clients without a phone.
-5. **The driver reports progress.** “I'm on my way” (with an optional ETA), “I'm here,” “Client is in the car,” and “Client dropped off” show on the partner's trip timeline. Each step can be undone if tapped by mistake.
-6. **Staff arrange the return if needed.** A return is a separate, linked ride with the route reversed and the original driver preferred.
+## Who it's for
 
-```mermaid
-flowchart LR
-    A[Staff request a ride] --> B[Match eligible drivers]
-    B --> C[Driver accepts]
-    C --> D[Pickup]
-    D --> E[Drop-off confirmed]
-    B --> F[Needs attention]
-    F --> G[Staff retry or arrange a fallback]
-    G --> B
-```
+| | |
+| :-- | :-- |
+| 🏠 **Housing and social service staff** | Get the people they support to hospitals, clinics, and appointments without phoning around or paying for taxis. |
+| 🚗 **Volunteer drivers** | Give a ride when it suits them. They set their own hours, area, and vehicle details, and turn down anything that doesn't fit. |
+| 🙋 **The people riding** | Just show up at the front desk. No phone, app, or payment needed. |
+| 🛡️ **Platform admins** | Review every organization and driver before their first ride. |
 
-If a request cannot be covered, staff see **Needs attention** and can ask again, change the time or details, or open transit directions. **A request nobody accepts is cancelled automatically at the pickup time** (or 30 minutes after booking, for on-demand rides), so staff can make other plans. Staff can change a ride until pickup; changing the time, place, or passengers after a driver accepted asks that driver to confirm again first. A driver who can no longer make an accepted ride can release it so CareRide asks other drivers.
+## Built on dignity and trust
 
-**Request hours control when a driver receives offers**, rather than guaranteeing availability at the pickup time. Drivers decide whether each trip works for them. Offers expire after **5 minutes for on-demand rides** or **60 minutes for scheduled rides**.
+- **The person comes first.** Riders never need an account, and drivers see only what the ride needs.
+- **Verified participants.** Every driver and organization is approved before their first ride.
+- **Honest about gaps.** An uncovered request is flagged rather than left waiting silently, and unaccepted requests cancel automatically so staff can plan around them.
+- **Not for emergencies.** Booking screens point to 911 for medical emergencies.
 
-### What is included
-
-- **Booking built around staff:** frequently visited destinations, custom addresses, a calendar that hides past times, a passenger limit based on the largest vehicle, optional passenger names, wheelchair requirements, and assistance notes.
-- **Driver controls:** vehicle details, passenger capacity, service cities, weekly request hours, and minimum notice. Drivers simply decline requests that don't suit them.
-- **Clear ride tracking:** a live trip timeline, request and offer history, acceptance and cancellation notices, Google Maps directions for drivers, and past rides with the most recent first.
-- **Onboarding:** separate sign-up and sign-in for partner organizations and drivers, followed by administrator approval.
-- **Offline reminders:** large-text printable ride slips with pickup instructions, driver, vehicle, and a front desk phone number.
-- **Impact reporting:** completed rides, estimated fare savings, approved organizations, and approved drivers.
-- **Responsive interface:** layouts for desktop and mobile, plain-language actions, and statuses communicated with both text and color.
-
-## Get started
-
-### Requirements
-
-- **Node.js 22 or later.** The repository's `.nvmrc` pins `22.23.2` for a consistent development environment.
-- **npm**, included with Node.js.
-- A modern browser with local storage enabled.
-
-### Run locally
+## Try it in two minutes
 
 ```bash
 git clone https://github.com/FaithTechGlobalLabs/CareRide-Team-1.git
 cd CareRide-Team-1
-npm ci
-npm run dev
+npm ci && npm run dev
 ```
 
-Open the local URL printed by Vite, normally **http://localhost:5173**.
+The demo needs no API keys or backend because seed data loads automatically. Open **http://localhost:5173**, choose **Sign in**, and pick a one-tap demo account. All demo accounts use the password `careride`.
 
-If you use nvm, run `nvm install` and `nvm use` in the repository before installing dependencies.
+<details>
+<summary><b>Walk a full ride from both sides</b></summary>
+<br />
 
-**No environment variables, API keys, database setup, or backend server are required for the demo.** Seed data loads automatically. A Google Maps key is optional: it adds route maps and drive times for drivers (see [Google Maps (optional)](#google-maps-optional)).
+1. In one tab, sign in as **Belkin House** (`belkin@careride.demo`) and request a ride to St. Paul's Hospital.
+2. In a second tab, sign in as **Frank** (`frank@careride.demo`) and accept it.
+3. Move Frank through *I'm on my way → I'm here → Client is in the car → Client dropped off*, and watch Belkin House's timeline update live.
+4. Sign in as **CareRide Admin** (`admin@careride.demo`) to review approvals.
 
-## Try the demo
+</details>
 
-Open **Sign in** and choose a one-tap demo account, or use one of the credentials below. All seeded demo accounts use the password **`careride`**.
+## Tech stack
 
-| Account | Email | Explore |
-| --- | --- | --- |
-| Belkin House | `belkin@careride.demo` | Book, change, and track a client's ride. |
-| Frank | `frank@careride.demo` | Accept requests and complete rides. |
-| CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
+**React 19** · **TypeScript** · **Vite** · **Tailwind CSS 4** · **Supabase** (optional; a browser-based mock backend is the default) · **Google Maps** (optional) · **Capacitor** for Android · deployed on **Cloudflare Workers**
 
-Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names and addresses. Belkin House, Richmond House, and Grace Mansion use their real addresses, and each starts with saved destinations taken from its case workers' answers in [PARTNER_ORG_NOTES.md](PARTNER_ORG_NOTES.md).
+Setup, architecture, Supabase, Android builds, Maps, and deployment are covered in the **[developer guide](docs/DEVELOPMENT.md)**.
 
-### Walk through a complete ride
+## Where it's headed
 
-1. **Sign in as Belkin House.** For a clean starting point, use **Reset demo data** in the footer and confirm the reset.
-2. **Request an on-demand ride.** Choose St. Paul's Hospital, enter a fictional name, and request one passenger without wheelchair access. Submit the request.
-3. **Open a second tab at the same local URL.** Sign in as **Frank**, who receives requests at any time in the seed data, and accept the offer.
-4. **Return to the Belkin House tab.** Review the confirmation and print the client's ride slip if desired.
-5. **On Frank's Rides page**, follow the trip steps: **I'm on my way** (optionally pick an ETA), **I'm here**, **Client is in the car**, then **Client dropped off**. Watch the trip timeline update in the Belkin House tab.
-6. **Check the Belkin House view.** The ride is complete. Choose **Book the return trip** to explore the linked return workflow.
+CareRide is a working hackathon MVP, built for **HACKVAN 2026** and inspired by the transportation needs of **Belkin Communities of Hope** in Vancouver. Next steps include production authentication, booking notifications, secure document verification for drivers, and recurring rides. The [developer guide](docs/DEVELOPMENT.md#current-boundaries-and-next-steps) lists what the MVP does and doesn't cover yet.
 
-Tabs on the same browser origin share ride data while keeping their own sign-in sessions. Changes synchronize through browser storage events and a four-second refresh while a signed-in tab is visible. Separate browsers, devices, and origins have independent demo data.
+<sub>CareRide is an independent platform. Organizations and place names in the demo do not imply partnership or endorsement.</sub>
 
-**Reset demo data restores every account, ride, and setting to the seeded state for that browser origin.** Use fictional information throughout the walkthrough.
+---
 
-### Pitch deck
-
-The HACKVAN pitch lives at **[/demo](https://careride-team-1.careride.workers.dev/demo)** (locally, `http://localhost:5173/demo`). It follows the event's [pitch guidelines](PITCH_GUIDELINES.md), and its "See it in action" slide plays one ride through the real app, with the staff and driver screens side by side.
-
-- **→ / Space / Page Down** next, **← / Page Up** back, so presentation clickers work. **N** shows speaker notes, **F** goes full screen.
-- Each forward click on the live slide shows a tap on one screen, then the other screen catching up. Going back jumps straight to that step.
-- **Opening the live slide resets the demo data in that browser** and leaves it at the last step, so you can switch to the app and carry on from there.
-
-## Developer guide
-
-### Stack
-
-| Layer | Technology |
-| --- | --- |
-| Interface | React 19, TypeScript 6 |
-| Routing | React Router 7 |
-| Styling and icons | Tailwind CSS 4, Lucide React |
-| Development and build | Vite 8 |
-| Code quality | ESLint with TypeScript and React rules |
-| Demo persistence | `localStorage` for data and sign-in, plus a per-tab `sessionStorage` copy of the sign-in |
-| Deployment configuration | Cloudflare Workers (static assets plus a Worker script) via Wrangler |
-| Mobile | Capacitor 8 Android wrapper around the same Vite build |
-
-### Architecture
-
-Pages access application data through a typed **`DataService`** contract. The current implementation stores demo records in the browser. The backend selection lives in one file, providing a defined integration point for a future API.
-
-```text
-src/
-├── pages/          Role-specific screens: auth, partner, driver, org, admin
-├── components/     Shared UI, forms, ride cards, notices, and printable slips
-├── context/        Current user, session state, and refresh coordination
-├── hooks/          Data loading and current-user helpers
-├── logic/          Driver matching, dispatch, request hours, and ride utilities
-├── services/
-│   ├── dataService.ts   Typed backend contract
-│   ├── index.ts         Active backend selection
-│   ├── mockService.ts   Browser persistence and ride lifecycle operations
-│   └── seed.ts          Demo accounts and initial records
-├── native/         Capacitor-only helpers: session, back button, print, external links
-├── types/          Shared domain models
-├── App.tsx         Application routes
-└── index.css       Global styles and design tokens
-```
-
-Start with [the service contract](src/services/dataService.ts), [driver matching](src/logic/matchDrivers.ts), and [dispatch rules](src/logic/dispatch.ts) to understand the core behavior. Account and ride state changes live in [the mock service](src/services/mockService.ts).
-
-To introduce a real backend, implement `DataService` and select it in [src/services/index.ts](src/services/index.ts). Production authentication, authorization, synchronization, and secure document handling will also need integration.
-
-### Commands
-
-| Command | Purpose |
-| --- | --- |
-| `npm ci` | Install dependencies from the committed lockfile. |
-| `npm run dev` | Start the local Vite development server. |
-| `npm run lint` | Run ESLint. |
-| `npm run build` | Run TypeScript project checks and create the production build in `dist/`. |
-| `npm run preview` | Serve an existing production build locally. |
-| `npm run deploy` | Deploy the existing `dist/` build using Wrangler. |
-| `npm run android:sync` | Build the website and copy it into the Android project. |
-| `npm run android:apk` | Sync, then build a debug APK with Gradle. |
-| `npx cap open android` | Open the Android project in Android Studio. |
-
-There is currently no automated test suite or `npm test` script. For changes to ride behavior, run lint and build, then exercise the partner and driver workflows in separate tabs, including declines, cancellations, and uncovered requests where relevant.
-
-### Deployment
-
-The repository includes [wrangler.jsonc](wrangler.jsonc) for Cloudflare Workers. Static files still serve from `dist/` with single-page application fallback. A Worker script is included so the Cloudflare dashboard can attach variables and secrets. `/api/*` is reserved for that Worker.
-
-With access to the intended Cloudflare account:
-
-```bash
-npx wrangler login
-npm run build
-npm run deploy
-```
-
-To run the already-implemented Supabase backend on Cloudflare, set these as **Workers Builds** variables (they are baked in at `npm run build`; they are not Worker runtime secrets):
-
-- `VITE_DATA_BACKEND=supabase`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-Keep the Supabase service-role key out of `VITE_` variables. After this Worker exists, dashboard **Settings → Variables and Secrets** also works for runtime secrets if you add server routes later.
-
-Without those build variables, production stays on the localStorage mock. For another static host, publish `dist/` and configure application routes to fall back to `index.html`.
-
-### Android app
-
-The same Vite build is packaged as an Android app with Capacitor. A default build uses the demo (mock) data, which stays on each phone, so walk through a ride on one phone by switching accounts.
-
-**Shared data with Supabase:** the app reads the same `VITE_` settings as the website when it's built. To make phones share real data (a partner books on one phone and the driver accepts on another), put these in `.env.local` before running `npm run android:apk`:
-
-```dotenv
-VITE_DATA_BACKEND=supabase
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_KEY
-VITE_PUBLIC_SITE_URL=https://careride-team-1.careride.workers.dev
-```
-
-`VITE_PUBLIC_SITE_URL` is the website that confirmation and reset-password emails open. The app's own address (`https://localhost`) can't be opened from an email, so people confirm or reset on the website, then sign in in the app. Add that address with `/**` under Supabase **Authentication → URL Configuration → Redirect URLs**. Sign-ins stay on the phone until the person signs out.
-
-GitHub Actions has no `.env.local`. To bake the same settings into the **careride-debug-apk** artifact, add these as repository **Actions** secrets (**Settings → Secrets and variables → Actions**):
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_PUBLIC_SITE_URL`
-- `VITE_GOOGLE_MAPS_API_KEY` (optional)
-- `VITE_GOOGLE_MAPS_MAP_ID` (optional)
-
-Keep the Supabase service-role key out of those secrets. When the URL and publishable key are present, the workflow sets `VITE_DATA_BACKEND=supabase`. Pull requests from forks do not receive secrets, so those APKs stay on demo data.
-
-**Requirements:** Android Studio with the Android SDK (API 36), or `nix develop` in this repository, which provides Node 22, JDK 21, and the SDK. JDK 21 is required for Gradle.
-
-```bash
-npm ci
-npm run android:apk
-```
-
-The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`. On a pull request, GitHub Actions uploads the same file as the **careride-debug-apk** artifact. Install it with Android Studio, `npx cap open android`, or `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
-
-The website is unchanged: the marketing page still opens at `/`, and a closed browser tab still signs you out.
-
-### Google Maps (optional)
-
-With a Google Maps key, drivers see:
-
-- **Before accepting:** about how long the ride takes, and, if they share their location, how far they are from the pickup. The pickup address stays hidden until they accept.
-- **On their current ride:** a map of the route from pickup (A) to drop-off (B), with a dashed line from where they are to the pickup until the client is in the car.
-
-Without a key, nothing changes: drivers keep the **Directions** buttons that open Google Maps.
-
-**Set it up (about 10 minutes):**
-
-1. In [Google Cloud Console](https://console.cloud.google.com/), create or pick a project and turn on billing. Google Maps Platform has a monthly free allowance; check [current pricing](https://mapsplatform.google.com/pricing/).
-2. Under **APIs & Services → Library**, enable **Maps JavaScript API** and **Routes API**. Both are required: routes are worked out by the Routes API, even though they're requested through the JavaScript API.
-3. Under **APIs & Services → Credentials**, create an API key and restrict it:
-   - **Application restrictions → Websites:** `http://localhost:5173/*`, your deployed domain (for example `https://careride.example.workers.dev/*`), `https://localhost/*` for the Android app, and `https://*.trycloudflare.com/*` if you demo through a Cloudflare tunnel.
-   - **API restrictions:** Maps JavaScript API and Routes API.
-4. Copy `.env.example` to `.env.local` and paste the key into `VITE_GOOGLE_MAPS_API_KEY`. `.env.local` is git-ignored.
-5. Restart `npm run dev`.
-
-`VITE_GOOGLE_MAPS_MAP_ID` is optional. Without it, the map uses Google's `DEMO_MAP_ID`. For production, create a Map ID under **Google Maps Platform → Map management** (JavaScript, vector) and set it.
-
-**Deploying:** Vite builds the key into the JavaScript, so set `VITE_GOOGLE_MAPS_API_KEY` wherever `npm run build` runs: Cloudflare Workers **Build variables**, and the GitHub Actions secret of the same name for the Android APK. It is not a runtime Worker variable. The key is visible to anyone who opens the site or APK, which is normal for Maps JavaScript keys; the website restriction in step 3 is what protects the web build.
-
-**Things to know:**
-
-- Each route is requested once per page load and remembered, so the four-second refresh doesn't call Google again. Only the current ride shows a map.
-- The browser asks for the driver's location only when they tap **Use my location**. Once they've allowed it, the driver's screens read it again on later visits without a tap; the organization's Bookings page never does. It's kept in memory for that tab, rounded to about 100 m, and sent only to Google to work out the drive time. Browsers only ask for location over HTTPS or on `localhost`, so a phone opening `http://192.168.x.x:5173` won't get the prompt. Use a tunnel or the Android app instead.
-- If Google rejects the key (wrong restrictions, an API not enabled, or billing off), the maps and times disappear and the Directions buttons stay. Check the browser console for the reason.
-- Drive times don't include traffic.
-
-## Current boundaries and next steps
-
-This MVP demonstrates the coordination workflow. The following details matter when evaluating it or planning a pilot:
-
-| Area | Current implementation | Next step |
-| --- | --- | --- |
-| **Accounts and permissions** | Credentials, including passwords, are stored in plain text in browser storage. Sign-in and navigation run in the frontend. | Add production authentication and server-enforced role and organization access. |
-| **Client information** | The booking form requires a name, and rides and printed slips can contain it. Notes and travel needs are also stored locally. | Agree on the minimum identifying information needed and implement appropriate privacy controls. |
-| **Driver verification** | Administrators can approve profiles; document inputs retain file names only. | Define verification procedures and add secure document storage. |
-| **Updates and notifications** | Browser storage synchronization and polling; no actual SMS or email delivery. | Add shared persistence, live updates, and booking notifications. |
-| **Matching** | Rule-based eligibility and offer handling; no live vehicle location or route optimization. | Validate dispatch rules with operators and add location-aware matching if needed. |
-| **Impact** | Fare savings use a flat estimate of **$25 per completed ride**. | Validate the estimate or replace it with a distance-based calculation. |
-| **Group and recurring trips** | Passenger counts are supported; combining separate requests and recurring bookings are not available in the UI. | Add group ride suggestions and recurring ride workflows. |
-
-CareRide covers essential, non-emergency transportation. Booking screens direct medical emergencies to **911**.
-
-## Contributing
-
-Issues and pull requests are welcome. Describe the affected role and workflow, keep changes focused, and include steps for a reviewer to reproduce the result. Run `npm run lint` and `npm run build` before submitting code changes.
-
-Use fictional data when developing or sharing screenshots. For product changes, prioritize clear language, usable mobile layouts, and an explicit next step when a ride cannot be covered.
-
-## Product context
-
-- [Problem statement](PROBLEM_STATEMENT.md) — the transportation challenge that inspired CareRide.
-- [Product description](PRODUCT_DESCRIPTION.md) — detailed scope, roles, models, and proposed workflows.
-- [Flows and notes](FLOWS_AND_NOTES.md) — stakeholder journeys and open operational questions.
-- [Product strategy](PRODUCT_STRATEGY.md) — broader planning and future directions.
-- [Judging criteria](JUDGING_CRITERIA.md) — hackathon evaluation context.
-
-These documents include planning assumptions that may differ from the current implementation. This README describes the code's current behavior, including concurrent driver offers and the booking name field.
-
-## Team and license
-
-Built by **Adi, Noah, and Gilbert** for **HACKVAN 2026** in the FaithTechGlobalLabs community.
-
-Released under the [MIT License](LICENSE).
+<p align="center">
+  Built with ❤️ by <b>Adi, Noah, and Gilbert</b> in the FaithTechGlobalLabs community · <a href="LICENSE">MIT License</a>
+</p>

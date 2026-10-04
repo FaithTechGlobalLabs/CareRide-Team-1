@@ -37,7 +37,7 @@ import { previewDriverMatch, type MatchCheck, type MatchPreview } from '../../lo
 import { estimateFare } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
 import { houseAddress } from '../../logic/maps'
-import { describePickup, quickPicks, toLocalInput } from '../../logic/pickupTime'
+import { describePickup, parseLocalInput, quickPicks, toLocalInput } from '../../logic/pickupTime'
 import { sortByPopularity } from '../../logic/popularDestinations'
 import { passengersLabel, riderLabel } from '../../logic/rideText'
 import { MAX_NAME, MAX_NOTE, tooLong } from '../../logic/validate'
@@ -160,7 +160,7 @@ function initialForm(mode: Mode, source: Ride | undefined, userId: string, now: 
     const draft = readDraft(userId)
     if (!draft || isUntouched({ ...blank, ...draft }, now)) return { form: blank, restored: false }
     // A saved time that has since passed goes back to the default
-    const stale = Date.parse(draft.pickupTime) <= now
+    const stale = parseLocalInput(draft.pickupTime) <= now
     return { form: { ...blank, ...draft, pickupTime: stale ? blank.pickupTime : draft.pickupTime }, restored: true }
   }
   if (!source) return { form: blank, restored: false }
@@ -304,7 +304,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
     setShowErrors(false)
   }
 
-  const pickupMs = Date.parse(form.pickupTime)
+  const pickupMs = parseLocalInput(form.pickupTime)
   const pickupValid = !Number.isNaN(pickupMs)
 
   function validate(at: number): Partial<Record<Field, string>> {

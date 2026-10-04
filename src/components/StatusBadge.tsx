@@ -1,6 +1,7 @@
-import { BellRing, CarFront, Check, CircleCheck, CircleX, Clock, TriangleAlert, UserX, type LucideIcon } from 'lucide-react'
+import { BellRing, Bus, CarFront, Check, CircleCheck, CircleX, Clock, TriangleAlert, UserX, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { RideStatus } from '../types'
+import { SENT_ON_TRANSIT_LABEL } from '../logic/rideText'
 
 // Each status gets an icon as well as a colour, so it reads without colour vision too.
 export const STATUS_ICON: Record<RideStatus, LucideIcon> = {
@@ -26,9 +27,12 @@ const styles: Record<RideStatus, { text: string; className: string }> = {
   CANCELLED: { text: 'Cancelled', className: 'bg-slate-100 text-slate-600' },
 }
 
+const TRANSIT = { text: SENT_ON_TRANSIT_LABEL, className: 'bg-teal-100 text-teal-900' }
+
 export function StatusBadge({ status, label }: { status: RideStatus; label?: string }) {
-  const { text, className } = styles[status]
-  const Icon = STATUS_ICON[status]
+  const transit = label === SENT_ON_TRANSIT_LABEL
+  const { text, className } = transit ? TRANSIT : styles[status]
+  const Icon = transit ? Bus : STATUS_ICON[status]
   const live = status === 'SEARCHING' || status === 'OFFERED'
 
   // When the status changes on screen, the badge settles in with a soft ring and screen readers hear the new status.

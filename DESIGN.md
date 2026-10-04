@@ -102,6 +102,7 @@ Matches `RideStatus` in `src/types/index.ts` and the labels in `StatusBadge.tsx`
 | `NEEDS_ATTENTION` | Care red fill, white text | Alert triangle | "Needs attention" |
 | `NO_SHOW` | Coral tint | User-x | "Client didn't show" |
 | `CANCELLED` | Slate, muted | X-circle | "Cancelled" |
+| `CANCELLED`, sent on transit | Teal tint | Bus | "Sent on transit" |
 
 Done in v0.2: `StatusBadge` follows this table, with the icon beside the words (`STATUS_ICON`). The short phone label in the ride list uses the same icons. Status is never shown by colour alone.
 

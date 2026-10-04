@@ -8,6 +8,15 @@ export function toLocalInput(ms: number): string {
   return d.toISOString().slice(0, 16)
 }
 
+// Reads that same local string back. Date.parse can treat it as UTC, which shifts the day
+// in the early morning and makes "today" and "now" land on the wrong cell.
+export function parseLocalInput(value: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value)
+  if (!match) return NaN
+  const [, year, month, day, hour, minute] = match
+  return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)).getTime()
+}
+
 // Rounds up to the next quarter hour, so suggested times read cleanly (4:15, not 4:07).
 function roundUpToQuarter(ms: number): number {
   const quarter = 15 * MINUTE

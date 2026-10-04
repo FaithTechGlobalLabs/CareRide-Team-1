@@ -7,7 +7,7 @@ import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 import { formatDayTime } from '../logic/formatTime'
 import { rideStage } from '../logic/rideStage'
-import { passengersLabel, riderLabel } from '../logic/rideText'
+import { passengersLabel, rideBadgeLabel, riderLabel } from '../logic/rideText'
 
 interface Props {
   ride: Ride
@@ -55,7 +55,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
           {ride.returnOfRideId && ' · Return trip'}
           {riders && ` · ${riders}`}
         </span>
-        <StatusBadge status={ride.status} label={statusLabel} />
+        <StatusBadge status={ride.status} label={statusLabel ?? rideBadgeLabel(ride)} />
       </div>
       {/* The route as a short road, like the logo. It fills in as the ride goes: pickup dot once a driver confirms,
           a dot travels the road while the client is in the car, and it all turns green on arrival. Grey if the ride stopped short. */}
