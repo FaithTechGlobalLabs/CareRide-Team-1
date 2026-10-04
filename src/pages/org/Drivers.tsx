@@ -28,7 +28,7 @@ export function Drivers() {
       return
     }
     const [user, driver] = splitDriverDraft(draft)
-    await dataService.registerDriver(user, { ...driver, orgId })
+    await dataService.addOrgDriver(user, { ...driver, orgId })
     setDraft({ ...emptyDriverDraft, background: 'ORG_DRIVER' })
     setShowErrors(false)
     refresh()

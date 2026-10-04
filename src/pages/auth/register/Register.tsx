@@ -169,19 +169,16 @@ function clearDraft(): void {
 async function createAccount(d: RegisterDraft): Promise<RegisterResult> {
   if (d.role === 'DRIVER') {
     const [driverUser, driver] = splitDriverDraft({ ...d.driver, name: d.name.trim() })
-    const { user } = await dataService.registerDriver(driverUser, driver, { email: d.email, password: d.password })
-    return { user }
+    return dataService.registerDriver(driverUser, driver, { email: d.email, password: d.password })
   }
 
-  const { org, user } = await dataService.registerOrganization(
+  // Destinations go with the sign-up so the backend creates them together with the organization
+  return dataService.registerOrganization(
     { name: d.orgName.trim(), type: 'PARTNER_ORG', contactName: d.name.trim(), contactPhone: d.orgPhone.trim() },
     { name: d.name.trim(), email: d.email, password: d.password },
     { address: d.address.trim(), city: d.city, phone: d.orgPhone.trim() },
+    d.destinations.map(({ name, address, city }) => ({ name, address, city })),
   )
-  for (const dest of d.destinations) {
-    await dataService.saveDestination({ orgId: org.id, name: dest.name, address: dest.address, city: dest.city })
-  }
-  return { user }
 }
 
 export function Register() {
@@ -268,8 +265,10 @@ export function Register() {
         return
       }
       const created = await createAccount(draft)
+      // Sign in through the backend like anyone else, rather than trusting the returned user.
+      // If the email must be confirmed first, they sign in after clicking the link.
+      if (created.status === 'SIGNED_IN') await signIn(draft.email, draft.password)
       clearDraft()
-      signIn(created.user)
       setResult(created)
     } catch (err) {
       setSubmitError((err as Error).message || 'Something went wrong. Please try again.')
