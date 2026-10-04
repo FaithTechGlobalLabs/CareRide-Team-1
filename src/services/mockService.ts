@@ -2,6 +2,7 @@ import { MIN_PASSWORD_LENGTH } from '../constants'
 import { DEMO_FRAME_USER } from '../context/demoFrame'
 import { maxPassengers } from '../logic/capacity'
 import { UNDO_FINISH_MINUTES, canWaitForDrivers, driversToAsk, isExpired, noDriverDeadline, offerExpiry } from '../logic/dispatch'
+import { faresSavedFor } from '../logic/estimateFare'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
 import { seed, type Database } from './seed'
@@ -708,7 +709,7 @@ export const mockService: DataService = {
       const completed = db.rides.filter((r) => r.status === 'COMPLETED')
       return {
         ridesCompleted: completed.length,
-        moneySaved: completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0),
+        moneySaved: faresSavedFor(completed.length),
         // Deleting an account keeps its organization for history, so only count ones someone can still sign in to
         organizations: db.organizations.filter(
           (o) => o.status === 'APPROVED' && db.users.some((u) => u.orgId === o.id && (u.role === 'PARTNER' || u.role === 'ORG_ADMIN')),

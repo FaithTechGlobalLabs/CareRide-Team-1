@@ -4,7 +4,7 @@ import { DashboardHeader } from '../../components/dashboard/DashboardHeader'
 import { StatTile } from '../../components/dashboard/StatTile'
 import { card, primaryButton, secondaryButton } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
-import { formatDollars } from '../../logic/estimateFare'
+import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { describeRequestHours } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
@@ -64,7 +64,7 @@ export function Approvals() {
           />
           <StatTile label="Organizations" value={impact?.organizations ?? '–'} icon={<Building2 className="h-5 w-5" />} tone="ink" note="Approved partners" />
           <StatTile label="Verified drivers" value={impact?.verifiedDrivers ?? '–'} icon={<BadgeCheck className="h-5 w-5" />} tone="teal" note="Ready to get requests" />
-          <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `${formatDollars(impact.moneySaved)} in bus fares saved` : undefined} />
+          <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `${formatDollars(faresSavedFor(impact.ridesCompleted))} in bus fares saved` : undefined} />
         </div>
       </div>
       {/* TODO: how we verify organizations and drivers is still an open question */}
