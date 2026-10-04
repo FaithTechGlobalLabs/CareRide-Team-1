@@ -4,7 +4,7 @@ import { CopyButton } from '../../components/CopyButton'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
-import { formatDollars } from '../../logic/estimateFare'
+import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours } from '../../logic/requestHours'
 import { dataService } from '../../services'
@@ -34,14 +34,15 @@ async function loadDetails(user: User): Promise<Details> {
     const driver = (await dataService.listDrivers()).find((d) => d.userId === user.id)
     return { org, driver, rides: driver ? await dataService.listMyRides(driver.id) : [] }
   }
-  if ((user.role === 'PARTNER' || user.role === 'ORG_ADMIN') && org) {
+  if (user.role === 'PARTNER' && org) {
     const house = user.houseId ? (await dataService.listHouses()).find((h) => h.id === user.houseId) : undefined
-    const drivers = await dataService.listDrivers(org.id)
-    // Rides the partner booked, plus rides its own drivers gave
     const booked = house ? await dataService.listRidesForHouse(house.id) : []
+    return { org, house, rides: booked }
+  }
+  if (user.role === 'ORG_ADMIN' && org) {
+    const drivers = await dataService.listDrivers(org.id)
     const given = await dataService.listRidesForOrg(org.id)
-    const rides = [...new Map([...booked, ...given].map((r) => [r.id, r])).values()]
-    return { org, house, rides, driverCount: drivers.length }
+    return { org, rides: given, driverCount: drivers.length }
   }
   return { org, rides: [] }
 }
@@ -105,7 +106,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
   const rides = details?.rides ?? []
   const completed = rides.filter((r) => r.status === 'COMPLETED')
   const upcoming = rides.filter((r) => ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION', 'PICKED_UP'].includes(r.status))
-  const saved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const saved = faresSavedFor(completed.length)
   const { org, house, driver } = details ?? {}
 
   return (
@@ -219,7 +220,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                     {org.contactName} · {org.contactPhone}
                   </Row>
                   {org.bookingNotifications && <Row label="New bookings to">{org.bookingNotifications}</Row>}
-                  {details.driverCount !== undefined && <Row label="Own drivers">{details.driverCount}</Row>}
+                  {details.driverCount !== undefined && <Row label="Drivers">{details.driverCount}</Row>}
                 </Section>
               )}
 

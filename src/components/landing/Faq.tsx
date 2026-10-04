@@ -35,12 +35,12 @@ export function Faq() {
       {QUESTIONS.map(({ q, a }) => (
         <details
           key={q}
-          className="group rounded-xl border border-slate-200 bg-white transition open:border-brand-300"
+          className="faq group rounded-xl border border-slate-200 bg-white transition open:border-brand-300"
         >
           <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 py-4 font-display text-lg font-bold text-ink sm:px-6 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
             {q}
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-open:rotate-45 group-open:bg-brand-600 group-open:text-white"
+              className="faq-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-open:rotate-45 group-open:bg-brand-600 group-open:text-white"
               aria-hidden
             >
               <Plus className="h-4 w-4" />

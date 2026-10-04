@@ -1,4 +1,5 @@
 import type { Ride } from '../types'
+import { faresSavedFor } from './estimateFare'
 import { isDriverLate, wasDropped } from './rideAlerts'
 
 const DAY = 24 * 60 * 60_000
@@ -58,7 +59,7 @@ export interface PartnerStats {
   today: number // rides picking up today, not cancelled
   upcoming: number // not finished, picking up from now on
   completed: number
-  faresSaved: number // dollars, from completed rides
+  faresSaved: number // dollars: completed rides × one-zone bus fare
 }
 
 export function partnerStats(rides: Ride[], now: number): PartnerStats {
@@ -69,7 +70,7 @@ export function partnerStats(rides: Ride[], now: number): PartnerStats {
     today: rides.filter((r) => r.status !== 'CANCELLED' && pickup(r) >= todayStart && pickup(r) < todayStart + DAY).length,
     upcoming: rides.filter((r) => !isFinished(r)).length,
     completed: completed.length,
-    faresSaved: completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0),
+    faresSaved: faresSavedFor(completed.length),
   }
 }
 

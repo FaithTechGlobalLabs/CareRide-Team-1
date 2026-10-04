@@ -1,6 +1,6 @@
 import { CarFront, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { useData } from '../hooks/useData'
 import { acceptedMessage } from '../logic/acceptedMessage'
@@ -21,7 +21,10 @@ function noticeId(ride: Ride): string {
 // Tells the partner organization the moment a driver accepts one of their rides.
 export function RideAcceptedNotice() {
   const { currentUser, users } = useApp()
+  const { pathname } = useLocation()
   const userId = currentUser?.id ?? ''
+  // The ride page already says who accepted. A notice there sits on the slip staff are about to print.
+  const viewing = pathname.startsWith('/partner/ride/') ? pathname.split('/')[3] : undefined
   const houseId = currentUser?.role === 'PARTNER' ? currentUser.houseId : undefined
   const [seen, setSeen] = useState(() => readSeen(userId, 'accepted'))
 
@@ -34,7 +37,7 @@ export function RideAcceptedNotice() {
   const drivers = useData(() => dataService.listDrivers()) ?? []
 
   const fresh = recent
-    .filter((r) => !seen.includes(noticeId(r)))
+    .filter((r) => r.id !== viewing && !seen.includes(noticeId(r)))
     .sort((a, b) => b.acceptedAt!.localeCompare(a.acceptedAt!))
 
   function dismiss(ride: Ride) {

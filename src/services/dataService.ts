@@ -94,9 +94,9 @@ export interface DataService {
   // Locations (point A): one per partner organization
   listHouses(orgId?: string): Promise<House[]>
 
-  // Drivers: self sign-up with a login, or added by the signed-in organization without one
+  // Drivers: self sign-up with a login, or added by a transport provider without one
   registerDriver(user: NewDriverUser, driver: NewDriver, login: Pick<NewAccount, 'email' | 'password'>): Promise<Registration>
-  addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // the backend decides which org
+  addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // transport providers only; the backend uses the signed-in org
   listDrivers(orgId?: string): Promise<Driver[]>
   // Approved drivers' eligibility (seats, cities, hours) for booking previews, without saying who they are
   listDriverPool(): Promise<Driver[]>
@@ -116,9 +116,11 @@ export interface DataService {
   // A driver with a client in the car has to finish that ride first.
   deleteMyAccount(): Promise<void>
 
-  // Destinations (point B)
+  // Destinations (point B). Past rides keep the address they were booked with.
   listDestinations(orgId?: string): Promise<Destination[]>
   saveDestination(dest: Omit<Destination, 'id'>): Promise<Destination>
+  updateDestination(id: string, changes: Pick<Destination, 'name' | 'address' | 'city' | 'notes'>): Promise<Destination>
+  deleteDestination(id: string): Promise<void>
 
   // Rides: partner organization
   // Throws if a scheduled pickup time is in the past or the ride is too big. Send the same clientRequestId

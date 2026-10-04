@@ -26,7 +26,7 @@ export function needsProfessionalProof(value: Pick<DriverDraft, 'background'>): 
   return value.background === 'TAXI' || value.background === 'RIDESHARE'
 }
 
-// Every check for a driver added in one go, e.g. by an organization for one of its own drivers
+// Every check for a driver added in one go, e.g. by a transport provider for one of its drivers
 export function validateDriverDraft(d: DriverDraft): FieldErrors {
   const errors: FieldErrors = {
     name: !d.name.trim() ? "Please enter the driver's name." : tooLong(d.name, MAX_NAME),

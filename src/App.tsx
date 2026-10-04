@@ -68,8 +68,8 @@ export default function App() {
               <Route path="/partner/request" element={<RequestRide />} />
               <Route path="/partner/ride/:id" element={<RideDetail />} />
               <Route path="/partner/destinations" element={<Destinations />} />
-              <Route path="/partner/drivers" element={<Drivers />} />
-              <Route path="/partner/bookings" element={<Bookings />} />
+              <Route path="/partner/drivers" element={<Navigate to="/partner" replace />} />
+              <Route path="/partner/bookings" element={<Navigate to="/partner" replace />} />
             </Route>
             <Route element={<RequireRole roles={['DRIVER']} />}>
               <Route path="/driver" element={<DriverHome />} />

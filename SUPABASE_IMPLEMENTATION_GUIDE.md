@@ -109,8 +109,8 @@ Visual components such as `AuthShell`, `ConfirmButton`, form layout elements, an
 ### Current behavior to preserve
 
 - A partner organization has one pickup location and a shared account.
-- Drivers may register themselves or be added by an organization.
-- An organization can add a driver who has no login account.
+- Drivers register themselves. Partner organizations cannot add drivers.
+- A transport provider can add a driver who has no login account.
 - Transport-provider accounts still work even though their sign-up path is hidden.
 - Drivers receive offers based on vehicle capacity, city, wheelchair access, and request hours.
 - Usually eligible drivers are asked together; a preferred driver is asked alone first.

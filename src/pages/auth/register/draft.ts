@@ -40,13 +40,6 @@ export const emptyRegisterDraft: RegisterDraft = {
   driver: { ...emptyDriverDraft, background: 'TAXI' },
 }
 
-// Common destinations a partner organization can add with one tap.
-export const SUGGESTED_DESTINATIONS: DestinationDraft[] = [
-  { key: 'stp', name: "St. Paul's Hospital", address: '1081 Burrard St, Vancouver', city: 'Vancouver' },
-  { key: 'vgh', name: 'Vancouver General Hospital', address: '899 W 12th Ave, Vancouver', city: 'Vancouver' },
-  { key: 'rh', name: 'Richmond Hospital', address: '7000 Westminster Hwy, Richmond', city: 'Richmond' },
-]
-
 // ---- Validation, one function per step. Returns field id -> message.
 
 function compact(errors: FieldErrors): FieldErrors {

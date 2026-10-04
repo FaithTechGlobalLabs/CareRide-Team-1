@@ -9,7 +9,7 @@ import { dataService } from '../../services'
 
 const statusText = { PENDING: 'Waiting for approval', APPROVED: 'Approved', REJECTED: 'Not approved' }
 
-// Transport options: an organization's own drivers and vehicles.
+// Transport providers: their own drivers and vehicles. Partner organizations cannot add drivers.
 export function Drivers() {
   const { currentUser, users, refresh } = useApp()
   const orgId = currentUser?.orgId
@@ -37,7 +37,7 @@ export function Drivers() {
   return (
     <div className="space-y-8">
       <h1 className={pageTitle}>Our drivers</h1>
-      <p>Add the drivers and vehicles your organization can offer, and when to send them ride requests.</p>
+      <p>Add the drivers and vehicles your transport service can offer, and when to send them ride requests.</p>
 
       {drivers.length === 0 && <p>No drivers yet.</p>}
       <div className="space-y-3">

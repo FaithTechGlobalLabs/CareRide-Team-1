@@ -1,16 +1,16 @@
 import { AlertCircle } from 'lucide-react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
 import { HOME_FOR } from '../logic/homeFor'
-import { isNative } from '../native/platform'
 import type { UserRole } from '../types'
 import { primaryButton, secondaryButton } from './ui'
 
-// Signed-in pages only. On the website, everyone else sees the marketing page.
-// On the phone, they go to sign-in — sending them to "/" would bounce forever.
+// Signed-in pages only. Everyone else goes to sign-in and comes back here afterwards.
+// Sign-in is outside this gate, so sending people there does not loop.
 export function RequireAuth() {
   const { ready, currentUser, sessionError, retrySession, signOut } = useApp()
+  const location = useLocation()
 
   if (!ready) {
     return (
@@ -39,7 +39,10 @@ export function RequireAuth() {
       </div>
     )
   }
-  if (!currentUser) return <Navigate to={isNative ? '/signin' : '/'} replace />
+  if (!currentUser) {
+    const from = `${location.pathname}${location.search}`
+    return <Navigate to="/signin" replace state={{ from }} />
+  }
   return <Outlet />
 }
 

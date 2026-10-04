@@ -37,12 +37,9 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/accounts', label: 'Accounts' },
 ]
 
-// Main links for whoever is signed in. Partners only see Bookings once they have drivers of their own.
+// Main links for whoever is signed in.
 function useNavLinks(role: UserRole | undefined): NavItem[] {
-  const { currentUser } = useApp()
   const driver = useCurrentDriver()
-  const orgId = role === 'PARTNER' ? currentUser?.orgId : undefined
-  const ownDrivers = useData(() => (orgId ? dataService.listDrivers(orgId) : Promise.resolve([])), orgId) ?? []
   const offers = useData(
     () => (role === 'DRIVER' && driver?.status === 'APPROVED' ? dataService.listMyOffers(driver.id) : Promise.resolve([])),
     driver?.id,
@@ -53,8 +50,6 @@ function useNavLinks(role: UserRole | undefined): NavItem[] {
       return [
         { to: '/partner', label: 'Rides' },
         { to: '/partner/destinations', label: 'Destinations' },
-        { to: '/partner/drivers', label: 'Our drivers' },
-        ...(ownDrivers.length > 0 ? [{ to: '/partner/bookings', label: 'Bookings' }] : []),
       ]
     case 'DRIVER':
       return [
@@ -96,8 +91,10 @@ export function Layout() {
   const activeNav = ACTIVE_NAV[role ? ROLE_TONE[role] : 'brand']
 
   const pending = (role === 'DRIVER' ? driver?.status : org?.status) === 'PENDING'
-  // Booking is what partners come for, so it's one tap away on every page
+  // Booking is what partners come for, so it's one tap away on every page.
+  // The dashboard already has its own button, so the floating one would cover the fare tile on a phone.
   const showRequest = role === 'PARTNER' && pathname !== '/partner/request'
+  const showFloatingRequest = showRequest && pathname !== '/partner'
 
   return (
     <div className="min-h-screen">
@@ -172,7 +169,13 @@ export function Layout() {
         </div>
       )}
 
-      <main className={`mx-auto max-w-5xl px-4 py-8 sm:px-6 ${showRequest ? 'pb-24 sm:pb-8' : ''}`}>
+      <main className={`mx-auto max-w-5xl px-4 py-8 sm:px-6 ${showFloatingRequest ? 'pb-24 sm:pb-8' : ''}`}>
+        {/* In the page, so a notice never covers the ride slip or the fare tile. */}
+        <div className="no-print mb-6 flex flex-col gap-3 empty:mb-0 empty:hidden">
+          <RideCancelledNotice />
+          <IncomingRequests />
+          <RideAcceptedNotice />
+        </div>
         {loadError && (
           <div role="alert" className="mb-6 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-2 text-sm text-amber-900">
@@ -189,8 +192,8 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* On phones, booking stays in thumb reach at the bottom of every partner page */}
-      {showRequest && (
+      {/* On phones, booking stays in thumb reach. The dashboard already shows this button in the page. */}
+      {showFloatingRequest && (
         <Link
           to="/partner/request"
           className={`${primaryButton} native-bottom-chrome no-print fixed bottom-[calc(1rem+var(--safe-bottom))] left-1/2 z-30 -translate-x-1/2 shadow-xl sm:hidden`}
@@ -199,13 +202,6 @@ export function Layout() {
           Request a ride
         </Link>
       )}
-
-      {/* Pop-ups: cancelled rides for drivers, accepted rides for the partner who booked, requests for providers */}
-      <div className="no-print native-bottom-chrome fixed inset-x-4 bottom-[calc(1rem+var(--safe-bottom))] z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
-        <RideCancelledNotice />
-        <IncomingRequests />
-        <RideAcceptedNotice />
-      </div>
 
       <footer className="no-print mx-auto max-w-5xl px-4 pb-10 text-sm text-slate-500 sm:px-6">
         {isDemoBackend ? 'Demo data only. ' : ''}CareRide is an independent platform.{' '}

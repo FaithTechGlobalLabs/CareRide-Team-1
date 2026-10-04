@@ -14,7 +14,7 @@ import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
-import { formatDollars } from '../../logic/estimateFare'
+import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
 import { buzz } from '../../native/platform'
@@ -118,7 +118,7 @@ export function DriverHome() {
   const completed = past.filter((r) => r.status === 'COMPLETED')
   const weekStart = startOfWeek(now)
   const thisWeek = completed.filter((r) => new Date(finishedAt(r)).getTime() >= weekStart).length
-  const faresSaved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const faresSaved = faresSavedFor(completed.length)
   const peopleHelped = completed.reduce((sum, r) => sum + r.passengers, 0)
   const offerCount = offers?.length ?? 0
 
@@ -228,7 +228,7 @@ export function DriverHome() {
               <RideCard key={r.id} ride={r} from={houseOf(r)?.name} statusLabel={driverRideStatusLabel(r)}>
                 <details className="group w-full">
                   <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 font-semibold text-brand-700 marker:content-none [&::-webkit-details-marker]:hidden">
-                    <ChevronDown className="h-5 w-5 transition group-open:rotate-180" aria-hidden />
+                    <ChevronDown className="details-chevron h-5 w-5 transition group-open:rotate-180" aria-hidden />
                     Pickup details and steps
                   </summary>
                   <div className="mt-3">{tripActions(r)}</div>

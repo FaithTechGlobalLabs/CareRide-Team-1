@@ -43,6 +43,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         (user) => {
           if (request !== sessionRequest.current) return
           setCurrentUser(user)
+          if (!user && !isDemoBackend) setUsers([])
           setSessionError(undefined)
         },
         (err: Error) => {
@@ -95,6 +96,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   useEffect(() => {
+    // The sign-in page needs the sample accounts. On the real backend, asking for
+    // every profile while signed out is refused, so wait until someone is signed in.
+    if (!isDemoBackend && !currentUser) return
     let active = true
     dataService.listUsers().then(
       (list) => active && setUsers(list),
@@ -103,7 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false
     }
-  }, [version, currentUser?.id])
+  }, [version, currentUser])
 
   // Keep two open tabs (e.g. a house and a driver) in sync during the demo.
   // In a /demo frame, the deck says when instead.

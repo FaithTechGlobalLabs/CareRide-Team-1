@@ -7,6 +7,8 @@
 		"directory": "./dist",
 		"binding": "ASSETS",
 		"not_found_handling": "single-page-application",
+		// /api/ota is the Android live-update check. npm run deploy zips dist/ into
+		// dist/ota/ before Wrangler uploads, so the Worker can point phones at it.
 		"run_worker_first": ["/api/*"]
 	}
 }
