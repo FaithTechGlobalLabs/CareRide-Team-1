@@ -108,9 +108,10 @@ To introduce a real backend, implement `DataService` and select it in [src/servi
 | `npm run lint` | Run ESLint. |
 | `npm run build` | Run TypeScript project checks and create the production build in `dist/`. |
 | `npm run preview` | Serve an existing production build locally. |
-| `npm run deploy` | Deploy the existing `dist/` build using Wrangler. |
+| `npm run deploy` | Zip the current `dist/` as an Android live-update bundle, then deploy with Wrangler. Run `npm run build` first. |
+| `npm run ota:prepare` | Write `dist/ota/` (zip + manifest) for the Android updater. Used by `npm run deploy`. |
 | `npm run android:sync` | Build the website and copy it into the Android project. |
-| `npm run android:apk` | Sync, then build a debug APK with Gradle. |
+| `npm run android:apk` | Sync, then build a debug APK with Gradle. Live updates are on unless `CAPACITOR_OTA=0`. |
 | `npx cap open android` | Open the Android project in Android Studio. |
 
 There is currently no automated test suite or `npm test` script. For changes to ride behavior, run lint and build, then exercise the partner and driver workflows in separate tabs, including declines, cancellations, and uncovered requests where relevant.
@@ -126,6 +127,8 @@ npx wrangler login
 npm run build
 npm run deploy
 ```
+
+`npm run deploy` also publishes an Android live-update zip under `/ota/`. If the Cloudflare dashboard's deploy command is `npx wrangler deploy` instead of `npm run deploy`, set the **build command** to `npm run build && npm run ota:prepare` so phones can fetch that zip.
 
 To run the already-implemented Supabase backend on Cloudflare, set these as **Workers Builds** variables (they are baked in at `npm run build`; they are not Worker runtime secrets):
 
@@ -170,6 +173,8 @@ npm run android:apk
 ```
 
 The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`. On a pull request, GitHub Actions uploads the same file as the **careride-debug-apk** artifact. Install it with Android Studio, `npx cap open android`, or `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+
+**Live updates:** after one APK that includes the updater (a local `npm run android:apk`, or a **Run workflow** debug APK), website deploys replace the JavaScript on the phone. Open the app so it can download, then leave it and come back — the new bundle applies when it moves to the background. Pull-request APK artifacts stay frozen on that branch's website so reviewers can try the PR. Native changes (plugins, permissions, Gradle) still need a new APK. To build a phone APK that will not overwrite itself from production, use `CAPACITOR_OTA=0 npm run android:apk`.
 
 The website is unchanged: the marketing page still opens at `/`, and a closed browser tab still signs you out.
 

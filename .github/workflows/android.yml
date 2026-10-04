@@ -37,8 +37,12 @@ jobs:
       # Vite bakes VITE_* into the APK. Fork PRs do not receive secrets, so those
       # builds stay on demo data. Same-repo PRs and workflow_dispatch use secrets
       # when they are set. Never add the Supabase service-role key here.
+      # Pull-request APKs keep the PR's bundled website so reviewers can try that
+      # branch. workflow_dispatch builds turn live updates on, so one installed
+      # APK can pick up later website deploys without another install.
       - name: Build debug APK
         env:
+          CAPACITOR_OTA: ${{ github.event_name == 'pull_request' && '0' || '1' }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_PUBLIC_SITE_URL: ${{ secrets.VITE_PUBLIC_SITE_URL }}

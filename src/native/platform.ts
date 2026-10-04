@@ -62,6 +62,16 @@ export async function hideSplash(): Promise<void> {
   await SplashScreen.hide()
 }
 
+export async function notifyOtaReady(): Promise<void> {
+  if (!isNative) return
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+    await CapacitorUpdater.notifyAppReady()
+  } catch (error) {
+    console.error('OTA ready check failed', error)
+  }
+}
+
 export async function listenToKeyboard(): Promise<() => void> {
   if (!isNative) return () => {}
   const { Keyboard } = await import('@capacitor/keyboard')
