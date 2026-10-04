@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="240" viewBox="0 0 1000 240" role="img" aria-labelledby="t d">
+  <title id="t">The barrier CareRide removes</title>
+  <desc id="d">Booking a ride usually takes a smartphone, an app and account, and a way to pay. With CareRide, staff book it for them, and the rider needs none of these.</desc>
+  <defs>
+    <linearGradient id="ok" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0d9488"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+    <style>
+      text { font-family: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; }
+      .title { font-family: Nunito, "Arial Rounded MT Bold", "Segoe UI", -apple-system, Helvetica, Arial, sans-serif; }
+
+      /* 9 s loop: each need is struck out in turn, then the CareRide answer appears. Base styles are the final frame. */
+      .pill { opacity: .45; }
+      .p1 { animation: dim1 9s infinite; } .p2 { animation: dim2 9s infinite; } .p3 { animation: dim3 9s infinite; }
+      @keyframes dim1 { 0%, 10% { opacity: 1; } 16%, 94% { opacity: .45; } 100% { opacity: 1; } }
+      @keyframes dim2 { 0%, 24% { opacity: 1; } 30%, 94% { opacity: .45; } 100% { opacity: 1; } }
+      @keyframes dim3 { 0%, 38% { opacity: 1; } 44%, 94% { opacity: .45; } 100% { opacity: 1; } }
+
+      .strike { stroke-dasharray: 210; stroke-dashoffset: 0; }
+      .x1 { animation: s1 9s infinite; } .x2 { animation: s2 9s infinite; } .x3 { animation: s3 9s infinite; }
+      @keyframes s1 { 0%, 10% { stroke-dashoffset: 210; } 16%, 94% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 210; } }
+      @keyframes s2 { 0%, 24% { stroke-dashoffset: 210; } 30%, 94% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 210; } }
+      @keyframes s3 { 0%, 38% { stroke-dashoffset: 210; } 44%, 94% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 210; } }
+
+      .answer { animation: answer 9s cubic-bezier(.2,.7,.2,1) infinite; }
+      @keyframes answer {
+        0%, 50% { opacity: 0; transform: translateY(14px); }
+        57%, 94% { opacity: 1; transform: none; }
+        100% { opacity: 0; transform: none; }
+      }
+      .glow { transform-box: fill-box; transform-origin: center; animation: glow 9s infinite; }
+      @keyframes glow { 0%, 56% { opacity: 0; transform: scale(1); } 58% { opacity: .5; } 75%, 100% { opacity: 0; transform: scale(1.08, 1.5); } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pill, .strike, .answer, .glow { animation: none !important; }
+        .glow { opacity: 0; }
+      }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="998" height="238" rx="24" fill="#fbfbfe" stroke="#e2e8f0" stroke-width="2"/>
+
+  <text class="title" x="500" y="50" text-anchor="middle" font-size="20" font-weight="900" fill="#0b1557">Booking a ride today usually takes…</text>
+
+  <g font-size="17" font-weight="700" text-anchor="middle">
+    <g class="pill p1" transform="translate(110 78)">
+      <rect width="240" height="48" rx="24" fill="#fff3f1" stroke="#ffc9c0"/>
+      <text x="120" y="30" fill="#bb2f1a">📱  A smartphone</text>
+      <line class="strike x1" x1="15" y1="24" x2="225" y2="24" stroke="#e03c24" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g class="pill p2" transform="translate(380 78)">
+      <rect width="240" height="48" rx="24" fill="#fff3f1" stroke="#ffc9c0"/>
+      <text x="120" y="30" fill="#bb2f1a">🔐  An app and account</text>
+      <line class="strike x2" x1="15" y1="24" x2="225" y2="24" stroke="#e03c24" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g class="pill p3" transform="translate(650 78)">
+      <rect width="240" height="48" rx="24" fill="#fff3f1" stroke="#ffc9c0"/>
+      <text x="120" y="30" fill="#bb2f1a">💳  A way to pay</text>
+      <line class="strike x3" x1="15" y1="24" x2="225" y2="24" stroke="#e03c24" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g class="answer">
+    <rect class="glow" x="200" y="150" width="600" height="54" rx="27" fill="none" stroke="#10b981" stroke-width="3"/>
+    <rect x="200" y="150" width="600" height="54" rx="27" fill="url(#ok)"/>
+    <circle cx="232" cy="177" r="13" fill="#ffffff"/>
+    <path d="M226 177 L230.5 181.5 L238 172.5" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="520" y="184" text-anchor="middle" font-size="19" font-weight="800" fill="#ffffff">With CareRide, staff book it. The rider needs none of that.</text>
+  </g>
+</svg>

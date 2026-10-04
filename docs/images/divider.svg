@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="24" viewBox="0 0 1000 24" role="presentation" aria-hidden="true">
+  <defs>
+    <linearGradient id="spectrum" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset="0.12" stop-color="#7c3aed"/>
+      <stop offset="0.3" stop-color="#2f67f2"/>
+      <stop offset="0.45" stop-color="#14bdd0"/>
+      <stop offset="0.6" stop-color="#10b981"/>
+      <stop offset="0.75" stop-color="#fbbf24"/>
+      <stop offset="0.88" stop-color="#f5573f"/>
+      <stop offset="1" stop-color="#f5573f" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="dot">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .run { animation: run 5s cubic-bezier(.45,0,.55,1) infinite; }
+      @keyframes run { 0% { transform: translateX(80px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateX(920px); opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { .run { animation: none; opacity: 0; } }
+    </style>
+  </defs>
+  <rect x="0" y="10" width="1000" height="4" rx="2" fill="url(#spectrum)"/>
+  <g class="run">
+    <circle cx="0" cy="12" r="10" fill="url(#dot)"/>
+    <circle cx="0" cy="12" r="3" fill="#ffffff"/>
+  </g>
+</svg>
