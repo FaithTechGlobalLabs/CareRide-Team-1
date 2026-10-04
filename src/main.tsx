@@ -10,7 +10,10 @@ import '@fontsource/inter/latin-700.css'
 import '@fontsource/nunito/latin-700.css'
 import '@fontsource/nunito/latin-800.css'
 import '@fontsource/nunito/latin-900.css'
+import { notifyOtaReady } from './native/platform'
 import './index.css'
+
+void notifyOtaReady()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
