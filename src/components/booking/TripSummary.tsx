@@ -1,4 +1,4 @@
-import { Clock, HeartPulse, User } from 'lucide-react'
+import { Clock, HeartPulse, Hospital, User } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { passengersLabel } from '../../logic/rideText'
 import { card } from '../ui'
@@ -12,6 +12,7 @@ interface Props {
   from: Stop
   to?: Stop
   when?: string
+  wait?: string // current hospital / urgent-care wait, if we have one for this place
   rider?: string
   passengers: number
   needs: string[]
@@ -37,7 +38,7 @@ function Row({ icon, label, children }: { icon: ReactNode; label: string; childr
 const missing = (text: string) => <span className="italic text-slate-400">{text}</span>
 
 // A live recap of the ride beside the form, so staff can check it at a glance before sending.
-export function TripSummary({ from, to, when, rider, passengers, needs, done, total, children }: Props) {
+export function TripSummary({ from, to, when, wait, rider, passengers, needs, done, total, children }: Props) {
   const percent = Math.round((done / total) * 100)
   return (
     <div className={`${card} space-y-5 p-5`}>
@@ -92,6 +93,11 @@ export function TripSummary({ from, to, when, rider, passengers, needs, done, to
         <Row icon={<Clock className="h-4 w-4" />} label="When">
           {when ?? missing('Choose a pickup time')}
         </Row>
+        {wait && (
+          <Row icon={<Hospital className="h-4 w-4" />} label="Wait to be seen">
+            {wait}
+          </Row>
+        )}
         <Row icon={<User className="h-4 w-4" />} label="Passengers">
           {passengersLabel(passengers)}
           {rider && <span className="text-slate-500"> · {rider}</span>}

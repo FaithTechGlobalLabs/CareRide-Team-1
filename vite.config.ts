@@ -7,8 +7,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   preview: {
     allowedHosts: true,
+    proxy: {
+      '/api/wait-times': { target: 'https://edwaittimes.ca', changeOrigin: true },
+    },
   },
   server: {
     allowedHosts: true,
+    proxy: {
+      '/api/wait-times': { target: 'https://edwaittimes.ca', changeOrigin: true },
+    },
   },
 })
