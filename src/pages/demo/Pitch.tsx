@@ -76,22 +76,22 @@ export function Pitch({ slide, step, onStep }: Props) {
           <Points
             items={[
               { icon: HandHeart, tone: 'coral', title: 'People get to appointments, no phone needed' },
-              { icon: Clock, tone: 'brand', title: 'Staff spend less time finding rides' },
+              { icon: Clock, tone: 'brand', title: 'Case workers spend less time finding rides' },
               { icon: Share2, tone: 'ink', title: 'Organizations share drivers, instead of each going it alone' },
             ]}
           />
         </Slide>
       )}
       {id === 'approach' && (
-        <Slide title="A working MVP, built around staff.">
+        <Slide title="A working MVP, built around case workers.">
           <div className="grid gap-5 sm:grid-cols-2">
             <List
               heading="Our angle"
-              items={['Staff book rides for residents', 'Residents need no phone, app, or account', 'Drivers accept or decline each request']}
+              items={['Case workers book rides for residents', 'Residents need no phone, app, or account', 'Drivers accept or decline each request']}
             />
             <List
               heading="Our assumptions"
-              items={['Staff are the right people to book', 'Drivers will sign up to give rides', 'A printed slip is enough for the resident']}
+              items={['Case workers are the right people to book', 'Drivers will sign up to give rides', 'A printed slip is enough for the resident']}
             />
           </div>
         </Slide>
@@ -142,13 +142,15 @@ export function Pitch({ slide, step, onStep }: Props) {
         <Slide title="Getting to care, without needing a phone.">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-              <List
-                bare
-                heading="Next steps"
-                icon={ArrowRight}
-                items={['Start with professional drivers', 'Connect a real backend', 'Map directions for drivers', 'A mobile app']}
-              />
-              <Placeholder className="mt-4">How it fits Belkin House’s current tools</Placeholder>
+              <List bare heading="Built since the weekend" items={['A real, shared database', 'Drive times and directions for drivers', 'An Android app, in testing']} />
+              <div className="mt-6">
+                <List
+                  bare
+                  heading="Next"
+                  icon={ArrowRight}
+                  items={['A pilot at Belkin House, then Richmond House and Grace Mansion', 'Start with professional drivers', 'Text updates when a ride is booked']}
+                />
+              </div>
             </div>
             <div className="rounded-xl border border-slate-200/80 bg-white p-6">
               <h3 className="text-xl font-extrabold text-slate-400">How you can help</h3>

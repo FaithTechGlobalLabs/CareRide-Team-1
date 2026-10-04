@@ -2,14 +2,17 @@ import {
   ArrowRight,
   ArrowUp,
   BadgeCheck,
+  BellRing,
   Building2,
   CalendarCheck,
   Car,
   CheckCircle2,
   EyeOff,
   HandHeart,
+  HeartPulse,
   MapPin,
   PhoneCall,
+  Puzzle,
   UserCheck,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
@@ -23,29 +26,52 @@ import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
 
 const SECTIONS: PageSection[] = [
+  { id: 'why', label: 'Why CareRide' },
   { id: 'how', label: 'How it works' },
   { id: 'who', label: "Who it's for" },
   { id: 'promise', label: 'Our promise' },
   { id: 'faq', label: 'Questions' },
 ]
 
+// The problem CareRide exists to solve (PRODUCT_DESCRIPTION.md §1, PRODUCT_STRATEGY.md §1). No invented statistics.
+const REASONS: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
+  {
+    icon: <HeartPulse className="h-6 w-6" />,
+    title: 'A missed ride is missed care',
+    text: 'Without a phone, money, or a way to book a ride, a hospital visit or housing appointment can quietly slip away.',
+    tone: 'coral',
+  },
+  {
+    icon: <Puzzle className="h-6 w-6" />,
+    title: 'Help exists, but it’s scattered',
+    text: 'Drivers willing to give their time and organizations with vans are out there. Staff lose hours phoning around to find them.',
+    tone: 'amber',
+  },
+  {
+    icon: <HandHeart className="h-6 w-6" />,
+    title: 'CareRide brings it together',
+    text: 'One request reaches every suitable driver, and staff can see what’s happening until the person gets there.',
+    tone: 'teal',
+  },
+]
+
 const STEPS: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
   {
     icon: <CalendarCheck className="h-6 w-6" />,
-    title: 'A partner books the ride',
-    text: 'Staff pick a saved destination and a time. It takes about a minute.',
+    title: 'Staff send one request',
+    text: 'A case worker picks where the person needs to go and when. It takes about a minute, and the person riding needs nothing.',
     tone: 'coral',
   },
   {
     icon: <UserCheck className="h-6 w-6" />,
-    title: 'A verified driver accepts',
-    text: 'Every suitable driver is asked, and the first to say yes gets it. If nobody can go, staff know right away.',
+    title: 'A verified driver says yes',
+    text: 'Every suitable driver is asked, and the first to accept takes the ride. If nobody can go, staff know right away.',
     tone: 'teal',
   },
   {
     icon: <MapPin className="h-6 w-6" />,
-    title: 'The client gets there',
-    text: 'The driver meets them in the lobby. No phone, app, or money needed.',
+    title: 'The person gets there',
+    text: 'The driver meets them at the front desk. Staff follow the ride to drop-off, and can book the way home with the same driver.',
     tone: 'brand',
   },
 ]
@@ -55,7 +81,7 @@ const AUDIENCES: { role: string; icon: ReactNode; title: string; text: string; c
     role: 'partner',
     icon: <Building2 className="h-7 w-7" />,
     title: 'Housing and social services',
-    text: 'Book free rides to hospitals, clinics, and appointments for the people you serve.',
+    text: 'Get the people you support to hospitals, clinics, and appointments, without phoning around or paying for taxis.',
     cta: 'Register your organization',
     tone: 'brand',
   },
@@ -63,16 +89,16 @@ const AUDIENCES: { role: string; icon: ReactNode; title: string; text: string; c
     role: 'driver',
     icon: <Car className="h-7 w-7" />,
     title: 'Professional drivers',
-    text: 'Taxi and rideshare drivers: give a free ride when it suits your schedule.',
+    text: 'Taxi and rideshare drivers: give a ride to someone who needs it, whenever it suits your schedule.',
     cta: 'Become a driver',
     tone: 'teal',
   },
 ]
 
 const PROMISES: { icon: ReactNode; title: string; text: string; tone: Tone }[] = [
-  { icon: <EyeOff className="h-5 w-5" />, title: 'Only what the ride needs', text: 'Riders need no account, phone, or app. Staff share only what the driver needs.', tone: 'brand' },
+  { icon: <EyeOff className="h-5 w-5" />, title: 'The person comes first', text: 'No account, phone, or app for the rider. Drivers see only what the ride needs.', tone: 'brand' },
   { icon: <BadgeCheck className="h-5 w-5" />, title: 'Verified drivers', text: 'Every driver and organization is reviewed before the first ride.', tone: 'teal' },
-  { icon: <HandHeart className="h-5 w-5" />, title: 'Free first', text: 'Free options come before paid ones, every time.', tone: 'coral' },
+  { icon: <BellRing className="h-5 w-5" />, title: 'Nothing slips through', text: 'Every request stays in view until it’s covered. If no one can go, staff hear right away.', tone: 'coral' },
   { icon: <PhoneCall className="h-5 w-5" />, title: 'Not for emergencies', text: 'In a medical emergency, always call 911.', tone: 'amber' },
 ]
 
@@ -92,11 +118,11 @@ function Introduction() {
   return (
     <div className="text-center lg:text-left">
       <h1 className="animate-fade-up text-5xl font-black leading-[1.05] tracking-tight [animation-delay:80ms] sm:text-6xl">
-        Free rides to the places that matter
+        Care shouldn’t depend <span className="whitespace-nowrap text-brand-700">on a ride</span>
       </h1>
       <p className="mx-auto mt-6 max-w-xl animate-fade-up text-xl leading-relaxed text-slate-600 [animation-delay:160ms] lg:mx-0">
-        CareRide connects housing and social service staff with verified drivers, so people who can't get there on their own still make it to
-        every appointment.
+        CareRide helps housing and social service staff get the people they support to essential appointments. Verified drivers give their time,
+        and every request stays in view until the person gets there.
       </p>
       <div className="mt-9 flex animate-fade-up flex-col gap-3 [animation-delay:240ms] sm:flex-row sm:justify-center lg:justify-start">
         <Link to="/register" className={`${primaryButton} min-h-14 px-7 text-lg`}>
@@ -106,14 +132,8 @@ function Introduction() {
           Sign in
         </Link>
       </div>
-      <p className="mt-4 animate-fade-up text-sm text-slate-500 [animation-delay:280ms]">
-        Just looking?{' '}
-        <Link to="/signin?demo" className="font-semibold text-brand-700 underline-offset-2 hover:underline">
-          Try a demo account
-        </Link>
-      </p>
       <ul className="mx-auto mt-8 flex w-fit animate-fade-up flex-col items-start gap-2 text-sm font-medium text-slate-600 [animation-delay:320ms] sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
-        {['Piloting in Vancouver', 'No app needed for riders', 'Verified drivers', 'No rider accounts'].map((t) => (
+        {['No phone, app, or money needed', 'Drivers who give their time', 'Free for everyone involved'].map((t) => (
           <li key={t} className="flex items-center gap-1.5">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> {t}
           </li>
@@ -180,23 +200,43 @@ export function Landing() {
             </div>
           </div>
           <a
-            href="#how"
+            href="#why"
             className="relative mx-auto -mt-4 mb-6 hidden w-fit flex-col items-center gap-1 text-sm font-semibold text-slate-500 transition hover:text-brand-700 lg:flex"
           >
-            See how it works
+            Why CareRide matters
             <ArrowRight className="h-4 w-4 rotate-90 animate-float [animation-duration:2.5s]" aria-hidden />
           </a>
         </section>
 
-        <section id="how" className="scroll-mt-20 border-y border-slate-200 bg-white py-20" aria-labelledby="how-heading">
+        <section id="why" className="scroll-mt-20 border-t border-slate-200 bg-white py-20" aria-labelledby="why-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading id="how-heading" title="From booking to arrival in three steps" />
+            <SectionHeading id="why-heading" title="Getting there shouldn’t be the hard part">
+              CareRide is a not-for-profit platform built for social good. It exists so that people who can’t get there on their own still reach
+              the care, housing, and services they need.
+            </SectionHeading>
+            <ul className="grid gap-x-10 gap-y-2 md:grid-cols-3">
+              {REASONS.map((r) => (
+                <li key={r.title} className="border-t border-slate-200 py-6">
+                  <h3 className="flex items-center gap-2.5 text-xl font-extrabold">
+                    <span className={tones[r.tone].text} aria-hidden>{r.icon}</span>
+                    {r.title}
+                  </h3>
+                  <p className="mt-2 text-slate-600">{r.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section id="how" className="scroll-mt-20 border-y border-slate-200 bg-canvas py-20" aria-labelledby="how-heading">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <SectionHeading id="how-heading" title="One request, followed through to arrival" />
             {/* The steps sit on one road, like the trip itself */}
             <ol className="relative grid gap-8 md:grid-cols-3 md:gap-10">
               <span className="absolute bottom-6 left-[1.125rem] top-6 w-1 rounded-full bg-slate-200 md:bottom-auto md:left-5 md:right-0 md:top-[1.125rem] md:h-1 md:w-auto" aria-hidden />
               {STEPS.map((s, i) => (
                 <li key={s.title} className="relative grid grid-cols-[2.5rem_1fr] gap-x-4 md:block">
-                  <span className={`relative flex h-10 w-10 items-center justify-center rounded-full font-display text-lg font-black ring-4 ring-white ${tones[s.tone].solid}`} aria-hidden>
+                  <span className={`relative flex h-10 w-10 items-center justify-center rounded-full font-display text-lg font-black ring-4 ring-canvas ${tones[s.tone].solid}`} aria-hidden>
                     {i + 1}
                   </span>
                   <div className="md:mt-5">
@@ -214,8 +254,9 @@ export function Landing() {
 
         <section id="who" className="scroll-mt-20 py-20" aria-labelledby="who-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading id="who-heading" title="One network, built together">
-              CareRide is independent and open to any organization, so every new partner makes the network stronger.
+            <SectionHeading id="who-heading" title="A network of people who care">
+              CareRide is open to any housing or social service organization and any verified driver. Every new partner means more people reach
+              the care they need.
             </SectionHeading>
             <ul className="grid gap-6 md:grid-cols-2">
               {AUDIENCES.map((a) => {
@@ -251,7 +292,7 @@ export function Landing() {
 
         <section id="promise" className="scroll-mt-20 border-y border-slate-200 bg-white py-20" aria-labelledby="promise-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <SectionHeading id="promise-heading" title="Dignity and safety, built in" />
+            <SectionHeading id="promise-heading" title="Dignity, safety, and honesty, built in" />
             <ul className="grid gap-x-10 sm:grid-cols-2">
               {PROMISES.map((p) => (
                 <li key={p.title} className="border-t border-slate-200 py-6">
@@ -277,16 +318,16 @@ export function Landing() {
           <div className="relative mx-auto max-w-6xl overflow-hidden rounded-xl bg-ink px-6 py-14 sm:px-12">
             <span className="absolute inset-x-0 top-0 h-1 bg-brand-500" aria-hidden />
             <>
-              <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Every essential trip deserves a ride.</h2>
+              <h2 className="relative text-3xl font-black tracking-tight text-white sm:text-4xl">Help more people reach the care they need.</h2>
               <p className="relative mt-4 max-w-xl text-lg text-brand-100">
-                Join CareRide in a few minutes. It's free for partner organizations, drivers, and the people they serve.
+                Join CareRide in a few minutes. It’s not-for-profit and free for partner organizations, drivers, and the people they serve.
               </p>
               <div className="relative mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/register"
                   className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-white px-7 text-lg font-bold text-ink transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink active:scale-[0.98]"
                 >
-                  Create a free account <ArrowRight className="h-5 w-5" aria-hidden />
+                  Create an account <ArrowRight className="h-5 w-5" aria-hidden />
                 </Link>
                 <Link
                   to="/signin"
@@ -305,7 +346,7 @@ export function Landing() {
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:px-6 md:grid-cols-[1fr_auto_auto] md:gap-16">
           <div className="space-y-3">
             <Logo size="sm" />
-            <p className="max-w-sm text-slate-500">CareRide is an independent platform. Pilot partners are shown for demonstration only.</p>
+            <p className="max-w-sm text-slate-500">CareRide is an independent, not-for-profit platform built for social good. Pilot partners are shown for demonstration only.</p>
           </div>
           <nav aria-label="Footer: on this page">
             <p className="mb-3 font-bold text-ink">On this page</p>
@@ -330,11 +371,6 @@ export function Landing() {
               <li>
                 <Link to="/register" className="text-slate-600 hover:text-brand-700">
                   Create an account
-                </Link>
-              </li>
-              <li>
-                <Link to="/signin?demo" className="text-slate-600 hover:text-brand-700">
-                  Try a demo
                 </Link>
               </li>
             </ul>

@@ -173,6 +173,14 @@ export function DestinationsStep({ draft, update }: StepProps) {
       setFormError(long)
       return
     }
+    if (address.trim().length < 5) {
+      setFormError('Add the full street address, so drivers can find it.')
+      return
+    }
+    if (!CITIES.includes(city)) {
+      setFormError('Choose Vancouver or Richmond.')
+      return
+    }
     if (draft.destinations.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
       setFormError('You already added a place with this name.')
       return
@@ -242,7 +250,14 @@ export function DestinationsStep({ draft, update }: StepProps) {
         <p className="font-semibold text-ink">Add another place</p>
         <TextField id="destName" label="Name" placeholder="e.g. Downtown Community Health Centre" value={name} onChange={(e) => setName(e.target.value)} />
         <TextField id="destAddress" label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <SelectField id="destCity" label="City" value={city} onChange={(e) => setCity(e.target.value)}>
+        <SelectField
+          id="destCity"
+          label="City"
+          value={city}
+          onChange={(e) => {
+            if (CITIES.includes(e.target.value)) setCity(e.target.value)
+          }}
+        >
           {CITIES.map((c) => (
             <option key={c}>{c}</option>
           ))}

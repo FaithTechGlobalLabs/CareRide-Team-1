@@ -47,7 +47,18 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-shake: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   --animate-confetti: confetti 2.6s cubic-bezier(0.25, 0.6, 0.5, 1) forwards;
+  --animate-ring-fill: ring-fill 1s linear both; /* duration set where it's used */
+  --animate-dim-in: dim-in 0.4s ease-out both;
 
+  /* On a circle with pathLength 100: fills most of the way, the rest when the work is done */
+  @keyframes ring-fill {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 8; }
+  }
+  @keyframes dim-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: none; }

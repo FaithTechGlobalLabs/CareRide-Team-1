@@ -215,7 +215,17 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_KEY
 VITE_PUBLIC_SITE_URL=https://careride-team-1.careride.workers.dev
 ```
 
-`VITE_PUBLIC_SITE_URL` is the website that confirmation and reset-password emails open. The app's own address (`https://localhost`) can't be opened from an email, so people confirm or reset on the website, then sign in in the app. Add that address with `/**` under Supabase **Authentication → URL Configuration → Redirect URLs**. Sign-ins stay on the phone until the person signs out. The APK that GitHub Actions builds has no `.env.local`, so it uses the demo data.
+`VITE_PUBLIC_SITE_URL` is the website that confirmation and reset-password emails open. The app's own address (`https://localhost`) can't be opened from an email, so people confirm or reset on the website, then sign in in the app. Add that address with `/**` under Supabase **Authentication → URL Configuration → Redirect URLs**. Sign-ins stay on the phone until the person signs out.
+
+GitHub Actions has no `.env.local`. To bake the same settings into the **careride-debug-apk** artifact, add these as repository **Actions** secrets (**Settings → Secrets and variables → Actions**):
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_PUBLIC_SITE_URL`
+- `VITE_GOOGLE_MAPS_API_KEY` (optional)
+- `VITE_GOOGLE_MAPS_MAP_ID` (optional)
+
+Keep the Supabase service-role key out of those secrets. When the URL and publishable key are present, the workflow sets `VITE_DATA_BACKEND=supabase`. Pull requests from forks do not receive secrets, so those APKs stay on demo data.
 
 **Requirements:** Android Studio with the Android SDK (API 36), or `nix develop` in this repository, which provides Node 22, JDK 21, and the SDK. JDK 21 is required for Gradle.
 
@@ -249,7 +259,7 @@ Without a key, nothing changes: drivers keep the **Directions** buttons that ope
 
 `VITE_GOOGLE_MAPS_MAP_ID` is optional. Without it, the map uses Google's `DEMO_MAP_ID`. For production, create a Map ID under **Google Maps Platform → Map management** (JavaScript, vector) and set it.
 
-**Deploying:** Vite builds the key into the JavaScript, so set `VITE_GOOGLE_MAPS_API_KEY` wherever `npm run build` runs, such as the Cloudflare Workers build settings under **Build variables**, not as a runtime Worker variable. The key is visible to anyone who opens the site, which is normal for Maps JavaScript keys; the website restriction in step 3 is what protects it.
+**Deploying:** Vite builds the key into the JavaScript, so set `VITE_GOOGLE_MAPS_API_KEY` wherever `npm run build` runs: Cloudflare Workers **Build variables**, and the GitHub Actions secret of the same name for the Android APK. It is not a runtime Worker variable. The key is visible to anyone who opens the site or APK, which is normal for Maps JavaScript keys; the website restriction in step 3 is what protects the web build.
 
 **Things to know:**
 

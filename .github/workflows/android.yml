@@ -34,7 +34,24 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
-      - run: npm run android:apk
+      # Vite bakes VITE_* into the APK. Fork PRs do not receive secrets, so those
+      # builds stay on demo data. Same-repo PRs and workflow_dispatch use secrets
+      # when they are set. Never add the Supabase service-role key here.
+      - name: Build debug APK
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_PUBLIC_SITE_URL: ${{ secrets.VITE_PUBLIC_SITE_URL }}
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
+        run: |
+          if [ -n "${VITE_SUPABASE_URL:-}" ] && [ -n "${VITE_SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            export VITE_DATA_BACKEND=supabase
+            echo "Building APK with the Supabase backend"
+          else
+            echo "Building APK with demo data (Supabase repository secrets are not available)"
+          fi
+          npm run android:apk
 
       - uses: actions/upload-artifact@v4
         with:
