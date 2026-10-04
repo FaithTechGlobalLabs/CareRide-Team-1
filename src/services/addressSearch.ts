@@ -46,9 +46,10 @@ function streetLine(p: PhotonProperties): string | undefined {
 function cityOf(p: PhotonProperties): string | undefined {
   const raw = p.city || p.town
   if (!raw) return undefined
-  const lower = raw.toLowerCase()
-  if (lower.includes('vancouver')) return 'Vancouver'
-  if (lower.includes('richmond')) return 'Richmond'
+  // Exact match only: North and West Vancouver are their own cities, not Vancouver
+  const lower = raw.trim().toLowerCase()
+  if (lower === 'vancouver' || lower === 'city of vancouver') return 'Vancouver'
+  if (lower === 'richmond' || lower === 'city of richmond') return 'Richmond'
   return raw
 }
 

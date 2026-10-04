@@ -1,7 +1,7 @@
 import { Check, MapPin, Plus, Search, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import { AddressPicker } from '../../../components/form/AddressPicker'
 import { FieldMessage } from '../../../components/form/FieldMessage'
-import { SelectField } from '../../../components/form/SelectField'
 import { TextField } from '../../../components/form/TextField'
 import { ghostButton, input, primaryButton, secondaryButton } from '../../../components/ui'
 import { CITIES } from '../../../constants'
@@ -53,6 +53,7 @@ export function DestinationsStep({ draft, update }: StepProps) {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [newCity, setNewCity] = useState(city)
+  const [picked, setPicked] = useState(false)
   const [formError, setFormError] = useState<string>()
 
   const selected = new Set(draft.destinations.map((d) => d.key))
@@ -78,7 +79,9 @@ export function DestinationsStep({ draft, update }: StepProps) {
   function openForm() {
     setAdding(true)
     setName(query.trim())
+    setAddress('')
     setNewCity(city)
+    setPicked(false)
     setFormError(undefined)
   }
 
@@ -92,12 +95,12 @@ export function DestinationsStep({ draft, update }: StepProps) {
       setFormError(long)
       return
     }
-    if (address.trim().length < 5) {
-      setFormError('Add the full street address, so drivers can find it.')
+    if (!picked) {
+      setFormError('Pick a matching address from the list, so drivers can find it.')
       return
     }
     if (!CITIES.includes(newCity)) {
-      setFormError('Choose Vancouver or Richmond.')
+      setFormError(`CareRide covers ${CITIES.join(' and ')}. This address is in ${newCity}.`)
       return
     }
     if (draft.destinations.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
@@ -107,6 +110,7 @@ export function DestinationsStep({ draft, update }: StepProps) {
     setPlaces([...draft.destinations, { key: crypto.randomUUID(), name: name.trim(), address: address.trim(), city: newCity }])
     setName('')
     setAddress('')
+    setPicked(false)
     setQuery('')
     setFormError(undefined)
     setAdding(false)
@@ -238,21 +242,26 @@ export function DestinationsStep({ draft, update }: StepProps) {
             </button>
           </div>
           <TextField id="destName" label="Name" placeholder="e.g. Downtown Community Health Centre" value={name} onChange={(e) => setName(e.target.value)} />
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem]">
-            <TextField id="destAddress" label="Street address" placeholder="e.g. 123 Main St" value={address} onChange={(e) => setAddress(e.target.value)} />
-            <SelectField
-              id="destCity"
-              label="City"
-              value={newCity}
-              onChange={(e) => {
-                if (CITIES.includes(e.target.value)) setNewCity(e.target.value)
-              }}
-            >
-              {CITIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </SelectField>
-          </div>
+          <AddressPicker
+            id="destAddress"
+            label="Street address"
+            placeholder="e.g. 123 Main St"
+            hint={`Search and pick the address from the list, so drivers can find it. ${CITIES.join(' or ')} only.`}
+            selectedHint={newCity}
+            value={address}
+            selected={picked}
+            onQueryChange={(text) => {
+              setAddress(text)
+              setPicked(false)
+            }}
+            onSelect={(place) => {
+              setAddress(place.address)
+              setNewCity(place.city)
+              setPicked(true)
+              if (!name.trim() && place.name) setName(place.name.slice(0, MAX_NAME))
+              setFormError(CITIES.includes(place.city) ? undefined : `CareRide covers ${CITIES.join(' and ')}. This address is in ${place.city}.`)
+            }}
+          />
           <FieldMessage id="dest-form-message" error={formError} />
           <div className="flex flex-wrap gap-2">
             <button type="button" className={primaryButton} onClick={addCustom}>
