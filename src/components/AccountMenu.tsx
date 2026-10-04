@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { ROLE_LABELS } from '../logic/homeFor'
+import { BuildStamp } from '../native/BuildStamp'
 import { DeleteMyAccount } from './DeleteMyAccount'
 import { ROLE_TONE, tones } from './ui'
 
@@ -60,7 +61,7 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-2 w-64 origin-top-right animate-fade-up rounded-xl border border-slate-200 bg-white p-2 [animation-duration:200ms]"
+          className="absolute right-0 z-40 mt-2 w-72 origin-top-right animate-fade-up rounded-xl border border-slate-200 bg-white p-2 [animation-duration:200ms]"
         >
           <div className="px-3 py-2">
             <p className="truncate font-semibold text-ink">{currentUser.name}</p>
@@ -99,6 +100,7 @@ export function AccountMenu() {
           >
             <LogOut className="h-4 w-4" aria-hidden /> Sign out
           </button>
+          <BuildStamp className="mt-1 border-t border-slate-100 px-3 py-2" />
         </div>
       )}
       {deleting && <DeleteMyAccount user={currentUser} onClose={() => setDeleting(false)} />}

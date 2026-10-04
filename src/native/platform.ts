@@ -70,6 +70,8 @@ export async function notifyOtaReady(): Promise<void> {
   } catch (error) {
     console.error('OTA ready check failed', error)
   }
+  const { loadLiveBundle } = await import('./buildStamp')
+  await loadLiveBundle()
 }
 
 export async function listenToKeyboard(): Promise<() => void> {

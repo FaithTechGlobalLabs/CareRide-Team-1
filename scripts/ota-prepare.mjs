@@ -2,31 +2,17 @@ import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { execFile, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
+import { spawn } from 'node:child_process'
+import { commitSha } from './commit-sha.mjs'
 
-const execFileAsync = promisify(execFile)
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 const distDir = join(root, 'dist')
 const otaDir = join(distDir, 'ota')
 
-async function gitVersion() {
-  const envSha =
-    process.env.WORKERS_CI_COMMIT_SHA ||
-    process.env.CF_PAGES_COMMIT_SHA ||
-    process.env.GITHUB_SHA
-  if (envSha) return envSha.slice(0, 7)
-
-  try {
-    const { stdout } = await execFileAsync('git', ['rev-parse', '--short=7', 'HEAD'], {
-      cwd: root,
-    })
-    const sha = stdout.trim()
-    if (sha) return sha
-  } catch {
-    // Deploy environments without git still need a unique bundle id.
-  }
-
+function gitVersion() {
+  const sha = commitSha()
+  if (sha) return sha.slice(0, 7)
+  // Deploy environments without git still need a unique bundle id.
   return Date.now().toString(36)
 }
 
@@ -75,7 +61,7 @@ try {
 
 await rm(otaDir, { recursive: true, force: true })
 
-const version = `1.0.0-${await gitVersion()}`
+const version = `1.0.0-${gitVersion()}`
 const zipName = `${version}.zip`
 const { stdout, stderr } = await runCapgoZip([
   'org.careride.app',

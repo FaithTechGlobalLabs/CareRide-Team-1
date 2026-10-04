@@ -176,6 +176,8 @@ The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 **Live updates:** after one APK that includes the updater (a local `npm run android:apk`, or a **Run workflow** debug APK), website deploys replace the JavaScript on the phone. Open the app so it can download, then leave it and come back — the new bundle applies when it moves to the background. Pull-request APK artifacts stay frozen on that branch's website so reviewers can try the PR. Native changes (plugins, permissions, Gradle) still need a new APK. To build a phone APK that will not overwrite itself from production, use `CAPACITOR_OTA=0 npm run android:apk`.
 
+The Android app shows when this phone received the current website bundle, and the git commit Cloudflare built (`WORKERS_CI_COMMIT_SHA`, or `GITHUB_SHA` on an Actions APK). Open the account menu, or look at the bottom of sign-in. That hash should match the commit on the Worker deployment.
+
 The website is unchanged: the marketing page still opens at `/`, and a closed browser tab still signs you out.
 
 ### Google Maps (optional)

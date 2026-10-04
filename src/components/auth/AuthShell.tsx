@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { BuildStamp } from '../../native/BuildStamp'
 import { Logo } from '../Logo'
 
 interface Props {
@@ -21,6 +22,7 @@ export function AuthShell({ aside, children, width = 'md' }: Props) {
       </header>
 
       <main className={`relative z-10 mx-auto px-4 pb-16 pt-4 sm:px-6 ${WIDTHS[width]}`}>{children}</main>
+      <BuildStamp className={`relative z-10 mx-auto px-4 pb-8 sm:px-6 ${WIDTHS[width]}`} />
     </div>
   )
 }
