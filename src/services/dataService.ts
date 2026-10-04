@@ -116,9 +116,11 @@ export interface DataService {
   // A driver with a client in the car has to finish that ride first.
   deleteMyAccount(): Promise<void>
 
-  // Destinations (point B)
+  // Destinations (point B). Past rides keep the address they were booked with.
   listDestinations(orgId?: string): Promise<Destination[]>
   saveDestination(dest: Omit<Destination, 'id'>): Promise<Destination>
+  updateDestination(id: string, changes: Pick<Destination, 'name' | 'address' | 'city' | 'notes'>): Promise<Destination>
+  deleteDestination(id: string): Promise<void>
 
   // Rides: partner organization
   // Throws if a scheduled pickup time is in the past or the ride is too big. Send the same clientRequestId

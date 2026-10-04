@@ -9,6 +9,7 @@ import { TextField } from '../../components/form/TextField'
 import { primaryButton, ROLE_TONE, tones } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
+import { returnPath } from '../../logic/returnPath'
 import { EMAIL } from '../../logic/validate'
 import { isDemoBackend } from '../../services'
 import { DEMO_EMAIL_DOMAIN, DEMO_PASSWORD } from '../../services/seed'
@@ -81,7 +82,7 @@ export function SignIn() {
   const { users, currentUser, signIn } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from
+  const from = returnPath((location.state as { from?: string } | null)?.from)
 
   const [rememberedEmail] = useState(readLastEmail)
   const [email, setEmail] = useState(rememberedEmail)
@@ -304,7 +305,7 @@ export function SignIn() {
             <p className="text-sm text-brand-900">
               You're signed in as <strong>{currentUser.name}</strong>.
             </p>
-            <Link to={HOME_FOR[currentUser.role]} className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
+            <Link to={from ?? HOME_FOR[currentUser.role]} className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
               Continue <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>

@@ -694,6 +694,35 @@ export const supabaseService: DataService = {
     return toDestination(data)
   },
 
+  async updateDestination(id, changes) {
+    const { data, error } = await getSupabase()
+      .from('destinations')
+      .update({
+        name: changes.name.trim(),
+        address: changes.address.trim(),
+        city: changes.city.trim(),
+        notes: changes.notes?.trim() || null,
+      })
+      .eq('id', id)
+      .select(DESTINATION_COLUMNS)
+      .single<DestinationRow>()
+    if (error) {
+      if (error.code === '42501' || error.code === 'PGRST116') throw new Error('Only your organization can change its destinations.')
+      if (error.code === '23514') throw new Error('Please check the name, address, city and notes, then try again.')
+      throw new Error(`We couldn't save this destination. ${CONNECTION}`)
+    }
+    return toDestination(data)
+  },
+
+  async deleteDestination(id) {
+    const { data, error } = await getSupabase().from('destinations').delete().eq('id', id).select('id')
+    if (error) {
+      if (error.code === '42501') throw new Error('Only your organization can remove its destinations.')
+      throw new Error(`We couldn't remove this destination. ${CONNECTION}`)
+    }
+    if (!data?.length) throw new Error('Only your organization can remove its destinations.')
+  },
+
   requestRide: (ride, clientRequestId) =>
     rideCall(
       'request_ride',

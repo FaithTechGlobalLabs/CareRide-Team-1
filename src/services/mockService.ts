@@ -491,6 +491,23 @@ export const mockService: DataService = {
       return created
     }),
 
+  updateDestination: (id, changes) =>
+    transact((db) => {
+      const dest = findOrThrow(db.destinations, id, 'Destination')
+      dest.name = changes.name.trim()
+      dest.address = changes.address.trim()
+      dest.city = changes.city.trim()
+      dest.notes = changes.notes?.trim() || undefined
+      return dest
+    }),
+
+  deleteDestination: (id) =>
+    transact((db) => {
+      const index = db.destinations.findIndex((d) => d.id === id)
+      if (index < 0) throw new Error(`Destination not found: ${id}`)
+      db.destinations.splice(index, 1)
+    }),
+
   requestRide: (input) =>
     transact((db) => {
       checkPickupTime(input)
