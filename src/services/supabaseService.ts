@@ -409,7 +409,7 @@ function rideDetails(ride: Partial<Ride>) {
 }
 
 // Tables whose changes should refresh open screens. Realtime only sends rows this person may read.
-const LIVE_TABLES = ['rides', 'ride_offers', 'organizations', 'drivers', 'destinations']
+const LIVE_TABLES = ['rides', 'ride_offers', 'organizations', 'drivers', 'destinations', 'profiles']
 
 // The website that email links (confirm, reset password) open. On the website that's wherever the person is,
 // so localhost and the live site both work. The Android app's own address is https://localhost, which a
