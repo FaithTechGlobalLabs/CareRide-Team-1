@@ -7,7 +7,8 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
   // android: generated native project. supabase/functions: Edge Functions run on Deno, not in the browser.
-  globalIgnores(['dist', 'android', 'supabase/functions']),
+  // worker: Cloudflare Worker entry, not the Vite React app.
+  globalIgnores(['dist', 'android', 'supabase/functions', 'worker']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

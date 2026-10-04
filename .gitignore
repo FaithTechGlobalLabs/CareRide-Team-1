@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 .direnv/
 .phone-qa/
 

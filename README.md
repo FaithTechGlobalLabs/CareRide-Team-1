@@ -135,7 +135,7 @@ The HACKVAN pitch lives at **[/demo](https://careride-team-1.careride.workers.de
 | Development and build | Vite 8 |
 | Code quality | ESLint with TypeScript and React rules |
 | Demo persistence | `localStorage` for data and sign-in, plus a per-tab `sessionStorage` copy of the sign-in |
-| Deployment configuration | Cloudflare Workers static assets via Wrangler |
+| Deployment configuration | Cloudflare Workers (static assets plus a Worker script) via Wrangler |
 | Mobile | Capacitor 8 Android wrapper around the same Vite build |
 
 ### Architecture
@@ -182,7 +182,7 @@ There is currently no automated test suite or `npm test` script. For changes to 
 
 ### Deployment
 
-The repository includes [wrangler.jsonc](wrangler.jsonc) for Cloudflare Workers static asset hosting. It configures single-page application fallback so direct links to application routes can load correctly.
+The repository includes [wrangler.jsonc](wrangler.jsonc) for Cloudflare Workers. Static files still serve from `dist/` with single-page application fallback. A Worker script is included so the Cloudflare dashboard can attach variables and secrets. `/api/*` is reserved for that Worker.
 
 With access to the intended Cloudflare account:
 
@@ -192,7 +192,15 @@ npm run build
 npm run deploy
 ```
 
-Deployment publishes the frontend; demo records remain in each visitor's browser. For another static host, publish `dist/` and configure application routes to fall back to `index.html`.
+To run the already-implemented Supabase backend on Cloudflare, set these as **Workers Builds** variables (they are baked in at `npm run build`; they are not Worker runtime secrets):
+
+- `VITE_DATA_BACKEND=supabase`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+Keep the Supabase service-role key out of `VITE_` variables. After this Worker exists, dashboard **Settings → Variables and Secrets** also works for runtime secrets if you add server routes later.
+
+Without those build variables, production stays on the localStorage mock. For another static host, publish `dist/` and configure application routes to fall back to `index.html`.
 
 ### Android app
 
