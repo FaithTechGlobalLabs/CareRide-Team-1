@@ -14,6 +14,7 @@ import {
   Share2,
   Undo2,
   Users,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -67,6 +68,7 @@ export function Pitch({ slide, step, onStep }: Props) {
               { icon: Users, tone: 'coral', title: 'Clients are often unable to use technology' },
               { icon: PhoneOff, tone: 'ink', title: 'Uber, Lyft, and taxis need phones to book rides' },
               { icon: Search, tone: 'amber', title: 'Case workers search for rides with no easy system' },
+              { icon: Wallet, tone: 'brand', title: 'Many can’t afford a taxi, or even the bus' },
             ]}
           />
           <p className="mt-5 text-center text-3xl font-extrabold text-coral-600">Without a ride, they can miss the care they need.</p>
@@ -79,6 +81,7 @@ export function Pitch({ slide, step, onStep }: Props) {
               { icon: HandHeart, tone: 'coral', title: 'People get to appointments, no phone needed' },
               { icon: Clock, tone: 'brand', title: 'Case workers spend less time finding rides' },
               { icon: Share2, tone: 'ink', title: 'Organizations share drivers, instead of each going it alone' },
+              { icon: Wallet, tone: 'amber', title: 'People ride without paying, and staff hand out fewer bus tickets' },
             ]}
           />
         </Slide>
@@ -137,30 +140,17 @@ export function Pitch({ slide, step, onStep }: Props) {
         </Slide>
       )}
       {id === 'thanks' && (
-        <Slide title="Getting to care, without needing a phone.">
+        <Slide title="Next Steps">
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-              <List
-                bare
-                heading="Built since user testing"
-                items={['A shared database and an Android app', 'Drive times and route previews for drivers', 'Live hospital wait times when booking']}
-              />
-              <div className="mt-6">
-                <List
-                  bare
-                  heading="Next"
-                  icon={ArrowRight}
-                  items={['A pilot at Belkin House, then Richmond House and Grace Mansion', 'Start with professional drivers', 'Text updates when a ride is booked']}
-                />
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-              <h3 className="text-xl font-extrabold text-slate-400">How you can help</h3>
-              <p className="mt-4 text-2xl font-bold">Please contact the team to get involved.</p>
-              <p className="mt-6 flex items-center gap-2 whitespace-nowrap text-lg font-bold text-brand-700">
-                <GitBranch className="h-5 w-5" aria-hidden /> {REPO_URL}
-              </p>
-            </div>
+            <List
+              heading="Built since user testing"
+              items={['A shared database and an Android app', 'Drive times and route previews for drivers', 'Live hospital wait times when booking']}
+            />
+            <List
+              heading="Next"
+              icon={ArrowRight}
+              items={['A pilot at Belkin House, then Richmond House and Grace Mansion', 'Start with professional drivers', 'Text updates when a ride is booked']}
+            />
           </div>
         </Slide>
       )}
@@ -189,7 +179,7 @@ function Slide({ title, children }: { title: string; children: ReactNode }) {
 
 function Points({ items }: { items: { icon: LucideIcon; tone: Tone; title: string }[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className={`grid gap-4 ${items.length === 4 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
       {items.map(({ icon: Icon, tone, title }, i) => (
         <div
           key={title}
