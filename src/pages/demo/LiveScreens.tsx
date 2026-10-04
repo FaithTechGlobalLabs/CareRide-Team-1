@@ -419,7 +419,10 @@ function Screen({
       {scrollable && (
         <div
           className="absolute inset-0"
-          onWheel={(e) => e.currentTarget.parentElement?.querySelector('iframe')?.contentWindow?.scrollBy(0, e.deltaY / scale)}
+          // Instant: the app's smooth scrolling would restart a glide on every wheel tick and lag behind
+          onWheel={(e) =>
+            e.currentTarget.parentElement?.querySelector('iframe')?.contentWindow?.scrollBy({ top: e.deltaY / scale, behavior: 'instant' })
+          }
           aria-hidden
         />
       )}

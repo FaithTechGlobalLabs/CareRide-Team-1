@@ -77,7 +77,8 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'Thank you',
     notes: [
       'Payoff: the resident from the start got to St. Paul’s, and didn’t need a phone to do it.',
-      'Next steps come from our user testing notes. Say what you’d like from the audience, then take questions.',
+      'Since the weekend: a real database, drive times and directions for drivers, and an Android app in testing.',
+      'Next: pilot with the houses we talked to, start with professional drivers, and send ride updates by text. Say what you’d like from the audience, then take questions.',
     ],
   },
 ]

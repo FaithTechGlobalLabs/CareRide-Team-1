@@ -142,13 +142,15 @@ export function Pitch({ slide, step, onStep }: Props) {
         <Slide title="Getting to care, without needing a phone.">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-              <List
-                bare
-                heading="Next steps"
-                icon={ArrowRight}
-                items={['Start with professional drivers', 'Connect a real backend', 'Map directions for drivers', 'A mobile app']}
-              />
-              <Placeholder className="mt-4">How it fits Belkin House’s current tools</Placeholder>
+              <List bare heading="Built since the weekend" items={['A real, shared database', 'Drive times and directions for drivers', 'An Android app, in testing']} />
+              <div className="mt-6">
+                <List
+                  bare
+                  heading="Next"
+                  icon={ArrowRight}
+                  items={['A pilot at Belkin House, then Richmond House and Grace Mansion', 'Start with professional drivers', 'Text updates when a ride is booked']}
+                />
+              </div>
             </div>
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
               <h3 className="text-xl font-extrabold uppercase tracking-wider text-slate-400">How you can help</h3>
