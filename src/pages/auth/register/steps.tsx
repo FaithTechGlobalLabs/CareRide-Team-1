@@ -1,5 +1,5 @@
-import { Building2, Car, Mail, MapPin, Pencil, Plus, Trash2, User as UserIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Building2, Car, Mail, Pencil, User as UserIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import {
   DriverAboutFields,
   DriverDocumentFields,
@@ -11,13 +11,11 @@ import { AddressPicker } from '../../../components/form/AddressPicker'
 import { ChoiceCard } from '../../../components/form/ChoiceCard'
 import { FieldMessage } from '../../../components/form/FieldMessage'
 import { PasswordField } from '../../../components/form/PasswordField'
-import { SelectField } from '../../../components/form/SelectField'
 import { TextField } from '../../../components/form/TextField'
-import { secondaryButton, type Tone } from '../../../components/ui'
-import { BACKGROUND_LABELS, CITIES } from '../../../constants'
+import { tones, type Tone } from '../../../components/ui'
+import { BACKGROUND_LABELS } from '../../../constants'
 import { describeRequestHours } from '../../../logic/requestHours'
-import { MAX_NAME, tooLong } from '../../../logic/validate'
-import { SUGGESTED_DESTINATIONS, type RegisterDraft, type RegisterRole } from './draft'
+import type { RegisterDraft, RegisterRole } from './draft'
 
 export interface StepProps {
   draft: RegisterDraft
@@ -67,9 +65,28 @@ export function RoleStep({ draft, update, errors }: StepProps) {
   )
 }
 
-export function AccountStep({ draft, update, errors }: StepProps) {
+export function AccountStep({ draft, update, errors, goTo }: StepProps) {
+  const role = ROLES.find((r) => r.value === draft.role)
   return (
     <div className="space-y-5">
+      {/* A saved draft reopens here, so say which sign-up this is and offer the way back to the other one */}
+      {role && (
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tones[role.tone].tile}`} aria-hidden>
+            {role.icon}
+          </span>
+          <p className="min-w-0 flex-1 text-sm text-slate-600">
+            Signing up as a <span className="font-semibold text-ink">{role.title.toLowerCase()}</span>
+          </p>
+          <button
+            type="button"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500"
+            onClick={() => goTo('role')}
+          >
+            Change
+          </button>
+        </div>
+      )}
       <TextField
         id="name"
         label="Your full name"
@@ -147,130 +164,6 @@ export function OrganizationStep({ draft, update, errors }: StepProps) {
   )
 }
 
-export function DestinationsStep({ draft, update }: StepProps) {
-  const [name, setName] = useState('')
-  const [address, setAddress] = useState('')
-  const [city, setCity] = useState(CITIES[0])
-  const [formError, setFormError] = useState<string>()
-
-  const selected = new Set(draft.destinations.map((d) => d.key))
-  const toggleSuggested = (key: string) => {
-    const suggestion = SUGGESTED_DESTINATIONS.find((s) => s.key === key)!
-    update({
-      destinations: selected.has(key)
-        ? draft.destinations.filter((d) => d.key !== key)
-        : [...draft.destinations, suggestion],
-    })
-  }
-
-  function addCustom() {
-    if (!name.trim() || !address.trim()) {
-      setFormError('Add a name and an address.')
-      return
-    }
-    const long = tooLong(name, MAX_NAME) ?? tooLong(address, MAX_NAME)
-    if (long) {
-      setFormError(long)
-      return
-    }
-    if (address.trim().length < 5) {
-      setFormError('Add the full street address, so drivers can find it.')
-      return
-    }
-    if (!CITIES.includes(city)) {
-      setFormError('Choose Vancouver or Richmond.')
-      return
-    }
-    if (draft.destinations.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
-      setFormError('You already added a place with this name.')
-      return
-    }
-    update({ destinations: [...draft.destinations, { key: crypto.randomUUID(), name: name.trim(), address: address.trim(), city }] })
-    setName('')
-    setAddress('')
-    setFormError(undefined)
-  }
-
-  const custom = draft.destinations.filter((d) => !SUGGESTED_DESTINATIONS.some((s) => s.key === d.key))
-
-  return (
-    <div className="space-y-6">
-      <fieldset>
-        <legend className="mb-2 text-sm font-semibold text-ink">Popular places</legend>
-        <div className="space-y-2">
-          {SUGGESTED_DESTINATIONS.map((s, i) => {
-            const on = selected.has(s.key)
-            return (
-              <label
-                key={s.key}
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
-                  on ? 'border-brand-500 bg-brand-50/60' : 'border-slate-200 bg-white hover:border-brand-300'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 accent-brand-600"
-                  checked={on}
-                  onChange={() => toggleSuggested(s.key)}
-                  data-autofocus={i === 0 ? '' : undefined}
-                />
-                <span className="flex-1">
-                  <span className="block font-semibold text-ink">{s.name}</span>
-                  <span className="block text-sm text-slate-500">{s.address}</span>
-                </span>
-              </label>
-            )
-          })}
-        </div>
-      </fieldset>
-
-      {custom.length > 0 && (
-        <ul className="space-y-2" aria-label="Places you added">
-          {custom.map((d) => (
-            <li key={d.key} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
-              <MapPin className="h-5 w-5 text-brand-600" aria-hidden />
-              <span className="flex-1">
-                <span className="block font-semibold text-ink">{d.name}</span>
-                <span className="block text-sm text-slate-500">{d.address}</span>
-              </span>
-              <button
-                type="button"
-                className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                aria-label={`Remove ${d.name}`}
-                onClick={() => update({ destinations: draft.destinations.filter((x) => x.key !== d.key) })}
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="space-y-4 rounded-xl border border-dashed border-slate-300 p-5">
-        <p className="font-semibold text-ink">Add another place</p>
-        <TextField id="destName" label="Name" placeholder="e.g. Downtown Community Health Centre" value={name} onChange={(e) => setName(e.target.value)} />
-        <TextField id="destAddress" label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <SelectField
-          id="destCity"
-          label="City"
-          value={city}
-          onChange={(e) => {
-            if (CITIES.includes(e.target.value)) setCity(e.target.value)
-          }}
-        >
-          {CITIES.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </SelectField>
-        <FieldMessage id="dest-form-message" error={formError} />
-        <button type="button" className={secondaryButton} onClick={addCustom}>
-          <Plus className="h-5 w-5" aria-hidden /> Add place
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export function DriverAboutStep({ draft, update, errors }: StepProps) {
   return (
     <DriverAboutFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} showName={false} />
@@ -290,6 +183,13 @@ export function DocumentsStep({ draft, update, errors }: StepProps) {
 }
 
 // ---- Review
+
+// A few names and a count, so a long list doesn't take over the review
+function summarizePlaces(names: string[]): string {
+  if (!names.length) return 'Adding later'
+  const shown = names.slice(0, 3).join(', ')
+  return names.length > 3 ? `${shown}, and ${names.length - 3} more` : shown
+}
 
 function ReviewSection({ title, stepId, goTo, rows }: { title: string; stepId: string; goTo: (id: string) => void; rows: [string, string][] }) {
   return (
@@ -348,7 +248,7 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             title="Destinations"
             stepId="destinations"
             goTo={goTo}
-            rows={[['Places', draft.destinations.map((x) => x.name).join(', ') || 'Adding later']]}
+            rows={[['Places', summarizePlaces(draft.destinations.map((x) => x.name))]]}
           />
         </>
       )}
