@@ -47,7 +47,7 @@ export function IncomingRequests() {
   }
 
   const confirmation = answered && (
-    <div role="status" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+    <div role="status" className="rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
       <div className="flex items-start gap-3">
         <span
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
@@ -90,9 +90,9 @@ export function IncomingRequests() {
       <div
         role="alertdialog"
         aria-labelledby="incoming-title"
-        className="overflow-hidden rounded-2xl border border-teal-200 bg-white shadow-2xl shadow-teal-900/20"
+        className="overflow-hidden rounded-xl border border-teal-200 bg-white shadow-xl"
       >
-        <div className="flex items-center gap-2 bg-fresh-gradient px-5 py-3 text-white">
+        <div className="flex items-center gap-2 bg-teal-700 px-5 py-3 text-white">
           <BellRing className="h-5 w-5 animate-pulse" aria-hidden />
           <h2 id="incoming-title" className="font-extrabold">
             New ride request{forDriver && ` for ${forDriver}`}

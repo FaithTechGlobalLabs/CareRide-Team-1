@@ -80,7 +80,7 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
                 tabIndex={on ? 0 : -1}
                 onClick={() => setPicked(t.id)}
                 onKeyDown={(e) => onTabKey(e, i)}
-                className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
+                className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   on ? (red ? 'border-red-600 text-red-700' : 'border-brand-600 text-ink') : 'border-transparent text-slate-500 hover:text-ink'
                 }`}
               >
@@ -178,7 +178,7 @@ function DayGroups({ rides, now, render }: { rides: Ride[]; now: number; render:
     <div className="space-y-4">
       {groups.map((g) => (
         <div key={g.label}>
-          <h3 className="px-3 pb-1 font-sans text-xs font-bold uppercase tracking-widest text-slate-400">{g.label}</h3>
+          <h3 className="px-3 pb-1 font-sans text-sm font-bold text-slate-400">{g.label}</h3>
           <ul className="space-y-1">{g.rides.map(render)}</ul>
         </div>
       ))}
@@ -204,7 +204,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
 
   return (
     <li
-      className={`group relative flex gap-3 rounded-2xl p-3 transition hover:bg-slate-50 sm:gap-4 ${alert ? 'bg-red-50/60 hover:bg-red-50' : ''}`}
+      className={`group relative flex gap-3 rounded-xl p-3 transition hover:bg-slate-50 sm:gap-4 ${alert ? 'bg-red-50/60 hover:bg-red-50' : ''}`}
     >
       <div className="w-[4.5rem] shrink-0 pt-0.5 text-center sm:w-20">
         {ride.type === 'ON_DEMAND' && !past ? (
@@ -226,7 +226,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
         )}
         <Link
           to={ridePath(ride.id)}
-          className="block break-words font-semibold text-ink after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-4 focus-visible:after:ring-brand-100"
+          className="block break-words font-semibold text-ink after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-[3px] focus-visible:after:ring-brand-500 focus-visible:after:ring-offset-2"
         >
           {ride.returnOfRideId && <span className="text-slate-500">Return · </span>}
           {ride.destinationName}
@@ -260,7 +260,7 @@ function BookAgain({ rideId }: { rideId: string }) {
   return (
     <Link
       to={`/partner/request?again=${rideId}`}
-      className="relative z-10 -mx-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 sm:mx-0"
+      className="relative z-10 -mx-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 sm:mx-0"
     >
       <RotateCcw className="h-4 w-4" aria-hidden />
       Book again
@@ -270,13 +270,13 @@ function BookAgain({ rideId }: { rideId: string }) {
 
 // On phones the full badge crowds the row, so show a short version: still words, not colour alone.
 const SHORT_STATUS: Record<Ride['status'], { text: string; dot: string }> = {
-  SEARCHING: { text: 'Finding', dot: 'bg-sky-500' },
-  OFFERED: { text: 'Waiting', dot: 'bg-amber-500' },
-  ACCEPTED: { text: 'Confirmed', dot: 'bg-brand-500' },
-  NEEDS_ATTENTION: { text: 'Attention', dot: 'bg-red-500' },
-  PICKED_UP: { text: 'Riding', dot: 'bg-violet-500' },
-  COMPLETED: { text: 'Done', dot: 'bg-emerald-500' },
-  NO_SHOW: { text: 'No show', dot: 'bg-orange-500' },
+  SEARCHING: { text: 'Finding', dot: 'bg-brand-500' },
+  OFFERED: { text: 'Waiting', dot: 'bg-sun-400' },
+  ACCEPTED: { text: 'Confirmed', dot: 'bg-emerald-600' },
+  NEEDS_ATTENTION: { text: 'Attention', dot: 'bg-care-red' },
+  PICKED_UP: { text: 'Riding', dot: 'bg-cyan-600' },
+  COMPLETED: { text: 'Done', dot: 'bg-slate-500' },
+  NO_SHOW: { text: 'No show', dot: 'bg-coral-600' },
   CANCELLED: { text: 'Cancelled', dot: 'bg-slate-400' },
 }
 
@@ -293,7 +293,7 @@ function StatusDot({ ride }: { ride: Ride }) {
 function Empty({ icon, title, text, action }: { icon: ReactNode; title: string; text: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-10 text-center">
-      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500" aria-hidden>
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500" aria-hidden>
         {icon}
       </span>
       <p className="font-bold text-ink">{title}</p>

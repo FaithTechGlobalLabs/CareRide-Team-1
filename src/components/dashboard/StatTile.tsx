@@ -15,29 +15,30 @@ interface Props {
   alert?: boolean // draws the eye: something here needs doing
 }
 
-const tile =
-  'relative flex h-full flex-col rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-16px_rgba(16,24,40,0.14)] ring-1 transition'
+const tile = 'relative flex h-full flex-col rounded-xl border bg-white p-5 transition'
 
-// One headline number. The value stays in ink; the coloured icon carries the identity.
+// One headline number. The label leads with a small coloured icon; the value stays in ink.
 export function StatTile({ label, value, icon, tone, note, to, onClick, actionLabel, alert }: Props) {
   const body = (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${alert ? 'bg-red-100 text-red-700' : tones[tone].tile}`} aria-hidden>
-          {icon}
-        </span>
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 font-semibold text-slate-700">
+          <span className={alert ? 'text-red-700' : tones[tone].text} aria-hidden>
+            {icon}
+          </span>
+          {label}
+        </p>
         {(to || onClick) && (
-          <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-ink" aria-hidden />
+          <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-ink" aria-hidden />
         )}
       </div>
-      <p className="mt-4 font-display text-3xl font-black tabular-nums tracking-tight text-ink">{value}</p>
-      <p className="font-semibold text-slate-700">{label}</p>
-      {note && <p className={`mt-0.5 text-sm ${alert ? 'font-semibold text-red-700' : 'text-slate-500'}`}>{note}</p>}
+      <p className="mt-3 font-display text-4xl font-black tabular-nums tracking-tight text-ink">{value}</p>
+      {note && <p className={`mt-1 text-sm ${alert ? 'font-semibold text-red-700' : 'text-slate-500'}`}>{note}</p>}
     </>
   )
 
-  const ring = alert ? 'ring-red-200 bg-red-50/40' : 'ring-slate-200/80'
-  const interactive = `group ${tile} ${ring} w-full text-left hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:translate-y-0`
+  const ring = alert ? 'border-red-300 bg-red-50/40' : 'border-slate-200'
+  const interactive = `group ${tile} ${ring} w-full text-left hover:-translate-y-0.5 hover:border-slate-400 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:translate-y-0`
   if (to) {
     return (
       <Link to={to} className={interactive} aria-label={actionLabel}>

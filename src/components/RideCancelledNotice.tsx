@@ -39,7 +39,7 @@ export function RideCancelledNotice() {
         .map((ride) => {
           const house = houses.find((h) => h.id === ride.houseId)
           return (
-            <div key={ride.id} role="alert" className="rounded-2xl border-2 border-red-300 bg-white p-5 shadow-2xl">
+            <div key={ride.id} role="alert" className="rounded-xl border-2 border-red-300 bg-white p-5 shadow-xl">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600" aria-hidden>
                   <CalendarX className="h-5 w-5" />

@@ -9,7 +9,7 @@ interface Props {
 }
 
 const stepButton =
-  'flex h-12 w-12 items-center justify-center text-slate-600 transition hover:bg-slate-50 hover:text-ink focus-visible:relative focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-95 disabled:pointer-events-none disabled:opacity-35'
+  'flex h-12 w-12 items-center justify-center text-slate-600 transition hover:bg-slate-50 hover:text-ink focus-visible:relative focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:scale-95 disabled:pointer-events-none disabled:opacity-35'
 
 // A − / + counter. No typing, so there's no way to enter 0 or 120 by accident.
 export function PassengerStepper({ labelId, value, onChange, min = 1, max = 12 }: Props) {

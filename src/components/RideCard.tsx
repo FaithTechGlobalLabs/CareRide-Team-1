@@ -16,16 +16,16 @@ interface Props {
   alert?: string // one-line reason the ride needs action, shown in red
 }
 
-// A coloured left edge echoes the status badge, so a list scans at a glance.
+// A coloured rule across the top echoes the status badge, so a list scans at a glance.
 const ACCENT: Record<Ride['status'], string> = {
-  SEARCHING: 'border-l-sky-400',
-  OFFERED: 'border-l-amber-400',
-  ACCEPTED: 'border-l-brand-500',
-  NEEDS_ATTENTION: 'border-l-red-500',
-  PICKED_UP: 'border-l-violet-500',
-  COMPLETED: 'border-l-emerald-500',
-  NO_SHOW: 'border-l-orange-400',
-  CANCELLED: 'border-l-slate-300',
+  SEARCHING: 'bg-brand-500',
+  OFFERED: 'bg-sun-400',
+  ACCEPTED: 'bg-emerald-600',
+  NEEDS_ATTENTION: 'bg-care-red',
+  PICKED_UP: 'bg-cyan-600',
+  COMPLETED: 'bg-slate-400',
+  NO_SHOW: 'bg-coral-600',
+  CANCELLED: 'bg-slate-300',
 }
 
 export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
@@ -38,10 +38,11 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
   ].filter(Boolean)
 
   return (
-    <div className={`${card} border-l-4 ${ACCENT[ride.status]} ${highlight}`}>
+    <div className={`${card} relative overflow-hidden ${highlight}`}>
+      <span className={`absolute inset-x-0 top-0 h-1 ${ACCENT[ride.status]}`} aria-hidden />
       {alert && <p className="mb-2 font-bold text-red-800">⚠ {alert}</p>}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-sm font-semibold text-slate-500">
           {RIDE_TYPE_LABELS[ride.type]}
           {ride.returnOfRideId && ' · Return trip'}
           {riders && ` · ${riders}`}
@@ -59,7 +60,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
         {needs.join(' · ')}
       </p>
       {to && (
-        <Link to={to} className="mt-2 inline-block font-semibold text-brand-700 underline underline-offset-2 hover:text-violet-700">
+        <Link to={to} className="mt-2 inline-block font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
           View details
         </Link>
       )}

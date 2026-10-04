@@ -34,7 +34,7 @@ export function ConfirmButton({
       </button>
       <dialog
         ref={dialog}
-        className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl p-6 text-ink shadow-2xl backdrop:bg-slate-900/50"
+        className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl p-6 text-ink shadow-xl backdrop:bg-slate-900/50"
       >
         <h2 className="text-xl font-bold">{title}</h2>
         {body && <div className="mt-2 text-slate-700">{body}</div>}

@@ -26,7 +26,7 @@ export function Stepper({ steps, current }: Props) {
           aria-valuenow={percent}
           aria-label={`Step ${current + 1} of ${steps.length}`}
         >
-          <div className="h-full rounded-full bg-brand-gradient transition-all duration-500 ease-out" style={{ width: `${percent}%` }} />
+          <div className="h-full rounded-full bg-brand-600 transition-all duration-500 ease-out" style={{ width: `${percent}%` }} />
         </div>
       </div>
 
@@ -43,9 +43,9 @@ export function Stepper({ steps, current }: Props) {
               <span
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition ${
                   done
-                    ? 'bg-emerald-500 text-white'
+                    ? 'bg-emerald-700 text-white'
                     : active
-                      ? 'bg-brand-gradient text-white shadow-md shadow-brand-500/30'
+                      ? 'bg-brand-600 text-white'
                       : 'border-2 border-slate-300 text-slate-500'
                 }`}
               >

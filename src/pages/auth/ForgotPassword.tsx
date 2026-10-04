@@ -8,7 +8,7 @@ import { EMAIL } from '../../logic/validate'
 import { isNative } from '../../native/platform'
 import { dataService } from '../../services'
 
-const panel = 'animate-fade-up rounded-3xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5 sm:p-10'
+const panel = 'animate-fade-up rounded-xl border border-slate-200/80 bg-white p-8 sm:p-10'
 
 // "Forgot your password?": emails a reset link. Says the same thing whether or not the email has an account.
 export function ForgotPassword() {

@@ -21,7 +21,7 @@ export function NextPickup({ ride, driverName, vehicle, now }: Props) {
   if (!ride) {
     return (
       <section aria-labelledby="next-title" className={`${card} flex flex-col items-center p-6 text-center`}>
-        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600" aria-hidden>
+        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden>
           <CalendarPlus className="h-7 w-7" />
         </span>
         <h2 id="next-title" className="text-lg font-extrabold">
@@ -41,11 +41,10 @@ export function NextPickup({ ride, driverName, vehicle, now }: Props) {
   const hasDriver = ride.status === 'ACCEPTED' || onBoard
 
   return (
-    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-2xl bg-ink p-6 text-white shadow-xl shadow-brand-900/20">
-      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand-500/40 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-violet-500/30 blur-3xl" aria-hidden />
+    <section aria-labelledby="next-title" className="relative overflow-hidden rounded-xl bg-ink p-6 text-white">
+      <span className="absolute inset-x-0 top-0 h-1 bg-brand-500" aria-hidden />
       <div className="relative">
-        <h2 id="next-title" className="text-xs font-bold uppercase tracking-widest text-white">
+        <h2 id="next-title" className="text-sm font-bold text-white">
           {onBoard ? 'On the road' : 'Next pickup'}
         </h2>
         <p className="mt-2 font-display text-4xl font-black tracking-tight" aria-live="polite">
@@ -81,7 +80,7 @@ export function NextPickup({ ride, driverName, vehicle, now }: Props) {
 
         <Link
           to={ridePath(ride.id)}
-          className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-xl font-semibold text-white transition hover:gap-2.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+          className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-xl font-semibold text-white transition hover:gap-2.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white"
         >
           View ride details <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>

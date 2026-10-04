@@ -173,7 +173,7 @@ export function LiveScreens({ index, onChange }: Props) {
       <div className="relative mx-[6%] h-12 shrink-0">
         <div className="absolute inset-x-0 top-3 h-1.5 rounded-full bg-slate-200" />
         <div
-          className="bg-spectrum absolute left-0 top-3 h-1.5 rounded-full transition-[width] duration-700 ease-out"
+          className="bg-brand-600 absolute left-0 top-3 h-1.5 rounded-full transition-[width] duration-700 ease-out"
           style={{ width: `${(index / (LIVE_STEPS.length - 1)) * 100}%` }}
         />
         {LIVE_STEPS.map((s, i) => (

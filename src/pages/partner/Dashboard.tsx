@@ -115,7 +115,7 @@ export function Dashboard() {
       title: 'Our drivers',
       detail: ownDrivers.length ? plural(ownDrivers.length, 'volunteer', 'volunteers') : 'Add your own volunteers',
       icon: Users,
-      tone: 'violet',
+      tone: 'brand',
     },
     ...(ownDrivers.length > 0
       ? [{ to: '/partner/bookings', title: 'Bookings', detail: 'Rides your drivers have taken', icon: ClipboardList, tone: 'amber' as Tone }]
@@ -180,7 +180,7 @@ export function Dashboard() {
           label="Fares saved"
           value={`$${stats.faresSaved.toLocaleString()}`}
           icon={<PiggyBank className="h-5 w-5" />}
-          tone="violet"
+          tone="ink"
           note="Compared with a taxi"
         />
       </div>
@@ -216,7 +216,7 @@ export function Dashboard() {
               <Link
                 key={to}
                 to={to}
-                className="group flex items-center gap-3 rounded-xl p-3 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                className="group flex items-center gap-3 rounded-xl p-3 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               >
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone].tile}`} aria-hidden>
                   <Icon className="h-5 w-5" />

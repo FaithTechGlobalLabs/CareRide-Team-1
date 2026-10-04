@@ -45,7 +45,7 @@ export function TopDestinations({ places }: { places: PlaceCount[] }) {
                     </span>
                     <Link
                       to={`/partner/request?again=${p.lastRideId}`}
-                      className="-my-2 inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                      className="-my-2 inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                       aria-label={`Book ${p.name} again`}
                     >
                       <RotateCcw className="h-4 w-4" aria-hidden />

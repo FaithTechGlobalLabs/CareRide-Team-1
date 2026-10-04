@@ -103,7 +103,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
         <RequiredMark />
       </span>
       <div
-        className={`grid overflow-hidden rounded-2xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
+        className={`grid overflow-hidden rounded-xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
           error ? 'border-red-500' : 'border-slate-200'
         }`}
       >
@@ -114,7 +114,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(-1)}
               disabled={!canGoBack}
               aria-label="Previous month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -126,7 +126,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(1)}
               disabled={!canGoForward}
               aria-label="Next month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -150,9 +150,9 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   aria-pressed={on}
                   aria-label={new Date(day).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + (isTodayCell ? ', today' : '')}
                   onClick={() => pickDay(day)}
-                  className={`relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:pointer-events-none disabled:text-slate-300 ${
+                  className={`relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:text-slate-300 ${
                     on
-                      ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25'
+                      ? 'bg-brand-600 text-white'
                       : isTodayCell
                         ? 'bg-brand-50 text-brand-700 ring-2 ring-brand-300'
                         : 'text-ink hover:bg-slate-100'
@@ -169,7 +169,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
           <p className="border-b border-slate-200 px-4 py-3 text-sm font-semibold text-ink">{dayName}</p>
           <div ref={listRef} className="relative max-h-72 space-y-1.5 overflow-y-auto p-3" role="group" aria-label={`Times on ${dayName}`}>
             {isToday && (
-              <p data-now className="flex items-center gap-2 px-1 py-1 text-xs font-bold uppercase tracking-wide text-coral-600">
+              <p data-now className="flex items-center gap-2 px-1 py-1 text-sm font-bold text-coral-600">
                 <span className="h-2 w-2 rounded-full bg-coral-500" aria-hidden />
                 Now · {time(now)}
                 <span className="h-px flex-1 bg-coral-200" aria-hidden />
@@ -184,8 +184,8 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   type="button"
                   aria-pressed={on}
                   onClick={() => onChange(toLocalInput(slot))}
-                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
-                    on ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
+                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                    on ? 'bg-brand-600 text-white' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
                   }`}
                 >
                   {time(slot)}

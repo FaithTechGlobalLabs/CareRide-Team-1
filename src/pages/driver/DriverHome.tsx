@@ -53,7 +53,7 @@ export function DriverHome() {
   if (driver.status !== 'APPROVED') {
     return (
       <div className={`${card} mx-auto max-w-xl p-8 text-center`}>
-        <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600" aria-hidden>
+        <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-amber-50 text-amber-600" aria-hidden>
           <Hourglass className="h-7 w-7" />
         </span>
         <h1 className="text-2xl font-extrabold tracking-tight">We're checking your documents</h1>
@@ -153,7 +153,7 @@ export function DriverHome() {
             onClick={() => scrollToId('current-title')}
             actionLabel="Go to your accepted rides"
           />
-          <StatTile label="Rides given" value={completed.length} icon={<Trophy className="h-5 w-5" />} tone="violet" note={`${thisWeek} this week`} />
+          <StatTile label="Rides given" value={completed.length} icon={<Trophy className="h-5 w-5" />} tone="ink" note={`${thisWeek} this week`} />
           <StatTile
             label="Fares saved"
             value={`$${faresSaved.toLocaleString()}`}
@@ -169,7 +169,7 @@ export function DriverHome() {
         <h2 id="requests-title" className={`${sectionTitle} scroll-mt-28`}>
           <BellRing className="h-5 w-5 text-teal-600" aria-hidden />
           New requests
-          {!!offers?.length && <span className="rounded-full bg-coral-500 px-2 py-0.5 text-sm font-bold text-white">{offers.length}</span>}
+          {!!offers?.length && <span className="rounded-full bg-coral-700 px-2 py-0.5 text-sm font-bold text-white">{offers.length}</span>}
         </h2>
         {offers?.length === 0 && <p className="text-slate-600">No requests right now. New ones show up here on their own. Decline any that don't suit you.</p>}
         <div className="space-y-3">
@@ -203,7 +203,7 @@ export function DriverHome() {
       {upcoming.length > 0 && (
         <section aria-labelledby="upcoming-title">
           <h2 id="upcoming-title" className={sectionTitle}>
-            <CalendarClock className="h-5 w-5 text-violet-600" aria-hidden />
+            <CalendarClock className="h-5 w-5 text-brand-600" aria-hidden />
             Coming up
           </h2>
           <div className="space-y-3">

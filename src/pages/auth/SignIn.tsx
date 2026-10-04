@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, Building2, Car, Loader2, Mail, ShieldCheck, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowRight, Building2, Car, Loader2, Mail, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import logoMark from '../../assets/logo-mark.png'
@@ -137,7 +137,7 @@ export function SignIn() {
         <img src={logoMark} alt="" className="mb-5 h-14 w-14" />
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Welcome back</h1>
 
-        <div className="mt-6 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1" role="radiogroup" aria-label="I'm signing in as a">
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="radiogroup" aria-label="I'm signing in as a">
           {(Object.keys(AUDIENCES) as Audience[]).map((a) => {
             const on = audience === a
             return (
@@ -147,7 +147,7 @@ export function SignIn() {
                 role="radio"
                 aria-checked={on}
                 onClick={() => setAudience(a)}
-                className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   on ? `bg-white text-ink shadow-md` : 'text-slate-500 hover:text-ink'
                 }`}
               >
@@ -236,31 +236,25 @@ export function SignIn() {
   )
 
   const demoPane = (
-    <section aria-labelledby="demo-heading" className="h-full bg-gradient-to-br from-brand-50/80 via-white to-violet-50/80 p-6 sm:p-8">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-brand-700 ring-1 ring-brand-100">
-        <Sparkles className="h-3.5 w-3.5" aria-hidden />
-        Demo
-      </span>
-      <h2 id="demo-heading" className="mt-3 text-2xl font-extrabold tracking-tight">
+    <section aria-labelledby="demo-heading" className="h-full bg-slate-50 p-6 sm:p-8">
+      <h2 id="demo-heading" className="text-2xl font-extrabold tracking-tight">
         Look around first
       </h2>
       <p className="mt-1 text-sm text-slate-600">Tap anyone below to sign in as them. No password needed.</p>
 
-      <ul className="mt-5 space-y-2.5">
+      <ul className="mt-4 divide-y divide-slate-200">
         {groups.map((g) => {
           const tone = tones[ROLE_TONE[g.role]]
           return (
-            <li key={g.role} className="rounded-2xl bg-white/90 p-3.5 shadow-sm ring-1 ring-slate-200/80">
-              <div className="flex items-start gap-3">
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tone.tile}`} aria-hidden>
+            <li key={g.role} className="py-4">
+              <h3 className="flex items-center gap-2 font-bold leading-tight">
+                <span className={tone.text} aria-hidden>
                   {g.icon}
                 </span>
-                <div className="min-w-0">
-                  <h3 className="font-bold leading-tight">{g.title}</h3>
-                  <p className="text-sm text-slate-500">{g.text}</p>
-                </div>
-              </div>
-              <div className="mt-2.5 flex flex-wrap gap-2">
+                {g.title}
+              </h3>
+              <p className="text-sm text-slate-500">{g.text}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {g.users.map((u) => (
                   <button
                     key={u.id}
@@ -268,7 +262,7 @@ export function SignIn() {
                     disabled={!!busy}
                     onClick={() => attempt(u.id, u.email!, DEMO_PASSWORD)}
                     aria-label={`Sign in as ${u.name}`}
-                    className={`group inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white py-0.5 pl-0.5 pr-3 text-left text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:pointer-events-none disabled:opacity-60 ${tone.border}`}
+                    className={`group inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white py-0.5 pl-0.5 pr-3 text-left text-sm font-semibold text-ink transition hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 ${tone.border}`}
                   >
                     <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${tone.solid}`} aria-hidden>
                       {busy === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : initials(u.name)}
@@ -283,7 +277,7 @@ export function SignIn() {
         })}
       </ul>
 
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 py-1.5 pl-3 pr-1.5 text-sm text-slate-600 ring-1 ring-slate-200/80">
+      <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-sm text-slate-600">
         <span>
           Typing it in instead? Password: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold text-ink">{DEMO_PASSWORD}</code>
         </span>
@@ -306,7 +300,7 @@ export function SignIn() {
     >
       <div className="animate-fade-up space-y-5">
         {currentUser && (
-          <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+          <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4">
             <p className="text-sm text-brand-900">
               You're signed in as <strong>{currentUser.name}</strong>.
             </p>
@@ -317,14 +311,14 @@ export function SignIn() {
         )}
 
         {hasDemo && (
-          <div className="mx-auto grid max-w-sm grid-cols-2 gap-1 rounded-2xl bg-white/70 p-1 shadow-sm ring-1 ring-slate-200 backdrop-blur lg:hidden" role="group" aria-label="Show">
+          <div className="mx-auto grid max-w-sm grid-cols-2 gap-1 rounded-xl bg-white p-1 ring-1 ring-slate-200 lg:hidden" role="group" aria-label="Show">
             {(['form', 'demo'] as Pane[]).map((p) => (
               <button
                 key={p}
                 type="button"
                 aria-pressed={pane === p}
                 onClick={() => setPane(p)}
-                className={`min-h-11 rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
+                className={`min-h-11 rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   pane === p ? 'bg-white text-ink shadow-md' : 'text-slate-500 hover:text-ink'
                 }`}
               >
@@ -335,7 +329,7 @@ export function SignIn() {
         )}
 
         <div
-          className={`mx-auto grid overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_24px_48px_-20px_rgba(16,24,40,0.18)] ${
+          className={`mx-auto grid overflow-hidden rounded-xl border border-slate-200 bg-white ${
             hasDemo ? 'max-w-5xl lg:grid-cols-2' : 'max-w-md'
           }`}
         >

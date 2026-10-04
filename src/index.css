@@ -19,7 +19,16 @@
   --color-aqua-300: #7deaf1;
   --color-aqua-400: #2ad4e3;
   --color-aqua-500: #14bdd0;
-  --color-violet-brand: #3b2fd6;
+  --color-violet-brand: #3b2fd6; /* logo only */
+
+  /* Flat app background. One step below white cards, so a card reads by its edge, not a shadow */
+  --color-canvas: oklch(0.982 0.005 260);
+
+  /* Care red and sun yellow: seasoning beside the blue, never side by side (see DESIGN.md) */
+  --color-care-red: oklch(0.56 0.2 30);
+  --color-sun-50: oklch(0.987 0.022 95);
+  --color-sun-100: oklch(0.962 0.059 95);
+  --color-sun-400: oklch(0.837 0.164 84);
 
   /* Supporting accents: warm coral for care, teal for going, sunny amber for welcome */
   --color-coral-50: #fff3f1;
@@ -69,22 +78,7 @@
   }
 }
 
-@utility bg-brand-gradient {
-  background-image: linear-gradient(135deg, #3b2fd6 0%, #1f63f0 50%, #22d3e6 100%);
-}
-
-@utility bg-warm-gradient {
-  background-image: linear-gradient(135deg, #f5573f 0%, #fb7f4a 50%, #fbbf24 100%);
-}
-
-@utility bg-fresh-gradient {
-  background-image: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #34d399 100%);
-}
-
-@utility bg-spectrum {
-  background-image: linear-gradient(90deg, #7c3aed 0%, #2f67f2 25%, #14bdd0 45%, #10b981 62%, #fbbf24 80%, #f5573f 100%);
-}
-
+/* Logo wordmark only. UI chrome uses solid colour. */
 @utility text-brand-gradient {
   background-image: linear-gradient(90deg, #1d4fe0 0%, #1f8ff0 55%, #22d3e6 100%);
   -webkit-background-clip: text;
@@ -124,12 +118,7 @@
 
   body {
     @apply font-sans text-slate-800 antialiased;
-    background-color: #f7f7fc;
-    background-image:
-      radial-gradient(42rem 28rem at 0% 0%, rgb(124 58 237 / 0.06), transparent 70%),
-      radial-gradient(36rem 26rem at 100% 10%, rgb(20 189 208 / 0.07), transparent 70%),
-      radial-gradient(40rem 30rem at 85% 100%, rgb(245 87 63 / 0.05), transparent 70%);
-    background-attachment: fixed;
+    @apply bg-canvas;
   }
 
   h1, h2, h3 {

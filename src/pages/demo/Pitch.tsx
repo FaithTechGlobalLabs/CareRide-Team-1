@@ -64,7 +64,7 @@ export function Pitch({ slide, step, onStep }: Props) {
           <Points
             items={[
               { icon: Users, tone: 'coral', title: 'Clients are often unable to use technology' },
-              { icon: PhoneOff, tone: 'violet', title: 'Uber, Lyft, and taxis need phones to book rides' },
+              { icon: PhoneOff, tone: 'ink', title: 'Uber, Lyft, and taxis need phones to book rides' },
               { icon: Search, tone: 'amber', title: 'Case workers search for rides with no easy system' },
             ]}
           />
@@ -77,7 +77,7 @@ export function Pitch({ slide, step, onStep }: Props) {
             items={[
               { icon: HandHeart, tone: 'coral', title: 'People get to appointments, no phone needed' },
               { icon: Clock, tone: 'brand', title: 'Staff spend less time finding rides' },
-              { icon: Share2, tone: 'violet', title: 'Organizations share drivers, instead of each going it alone' },
+              { icon: Share2, tone: 'ink', title: 'Organizations share drivers, instead of each going it alone' },
             ]}
           />
         </Slide>
@@ -108,7 +108,7 @@ export function Pitch({ slide, step, onStep }: Props) {
           </div>
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             {TEAM.map(({ name, did }) => (
-              <div key={name} className="rounded-2xl border border-slate-200/80 bg-white px-6 py-5 shadow-sm">
+              <div key={name} className="rounded-xl border border-slate-200/80 bg-white px-6 py-5">
                 <h3 className="text-3xl font-extrabold">{name}</h3>
                 <ul className="mt-2 space-y-1 text-lg font-bold text-slate-600">
                   {did.map((d) => (
@@ -127,7 +127,7 @@ export function Pitch({ slide, step, onStep }: Props) {
       {id === 'lessons' && (
         <Slide title="A few big lessons.">
           <div className="mx-auto grid max-w-5xl gap-4">
-            <div className="grid grid-cols-[1fr_auto_1fr] gap-5 px-7 text-base font-bold uppercase tracking-wider text-slate-400">
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-5 px-7 text-base font-bold text-slate-400">
               <span>What we learned</span>
               <span className="w-12" />
               <span>What we changed</span>
@@ -141,7 +141,7 @@ export function Pitch({ slide, step, onStep }: Props) {
       {id === 'thanks' && (
         <Slide title="Getting to care, without needing a phone.">
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6">
               <List
                 bare
                 heading="Next steps"
@@ -150,8 +150,8 @@ export function Pitch({ slide, step, onStep }: Props) {
               />
               <Placeholder className="mt-4">How it fits Belkin House’s current tools</Placeholder>
             </div>
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-extrabold uppercase tracking-wider text-slate-400">How you can help</h3>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6">
+              <h3 className="text-xl font-extrabold text-slate-400">How you can help</h3>
               <p className="mt-4 text-2xl font-bold">Please contact the team to get involved.</p>
               <p className="mt-6 flex items-center gap-2 whitespace-nowrap text-lg font-bold text-brand-700">
                 <GitBranch className="h-5 w-5" aria-hidden /> {REPO_URL}
@@ -189,10 +189,10 @@ function Points({ items }: { items: { icon: LucideIcon; tone: Tone; title: strin
       {items.map(({ icon: Icon, tone, title }, i) => (
         <div
           key={title}
-          className="flex animate-fade-up flex-col items-center rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-sm"
+          className="flex animate-fade-up flex-col items-center rounded-xl border border-slate-200/80 bg-white p-5 text-center"
           style={{ animationDelay: `${0.15 + i * 0.12}s` }}
         >
-          <span className={`flex h-16 w-16 items-center justify-center rounded-2xl ${tones[tone].tile}`} aria-hidden>
+          <span className={`flex h-16 w-16 items-center justify-center rounded-xl ${tones[tone].tile}`} aria-hidden>
             <Icon className="h-8 w-8" />
           </span>
           <h3 className="mt-4 text-balance text-3xl font-extrabold leading-snug">{title}</h3>
@@ -204,7 +204,7 @@ function Points({ items }: { items: { icon: LucideIcon; tone: Tone; title: strin
 
 function Heard({ icon: Icon, heard, changed }: { icon: LucideIcon; heard: string; changed: string }) {
   return (
-    <div className="grid animate-fade-up grid-cols-[1fr_auto_1fr] items-center gap-5 rounded-2xl border border-slate-200/80 bg-white px-7 py-4 shadow-sm">
+    <div className="grid animate-fade-up grid-cols-[1fr_auto_1fr] items-center gap-5 rounded-xl border border-slate-200/80 bg-white px-7 py-4">
       <p className="text-2xl font-semibold text-slate-600">{heard}</p>
       <span className={`flex h-12 w-12 items-center justify-center rounded-xl ${tones.brand.tile}`} aria-hidden>
         <Icon className="h-6 w-6" />
@@ -217,8 +217,8 @@ function Heard({ icon: Icon, heard, changed }: { icon: LucideIcon; heard: string
 // `bare` drops the card, for a list inside a card of its own
 function List({ heading, items, icon: Icon = Check, bare = false }: { heading: string; items: string[]; icon?: LucideIcon; bare?: boolean }) {
   return (
-    <div className={bare ? '' : 'rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm'}>
-      <h3 className="text-xl font-extrabold uppercase tracking-wider text-slate-400">{heading}</h3>
+    <div className={bare ? '' : 'rounded-xl border border-slate-200/80 bg-white p-6'}>
+      <h3 className="text-xl font-extrabold text-slate-400">{heading}</h3>
       <ul className="mt-4 space-y-3">
         {items.map((item) => (
           <li key={item} className="flex items-start gap-3 text-2xl font-bold">

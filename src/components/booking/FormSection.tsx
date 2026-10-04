@@ -26,7 +26,7 @@ export function FormSection({ id, step, title, description, required, done, chil
       <div className="mb-5 flex items-start gap-3">
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors duration-300 ${
-            done ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25' : 'bg-slate-100 text-slate-600'
+            done ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-600'
           }`}
           aria-hidden
         >

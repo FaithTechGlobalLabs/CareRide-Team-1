@@ -41,7 +41,7 @@ export function RideCelebration({ ride, onClose, onUndo }: Props) {
       ref={dialog}
       onClose={onClose}
       aria-labelledby="celebrate-title"
-      className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-3xl p-8 text-center text-ink shadow-2xl backdrop:bg-slate-900/50"
+      className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-xl p-8 text-center text-ink shadow-xl backdrop:bg-slate-900/50"
     >
       {/* Inside the dialog so it draws above the backdrop */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
@@ -64,7 +64,7 @@ export function RideCelebration({ ride, onClose, onUndo }: Props) {
           />
         ))}
       </div>
-      <span className="mx-auto mb-4 flex h-16 w-16 animate-pop items-center justify-center rounded-2xl bg-fresh-gradient text-white shadow-lg shadow-teal-600/30" aria-hidden>
+      <span className="mx-auto mb-4 flex h-16 w-16 animate-pop items-center justify-center rounded-xl bg-teal-700 text-white" aria-hidden>
         <PartyPopper className="h-8 w-8" />
       </span>
       <h2 id="celebrate-title" className="font-display text-2xl font-extrabold tracking-tight">
@@ -82,7 +82,7 @@ export function RideCelebration({ ride, onClose, onUndo }: Props) {
           dialog.current?.close()
           onUndo()
         }}
-        className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+        className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
       >
         <Undo2 className="h-4 w-4" aria-hidden />
         Not yet? Undo the drop-off

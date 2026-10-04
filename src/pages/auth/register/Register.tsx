@@ -312,7 +312,7 @@ export function Register() {
           <div
             ref={panelRef}
             key={stepId}
-            className={`rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-xl shadow-slate-900/5 backdrop-blur sm:p-10 ${
+            className={`rounded-xl border border-slate-200 bg-white p-6 sm:p-10 ${
               direction === 'forward' ? 'animate-step-forward' : 'animate-step-back'
             }`}
           >
