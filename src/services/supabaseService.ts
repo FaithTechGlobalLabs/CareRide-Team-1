@@ -1,5 +1,6 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type User as AuthUser } from '@supabase/supabase-js'
 import { MIN_PASSWORD_LENGTH } from '../constants'
+import { isNative } from '../native/platform'
 import type {
   Destination,
   Driver,
@@ -366,12 +367,14 @@ async function loadProfile(authUser: AuthUser): Promise<User> {
 
 // Create the login with the form details attached. complete_onboarding() turns them into records.
 async function signUp(email: string, password: string, details: Record<string, unknown>): Promise<Registration> {
+  // Without a site address (an app build missing it), Supabase falls back to its Site URL setting
+  const site = siteUrl()
   const { data, error } = await getSupabase().auth.signUp({
     email: email.trim(),
     password,
     options: {
       data: { careride_onboarding: details },
-      emailRedirectTo: `${window.location.origin}/signin`,
+      emailRedirectTo: site ? `${site}/signin` : undefined,
     },
   })
   if (error) throw new Error(signUpMessage(error))
@@ -408,9 +411,19 @@ function rideDetails(ride: Partial<Ride>) {
 // Tables whose changes should refresh open screens. Realtime only sends rows this person may read.
 const LIVE_TABLES = ['rides', 'ride_offers', 'organizations', 'drivers', 'destinations']
 
-// Where reset-password emails send people back to (must be allowed under Auth > URL Configuration).
+// The website that email links (confirm, reset password) open. On the website that's wherever the person is,
+// so localhost and the live site both work. The Android app's own address is https://localhost, which a
+// link can't open, so app builds use VITE_PUBLIC_SITE_URL instead. Each address must be allowed under
+// Supabase Auth > URL Configuration > Redirect URLs.
+function siteUrl(): string | undefined {
+  if (!isNative) return window.location.origin
+  return import.meta.env.VITE_PUBLIC_SITE_URL?.trim().replace(/\/+$/, '') || undefined
+}
+
 function resetPasswordUrl(): string {
-  return `${window.location.origin}/reset-password`
+  const site = siteUrl()
+  if (!site) throw new Error("This app can't send reset links yet. Reset your password on the CareRide website instead.")
+  return `${site}/reset-password`
 }
 
 function passwordMessage(error: AuthError): string {

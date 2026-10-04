@@ -2,6 +2,7 @@ import { ArrowRight, Check, Mail } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { primaryButton } from '../../../components/ui'
 import { HOME_FOR } from '../../../logic/homeFor'
+import { isNative } from '../../../native/platform'
 import type { Registration } from '../../../services/dataService'
 import type { RegisterRole } from './draft'
 
@@ -37,6 +38,7 @@ export function Done({ result, role }: { result: RegisterResult; role: RegisterR
           We sent a link to <strong className="break-all">{result.email}</strong>. Open it to confirm your email, then sign in.
           We'll finish setting up your account then.
         </p>
+        {isNative && <p className="mt-4 text-slate-600">The link opens the CareRide website. After confirming, come back here and sign in.</p>}
         <p className="mt-4 text-sm text-slate-500">Can't find it? Check your spam folder. The link works once.</p>
         <button type="button" className={`${primaryButton} mt-8 w-full`} onClick={() => navigate('/signin', { replace: true })} autoFocus>
           Go to sign in <ArrowRight className="h-5 w-5" aria-hidden />
