@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="280" viewBox="0 0 1000 280" role="img" aria-labelledby="t d">
+  <title id="t">One ride, start to finish</title>
+  <desc id="d">Staff request a ride, a verified driver accepts, the client is picked up at the front desk, and staff see them arrive.</desc>
+  <defs>
+    <linearGradient id="fill" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="890" y2="0">
+      <stop offset="0" stop-color="#3b2fd6"/>
+      <stop offset="0.5" stop-color="#1f63f0"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <style>
+      text { font-family: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; }
+      .title { font-family: Nunito, "Segoe UI", -apple-system, Helvetica, Arial, sans-serif; }
+
+      /* 9 s loop: the car reaches each stop at 0 %, 25 %, 50 %, 75 %, rests, then everything resets at 94 %. */
+      .car { transform: translateX(780px); animation: drive 9s cubic-bezier(.45,0,.55,1) infinite; }
+      @keyframes drive {
+        0%, 4% { transform: translateX(0); }
+        25%, 29% { transform: translateX(260px); }
+        50%, 54% { transform: translateX(520px); }
+        75%, 94% { transform: translateX(780px); opacity: 1; }
+        100% { transform: translateX(0); opacity: 0; }
+      }
+
+      .progress { stroke-dasharray: 780; stroke-dashoffset: 0; animation: grow 9s cubic-bezier(.45,0,.55,1) infinite; }
+      @keyframes grow {
+        0%, 4% { stroke-dashoffset: 780; }
+        25%, 29% { stroke-dashoffset: 520; }
+        50%, 54% { stroke-dashoffset: 260; }
+        75%, 94% { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: 780; }
+      }
+
+      .dot { fill: #14b8a6; stroke: #ccfbf1; }
+      .n1 .dot { animation: n1 9s infinite; } .n2 .dot { animation: n2 9s infinite; }
+      .n3 .dot { animation: n3 9s infinite; } .n4 .dot { animation: n4 9s infinite; }
+      @keyframes n1 { 0%, 2% { fill: #e2e8f0; stroke: #ffffff; } 4%, 94% { fill: #14b8a6; stroke: #ccfbf1; } 100% { fill: #e2e8f0; stroke: #ffffff; } }
+      @keyframes n2 { 0%, 24% { fill: #e2e8f0; stroke: #ffffff; } 26%, 94% { fill: #14b8a6; stroke: #ccfbf1; } 100% { fill: #e2e8f0; stroke: #ffffff; } }
+      @keyframes n3 { 0%, 49% { fill: #e2e8f0; stroke: #ffffff; } 51%, 94% { fill: #14b8a6; stroke: #ccfbf1; } 100% { fill: #e2e8f0; stroke: #ffffff; } }
+      @keyframes n4 { 0%, 74% { fill: #e2e8f0; stroke: #ffffff; } 76%, 94% { fill: #14b8a6; stroke: #ccfbf1; } 100% { fill: #e2e8f0; stroke: #ffffff; } }
+
+      .check { opacity: 1; }
+      .n1 .check { animation: c1 9s infinite; } .n2 .check { animation: c2 9s infinite; }
+      .n3 .check { animation: c3 9s infinite; } .n4 .check { animation: c4 9s infinite; }
+      @keyframes c1 { 0%, 3% { opacity: 0; } 5%, 94% { opacity: 1; } 100% { opacity: 0; } }
+      @keyframes c2 { 0%, 25% { opacity: 0; } 27%, 94% { opacity: 1; } 100% { opacity: 0; } }
+      @keyframes c3 { 0%, 50% { opacity: 0; } 52%, 94% { opacity: 1; } 100% { opacity: 0; } }
+      @keyframes c4 { 0%, 75% { opacity: 0; } 77%, 94% { opacity: 1; } 100% { opacity: 0; } }
+
+      .arrive { opacity: 0; transform-box: fill-box; transform-origin: center; animation: arrive 9s infinite; }
+      @keyframes arrive { 0%, 75% { opacity: 0; transform: scale(1); } 77% { opacity: .8; transform: scale(1); } 90%, 100% { opacity: 0; transform: scale(2.4); } }
+
+      /* The status chip in the corner follows the ride */
+      .s { opacity: 0; }
+      .s4 { opacity: 1; }
+      .s1 { animation: s1 9s infinite; } .s2 { animation: s2 9s infinite; }
+      .s3 { animation: s3 9s infinite; } .s4 { animation: s4 9s infinite; }
+      @keyframes s1 { 0%, 24% { opacity: 1; } 26%, 100% { opacity: 0; } }
+      @keyframes s2 { 0%, 24% { opacity: 0; } 26%, 49% { opacity: 1; } 51%, 100% { opacity: 0; } }
+      @keyframes s3 { 0%, 49% { opacity: 0; } 51%, 74% { opacity: 1; } 76%, 100% { opacity: 0; } }
+      @keyframes s4 { 0%, 74% { opacity: 0; } 76%, 98% { opacity: 1; } 100% { opacity: 0; } }
+
+      .live { animation: blink 1.4s ease-in-out infinite; }
+      @keyframes blink { 50% { opacity: .25; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .car, .progress, .dot, .check, .arrive, .s, .live { animation: none !important; }
+      }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="998" height="278" rx="24" fill="#fbfbfe" stroke="#e2e8f0" stroke-width="2"/>
+
+  <!-- Ride header -->
+  <circle class="live" cx="44" cy="44" r="5" fill="#14b8a6"/>
+  <text x="58" y="49" font-size="13" font-weight="700" letter-spacing="1.5" fill="#64748b">SCHEDULED · 9:15 AM</text>
+  <text class="title" x="36" y="82" font-size="22" font-weight="900" fill="#0b1557">Belkin House → St. Paul’s Hospital</text>
+
+  <g transform="translate(964 36)" font-size="13" font-weight="700" text-anchor="end">
+    <g class="s s1"><rect x="-150" y="-2" width="150" height="28" rx="14" fill="#fff3f1"/><text x="-16" y="17" fill="#bb2f1a">Finding a driver</text></g>
+    <g class="s s2"><rect x="-150" y="-2" width="150" height="28" rx="14" fill="#eef4ff"/><text x="-16" y="17" fill="#1a3fba">Driver confirmed</text></g>
+    <g class="s s3"><rect x="-150" y="-2" width="150" height="28" rx="14" fill="#f5f3ff"/><text x="-16" y="17" fill="#5b21b6">Client in the car</text></g>
+    <g class="s s4"><rect x="-150" y="-2" width="150" height="28" rx="14" fill="#ecfdf5"/><text x="-16" y="17" fill="#047857">Arrived safely</text></g>
+  </g>
+
+  <!-- Track -->
+  <line x1="110" y1="170" x2="890" y2="170" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round"/>
+  <line class="progress" x1="110" y1="170" x2="890" y2="170" stroke="url(#fill)" stroke-width="6" stroke-linecap="round"/>
+
+  <circle class="arrive" cx="890" cy="170" r="16" fill="none" stroke="#14b8a6" stroke-width="3"/>
+
+  <!-- Stops -->
+  <g font-size="15" text-anchor="middle">
+    <g class="n1" transform="translate(110 170)">
+      <circle class="dot" r="16" stroke-width="5"/>
+      <path class="check" d="M-6 0 L-2 4 L6 -5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text y="48" font-weight="800" fill="#0b1557">Staff request</text>
+      <text y="68" font-size="13" fill="#64748b">about a minute</text>
+    </g>
+    <g class="n2" transform="translate(370 170)">
+      <circle class="dot" r="16" stroke-width="5"/>
+      <path class="check" d="M-6 0 L-2 4 L6 -5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text y="48" font-weight="800" fill="#0b1557">Driver says yes</text>
+      <text y="68" font-size="13" fill="#64748b">verified volunteer</text>
+    </g>
+    <g class="n3" transform="translate(630 170)">
+      <circle class="dot" r="16" stroke-width="5"/>
+      <path class="check" d="M-6 0 L-2 4 L6 -5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text y="48" font-weight="800" fill="#0b1557">Picked up</text>
+      <text y="68" font-size="13" fill="#64748b">at the front desk</text>
+    </g>
+    <g class="n4" transform="translate(890 170)">
+      <circle class="dot" r="16" stroke-width="5"/>
+      <path class="check" d="M-6 0 L-2 4 L6 -5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text y="48" font-weight="800" fill="#0b1557">Arrived</text>
+      <text y="68" font-size="13" fill="#64748b">staff see it happen</text>
+    </g>
+  </g>
+
+  <!-- The car -->
+  <g transform="translate(110 134)">
+    <g class="car">
+      <g transform="translate(-26 -14)">
+        <path d="M6 18 L12 6 C13 3, 16 2, 19 2 L34 2 C37 2, 39 3, 41 6 L47 18 C50 18, 52 20, 52 23 L52 26 C52 28, 51 29, 49 29 L3 29 C1 29, 0 28, 0 26 L0 23 C0 20, 3 18, 6 18 Z" fill="#1f63f0"/>
+        <path d="M14 17 L18 8 C18.5 7, 19.5 6.5, 20.5 6.5 L25 6.5 L25 17 Z M28 17 L28 6.5 L33 6.5 C34 6.5, 35 7, 35.5 8 L40 17 Z" fill="#dbe7ff"/>
+        <circle cx="13" cy="29" r="5.5" fill="#0b1557"/><circle cx="13" cy="29" r="2.2" fill="#e2e8f0"/>
+        <circle cx="40" cy="29" r="5.5" fill="#0b1557"/><circle cx="40" cy="29" r="2.2" fill="#e2e8f0"/>
+        <path d="M24 -10 C 20 -13, 19 -17, 22 -19 C 24 -20.5, 26 -19, 26 -17 C 26 -19, 28 -20.5, 30 -19 C 33 -17, 32 -13, 28 -10 L26 -8.5 Z" fill="#f5573f"/>
+      </g>
+    </g>
+  </g>
+</svg>
