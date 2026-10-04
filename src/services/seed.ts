@@ -1,4 +1,5 @@
 import { ALL_DAY, hoursOn } from '../logic/requestHours'
+import { knownPlace } from '../logic/places'
 import type { Destination, Driver, House, Organization, Ride, RideOffer, User } from '../types'
 
 // Demo data. Everything here is fictional except public place names and addresses.
@@ -80,65 +81,14 @@ const partners = [
   partner('example', 'Example Shelter Society (Fictional)', '604-555-0130', 'Address to confirm', 'Vancouver', 'PENDING'),
 ]
 
-type SeedDestination = Omit<Destination, 'id' | 'orgId'> & { key: string }
-
 // Common hospitals, saved for every demo partner
-const HOSPITALS: SeedDestination[] = [
-  { key: 'stp', name: "St. Paul's Hospital", address: '1081 Burrard St, Vancouver', city: 'Vancouver' },
-  { key: 'vgh', name: 'Vancouver General Hospital', address: '899 W 12th Ave, Vancouver', city: 'Vancouver' },
-  { key: 'rh', name: 'Richmond Hospital', address: '7000 Westminster Hwy, Richmond', city: 'Richmond' },
-]
+const HOSPITALS = ['stp', 'vgh', 'rh']
 
-const THREE_BRIDGES: SeedDestination = { key: '3b', name: 'Three Bridges Community Health Centre', address: '1128 Hornby St, Vancouver', city: 'Vancouver' }
-const RAVEN_SONG: SeedDestination = { key: 'raven', name: 'Raven Song Community Health Centre', address: '2450 Ontario St, Vancouver', city: 'Vancouver' }
-const GROUNDSPRING: SeedDestination = {
-  key: 'ground',
-  name: "Groundspring Primary Care (Lily's Community Health Centre)",
-  address: '38 W Hastings St, Vancouver',
-  city: 'Vancouver',
-}
-
-// Places each house's case workers said they send clients most (see PARTNER_ORG_NOTES.md).
-// General answers like "walk-in clinics" or "Service Canada" use the office nearest the house.
-// The Genesis Program is left out: it's a recovery residence, so its address isn't listed.
-const FREQUENT_PLACES: Record<string, SeedDestination[]> = {
-  belkin: [
-    THREE_BRIDGES,
-    RAVEN_SONG,
-    GROUNDSPRING,
-    { key: 'aac', name: 'Access and Assessment Centre (VGH)', address: '803 W 12th Ave, Vancouver', city: 'Vancouver' },
-    { key: 'reach', name: 'REACH Community Health Centre', address: '1145 Commercial Dr, Vancouver', city: 'Vancouver' },
-    { key: 'gather', name: 'The Gathering Place', address: '609 Helmcken St, Vancouver', city: 'Vancouver' },
-    { key: 'vpl', name: 'Vancouver Public Library, Central Branch', address: '350 W Georgia St, Vancouver', city: 'Vancouver' },
-    { key: 'dewc', name: "Downtown Eastside Women's Centre", address: '302 Columbia St, Vancouver', city: 'Vancouver' },
-  ],
-  richmond: [
-    { key: 'msdpr', name: 'MSDPR Richmond Office', address: '220-7577 Elmbridge Way, Richmond', city: 'Richmond' },
-    { key: 'workbc', name: 'WorkBC Centre Richmond (No. 5 Road)', address: '1030-10820 No. 5 Rd, Richmond', city: 'Richmond' },
-    { key: 'icbc', name: 'ICBC Driver Licensing, Lansdowne Centre', address: '402-5300 No. 3 Rd, Richmond', city: 'Richmond' },
-    { key: 'upcc', name: 'Richmond City Centre Urgent & Primary Care', address: '110-4671 No. 3 Rd, Richmond', city: 'Richmond' },
-    { key: 'vogel', name: 'Anne Vogel Clinic', address: '210-7671 Alderbridge Way, Richmond', city: 'Richmond' },
-    { key: 'trans', name: 'VCH Transitions Program', address: '600-8100 Granville Ave, Richmond', city: 'Richmond' },
-    { key: 'brig', name: 'Brighouse Drop-In Centre', address: '7840 Granville Ave, Richmond', city: 'Richmond' },
-    { key: 'caring', name: 'Richmond Caring Place', address: '140-7000 Minoru Blvd, Richmond', city: 'Richmond' },
-    { key: 'ironlib', name: 'Ironwood Library', address: '8200-11688 Steveston Hwy, Richmond', city: 'Richmond' },
-    { key: 'thrive', name: 'Thrive Medical Clinic (walk-in)', address: '8060-11688 Steveston Hwy, Richmond', city: 'Richmond' },
-  ],
-  grace: [
-    THREE_BRIDGES,
-    RAVEN_SONG,
-    GROUNDSPRING,
-    { key: 'belkin', name: 'Belkin House', address: '555 Homer St, Vancouver', city: 'Vancouver' },
-    { key: 'carn', name: 'Carnegie Community Centre', address: '401 Main St, Vancouver', city: 'Vancouver' },
-    { key: 'kettle', name: 'The Kettle Society', address: '1725 Venables St, Vancouver', city: 'Vancouver' },
-    { key: 'junc', name: 'Vancouver Junction', address: '1669 E Broadway, Vancouver', city: 'Vancouver' },
-    { key: 'rcafe', name: 'Recovery Café', address: '620 Clark Dr, Vancouver', city: 'Vancouver' },
-    { key: 'mposs', name: 'Mission Possible', address: '648 E Hastings St, Vancouver', city: 'Vancouver' },
-    { key: 'south', name: 'South Hill Education Centre', address: '6010 Fraser St, Vancouver', city: 'Vancouver' },
-    { key: 'vcc', name: 'Vancouver Community College, Downtown', address: '250 W Pender St, Vancouver', city: 'Vancouver' },
-    { key: 'msdpr', name: 'MSDPR Vancouver Office (Dockside)', address: '180 Main St, Vancouver', city: 'Vancouver' },
-    { key: 'svc', name: 'Service Canada Centre', address: '978 Granville St, Vancouver', city: 'Vancouver' },
-  ],
+// Places each house's case workers said they send clients most (see PARTNER_ORG_NOTES.md)
+const FREQUENT_PLACES: Record<string, string[]> = {
+  belkin: ['3b', 'raven', 'ground', 'aac', 'reach', 'gather', 'vpl', 'dewc'],
+  richmond: ['msdpr-rmd', 'workbc', 'icbc', 'upcc', 'vogel', 'trans', 'brig', 'caring', 'ironlib', 'thrive'],
+  grace: ['3b', 'raven', 'ground', 'belkin', 'carn', 'kettle', 'junc', 'rcafe', 'mposs', 'south', 'vcc', 'msdpr', 'svc'],
 }
 
 const demoUsers: User[] = [
@@ -226,7 +176,10 @@ export const seed: Database = {
   ],
   destinations: partners.flatMap(({ org }) => {
     const id = org.id.slice(4)
-    return [...(FREQUENT_PLACES[id] ?? []), ...HOSPITALS].map(({ key, ...place }) => ({ ...place, id: `dest-${key}-${id}`, orgId: org.id }))
+    return [...(FREQUENT_PLACES[id] ?? []), ...HOSPITALS].map((key) => {
+      const { name, address, city } = knownPlace(key)
+      return { name, address, city, id: `dest-${key}-${id}`, orgId: org.id }
+    })
   }),
   // A few past trips so the impact counter and "most visited" list aren't empty
   rides: [

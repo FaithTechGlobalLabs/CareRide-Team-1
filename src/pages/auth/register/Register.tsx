@@ -7,6 +7,7 @@ import { splitDriverDraft, type FieldErrors } from '../../../components/driverDr
 import { ghostButton, primaryButton } from '../../../components/ui'
 import { useApp } from '../../../hooks/useApp'
 import { dataService } from '../../../services'
+import { DestinationsStep } from './DestinationsStep'
 import { Done, type RegisterResult } from './Done'
 import {
   emptyRegisterDraft,
@@ -23,7 +24,6 @@ import {
 import {
   AccountStep,
   RequestHoursStep,
-  DestinationsStep,
   DocumentsStep,
   DriverAboutStep,
   OrganizationStep,
