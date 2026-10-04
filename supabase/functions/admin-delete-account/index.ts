@@ -41,7 +41,12 @@ Deno.serve(async (req) => {
   if (!authorization) return json({ error: 'Please sign in.' }, 401)
 
   const { profileId } = (await req.json().catch(() => ({}))) as { profileId?: unknown }
-  if (typeof profileId !== 'string' || !profileId) return json({ error: 'Choose an account to delete.' }, 400)
+  if (
+    typeof profileId !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId)
+  ) {
+    return json({ error: 'Choose an account to delete.' }, 400)
+  }
 
   const url = Deno.env.get('SUPABASE_URL')
   const publishableKey = key('SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEYS')
