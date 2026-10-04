@@ -16,6 +16,10 @@ export interface NewAccount {
   email: string
   password: string
 }
+// Outcome of self sign-up. With email confirmation on, the account exists but nobody is signed in yet.
+export type Registration = { status: 'SIGNED_IN'; user: User } | { status: 'CONFIRM_EMAIL'; email: string }
+// What an admin's password reset produced. The demo sets a password to share; the real backend emails a reset link.
+export type PasswordReset = { kind: 'NEW_PASSWORD'; email: string; password: string } | { kind: 'EMAIL_SENT'; email: string }
 export type NewDriverUser = Pick<User, 'name' | 'phone'>
 export type NewDriver = Omit<Driver, 'id' | 'userId' | 'status'>
 // A partner organization's one location: where its rides start
@@ -60,30 +64,42 @@ export type RideChanges = Pick<
 // The contract every backend must follow (mock now, real backend later).
 // Screens only talk to this interface, never to storage directly.
 export interface DataService {
+  // Session. The backend decides who is signed in; screens never set it directly.
+  restoreSession(): Promise<User | undefined> // the signed-in account, if any; throws if it can't be checked
+  signIn(email: string, password: string): Promise<User> // starts a session; throws if they don't match
+  signOut(): Promise<void>
+  // Calls back when the session changes outside this screen (another tab, expiry, demo reset). Returns unsubscribe.
+  onSessionChange(listener: () => void): () => void
+  // Calls back when shared data this person can see changes elsewhere (live updates). Returns unsubscribe.
+  onDataChange(listener: () => void): () => void
+  // "Forgot password": emails a reset link if an account exists, without saying whether one does
+  requestPasswordReset(email: string): Promise<void>
+  // Sets a new password for the signed-in person, e.g. after opening a reset link
+  updatePassword(newPassword: string): Promise<void>
+
   // Accounts
   listUsers(): Promise<User[]>
-  signIn(email: string, password: string): Promise<User> // throws if they don't match
   isEmailAvailable(email: string): Promise<boolean>
 
-  // Organizations. Registering also creates the sign-in account.
-  // A partner organization gives its location too: it gets one shared account that books from there.
+  // Organizations. Registering also creates the sign-in account; everything starts PENDING.
+  // A partner organization gives its location (and any first destinations) too: it gets one shared account that books from there.
   registerOrganization(
     org: NewOrganization,
     account: NewAccount,
     location?: NewLocation,
-  ): Promise<{ org: Organization; user: User }>
+    destinations?: Pick<Destination, 'name' | 'address' | 'city'>[],
+  ): Promise<Registration>
   listOrganizations(): Promise<Organization[]>
 
   // Locations (point A): one per partner organization
   listHouses(orgId?: string): Promise<House[]>
 
-  // Drivers: self sign-up (with a login), or added by an organization (set driver.orgId)
-  registerDriver(
-    user: NewDriverUser,
-    driver: NewDriver,
-    login?: Pick<NewAccount, 'email' | 'password'>,
-  ): Promise<{ driver: Driver; user: User }>
+  // Drivers: self sign-up with a login, or added by the signed-in organization without one
+  registerDriver(user: NewDriverUser, driver: NewDriver, login: Pick<NewAccount, 'email' | 'password'>): Promise<Registration>
+  addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // the backend decides which org
   listDrivers(orgId?: string): Promise<Driver[]>
+  // Approved drivers' eligibility (seats, cities, hours, notice) for booking previews, without saying who they are
+  listDriverPool(): Promise<Driver[]>
   updateDriver(driverId: string, changes: Partial<DriverSettings>): Promise<Driver>
 
   // Platform admin
@@ -91,10 +107,9 @@ export interface DataService {
   setOrgStatus(orgId: string, status: VerificationStatus): Promise<Organization>
   setDriverStatus(driverId: string, status: VerificationStatus): Promise<Driver>
   listAccounts(): Promise<User[]> // users who can sign in
-  // Sets a new password, or a temporary one if none is given. Returns the login to share.
-  // A real backend must check the caller is a platform admin.
-  resetPassword(userId: string, newPassword?: string): Promise<{ email: string; password: string }>
-  // Removes the account and its sign-in. A driver's profile goes too, and their upcoming rides
+  // Helps someone who is locked out. Platform admins only.
+  resetPassword(userId: string, newPassword?: string): Promise<PasswordReset>
+  // Removes the account and its sign-in. A driver stops getting requests, and their upcoming rides
   // go back out to other drivers. Houses, organizations, and past rides stay.
   deleteAccount(userId: string): Promise<void>
 
@@ -103,7 +118,9 @@ export interface DataService {
   saveDestination(dest: Omit<Destination, 'id'>): Promise<Destination>
 
   // Rides: partner organization
-  requestRide(ride: NewRide): Promise<Ride> // throws if a scheduled pickup time is in the past or the ride is too big
+  // Throws if a scheduled pickup time is in the past or the ride is too big. Send the same clientRequestId
+  // when retrying one submission, so an answer lost on the network can't create a second booking.
+  requestRide(ride: NewRide, clientRequestId?: string): Promise<Ride>
   updateRide(rideId: string, changes: RideChanges): Promise<Ride> // only before pickup
   getRide(rideId: string): Promise<Ride | undefined>
   listRidesForHouse(houseId: string): Promise<Ride[]>

@@ -10,9 +10,9 @@ import { primaryButton, ROLE_TONE, tones } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
 import { EMAIL } from '../../logic/validate'
-import { dataService } from '../../services'
+import { isDemoBackend } from '../../services'
 import { DEMO_EMAIL_DOMAIN, DEMO_PASSWORD } from '../../services/seed'
-import type { User, UserRole } from '../../types'
+import type { UserRole } from '../../types'
 
 // The two kinds of people who sign in. Picking one first keeps the page about them.
 type Audience = 'PARTNER' | 'DRIVER'
@@ -97,25 +97,20 @@ export function SignIn() {
   const [audience, setAudience] = useState<Audience>(() => (params.get('as') === 'driver' ? 'DRIVER' : 'PARTNER'))
   const who = AUDIENCES[audience]
 
-  // The chosen kind of account comes first; the admin is always last
-  const demoUsers = users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN))
+  // The chosen kind of account comes first; the admin is always last. Demo accounts exist only on the local mock.
+  const demoUsers = isDemoBackend ? users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN)) : []
   const groups = ROLE_GROUPS.map((g) => ({ ...g, users: demoUsers.filter((u) => u.role === g.role) }))
     .filter((g) => g.users.length > 0)
     .sort((a, b) => Number(b.role === audience) - Number(a.role === audience))
   const hasDemo = groups.length > 0
 
-  function finish(user: User) {
-    signIn(user)
-    navigate(from ?? HOME_FOR[user.role], { replace: true })
-  }
-
   async function attempt(key: string, emailValue: string, passwordValue: string) {
     setBusy(key)
     setError(undefined)
     try {
-      const user = await dataService.signIn(emailValue, passwordValue)
+      const user = await signIn(emailValue, passwordValue)
       if (key === 'form') saveLastEmail(emailValue)
-      finish(user)
+      navigate(from ?? HOME_FOR[user.role], { replace: true })
     } catch (err) {
       setError((err as Error).message)
       setAttempts((n) => n + 1)
@@ -220,7 +215,15 @@ export function SignIn() {
           )}
         </button>
 
-        <p className="mt-4 text-center text-sm text-slate-500">Forgot your password? Ask your organization's admin to reset it.</p>
+        {isDemoBackend ? (
+          <p className="mt-4 text-center text-sm text-slate-500">Forgot your password? Ask your organization's admin to reset it.</p>
+        ) : (
+          <p className="mt-4 text-center text-sm">
+            <Link to="/forgot-password" className="font-semibold text-brand-700 hover:underline">
+              Forgot your password?
+            </Link>
+          </p>
+        )}
       </div>
 
       <p className="mt-8 border-t border-slate-100 pt-6 text-center text-sm text-slate-600">

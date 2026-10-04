@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'android']),
+  // android: generated native project. supabase/functions: Edge Functions run on Deno, not in the browser.
+  globalIgnores(['dist', 'android', 'supabase/functions']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

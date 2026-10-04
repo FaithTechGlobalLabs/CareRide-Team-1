@@ -1,13 +1,11 @@
-import { ArrowRight, Check } from 'lucide-react'
+import { ArrowRight, Check, Mail } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { primaryButton } from '../../../components/ui'
 import { HOME_FOR } from '../../../logic/homeFor'
-import type { User } from '../../../types'
+import type { Registration } from '../../../services/dataService'
 import type { RegisterRole } from './draft'
 
-export interface RegisterResult {
-  user: User
-}
+export type RegisterResult = Registration
 
 const STEP_TILES = ['bg-violet-50 text-violet-700', 'bg-teal-50 text-teal-700', 'bg-coral-50 text-coral-700']
 
@@ -26,7 +24,29 @@ const NEXT_STEPS: Record<RegisterRole, string[]> = {
 
 export function Done({ result, role }: { result: RegisterResult; role: RegisterRole }) {
   const navigate = useNavigate()
-  const firstName = result.user.name.split(' ')[0]
+
+  // The account exists, but they prove the email is theirs before anyone is signed in.
+  if (result.status === 'CONFIRM_EMAIL') {
+    return (
+      <div className="animate-fade-up rounded-3xl border border-slate-200/80 bg-white p-8 text-center shadow-xl shadow-slate-900/5 sm:p-10">
+        <div className="mx-auto mb-6 flex h-20 w-20 animate-pop items-center justify-center rounded-full bg-brand-50 text-brand-700">
+          <Mail className="h-10 w-10" aria-hidden />
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight">Check your email</h1>
+        <p className="mt-2 text-lg text-slate-600">
+          We sent a link to <strong className="break-all">{result.email}</strong>. Open it to confirm your email, then sign in.
+          We'll finish setting up your account then.
+        </p>
+        <p className="mt-4 text-sm text-slate-500">Can't find it? Check your spam folder. The link works once.</p>
+        <button type="button" className={`${primaryButton} mt-8 w-full`} onClick={() => navigate('/signin', { replace: true })} autoFocus>
+          Go to sign in <ArrowRight className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
+    )
+  }
+
+  const { user } = result
+  const firstName = user.name.split(' ')[0]
 
   return (
     <div className="animate-fade-up rounded-3xl border border-slate-200/80 bg-white p-8 text-center shadow-xl shadow-slate-900/5 sm:p-10">
@@ -34,7 +54,7 @@ export function Done({ result, role }: { result: RegisterResult; role: RegisterR
         <Check className="h-10 w-10 text-white" strokeWidth={3} aria-hidden />
       </div>
       <h1 className="text-3xl font-extrabold tracking-tight">You're all set, {firstName}!</h1>
-      <p className="mt-2 text-lg text-slate-600">Your account is created and you're signed in.</p>
+      <p className="mt-2 text-lg text-slate-600">Your account is created and you're signed in. It's waiting for review by the CareRide team.</p>
 
       <ol className="mt-8 space-y-3 text-left">
         {NEXT_STEPS[role].map((text, i) => (
@@ -50,7 +70,7 @@ export function Done({ result, role }: { result: RegisterResult; role: RegisterR
       <button
         type="button"
         className={`${primaryButton} mt-8 w-full`}
-        onClick={() => navigate(HOME_FOR[result.user.role], { replace: true })}
+        onClick={() => navigate(HOME_FOR[user.role], { replace: true })}
         autoFocus
       >
         Go to my dashboard <ArrowRight className="h-5 w-5" aria-hidden />

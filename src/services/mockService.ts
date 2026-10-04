@@ -1,8 +1,9 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
+import { DEMO_FRAME_USER } from '../context/demoFrame'
 import { maxPassengers } from '../logic/capacity'
 import { UNDO_FINISH_MINUTES, canWaitForDrivers, driversToAsk, isExpired, noDriverDeadline, offerExpiry } from '../logic/dispatch'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
-import type { DataService, RideChanges } from './dataService'
+import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
 import { seed, type Database } from './seed'
 
 // Hackathon backend: keeps everything in the browser's localStorage.
@@ -11,7 +12,7 @@ import { seed, type Database } from './seed'
 // v5: houses and their organizations became single partner organizations.
 // Older saves can't be mapped onto that, so they start again from the seed.
 // v6: real house addresses and each house's frequent destinations.
-const STORAGE_KEY = 'careride-db-v6'
+export const STORAGE_KEY = 'careride-db-v6'
 const OLD_STORAGE_KEYS = ['careride-db-v5', 'careride-db-v4', 'careride-db-v3']
 
 // Still waiting for a driver: these expire if nobody accepts in time
@@ -36,8 +37,46 @@ function save(db: Database): void {
   }
 }
 
+// The demo session is saved in localStorage so people stay signed in when they come back
+// to the site or reopen the phone app. Each tab also keeps its own copy in
+// sessionStorage, which wins on reload, so two tabs signed in as different people
+// (e.g. a house and a driver) don't swap accounts. A new tab picks up whoever
+// signed in last. A /demo frame is always the person the deck asked for.
+const SESSION_KEY = 'careride-session-v3'
+const sessionListeners = new Set<() => void>()
+
+function readSession(): string {
+  if (DEMO_FRAME_USER) return DEMO_FRAME_USER
+  try {
+    const tabSession = sessionStorage.getItem(SESSION_KEY)
+    if (tabSession) return tabSession
+    const saved = localStorage.getItem(SESSION_KEY) ?? ''
+    if (saved) sessionStorage.setItem(SESSION_KEY, saved)
+    return saved
+  } catch {
+    return ''
+  }
+}
+
+function writeSession(userId: string): void {
+  if (DEMO_FRAME_USER) return
+  try {
+    if (userId) {
+      sessionStorage.setItem(SESSION_KEY, userId)
+      localStorage.setItem(SESSION_KEY, userId)
+    } else {
+      sessionStorage.removeItem(SESSION_KEY)
+      localStorage.removeItem(SESSION_KEY)
+    }
+  } catch {
+    // Ignore: the session just won't survive a reload
+  }
+}
+
 export function resetDemoData(): void {
   save(structuredClone(seed))
+  // The signed-in account may not exist in the fresh data
+  sessionListeners.forEach((listener) => listener())
 }
 
 function newId(prefix: string): string {
@@ -203,25 +242,78 @@ function tempPassword(): string {
   return `ride-${Math.floor(1000 + Math.random() * 9000)}`
 }
 
+function addDriver(
+  db: Database,
+  newUser: NewDriverUser,
+  driver: NewDriver,
+  login?: Pick<NewAccount, 'email' | 'password'>,
+): { driver: Driver; user: User } {
+  const user: User = {
+    ...newUser,
+    id: newId('u'),
+    email: login ? normalizeEmail(login.email) : undefined,
+    role: 'DRIVER',
+    orgId: driver.orgId,
+  }
+  if (login) addLogin(db, user.id, login.email, login.password)
+  const created: Driver = { ...driver, id: newId('d'), userId: user.id, status: 'PENDING' }
+  db.users.push(user)
+  db.drivers.push(created)
+  return { driver: created, user }
+}
+
 function driverIdsForOrg(db: Database, orgId: string): string[] {
   return db.drivers.filter((d) => d.orgId === orgId).map((d) => d.id)
 }
 
 export const mockService: DataService = {
-  listUsers: () => transact((db) => db.users),
+  restoreSession: () =>
+    transact((db) => {
+      const userId = readSession()
+      const user = db.users.find((u) => u.id === userId)
+      if (userId && !user) writeSession('') // account was removed or the demo was reset
+      return user
+    }),
 
   signIn: (email, password) =>
     transact((db) => {
       const login = db.credentials.find((c) => c.email === normalizeEmail(email))
       const user = login && login.password === password && db.users.find((u) => u.id === login.userId)
       if (!user) throw new Error("That email and password don't match. Please try again.")
+      writeSession(user.id)
       return user
     }),
+
+  signOut: () => {
+    writeSession('')
+    return Promise.resolve()
+  },
+
+  onSessionChange: (listener) => {
+    sessionListeners.add(listener)
+    return () => sessionListeners.delete(listener)
+  },
+
+  // Tabs share localStorage, so the app's storage listener and polling already cover this.
+  onDataChange: () => () => {},
+
+  // The demo can't send email; the sign-in page tells people to ask their admin instead.
+  requestPasswordReset: () => Promise.reject(new Error("Ask your organization's admin to reset your password.")),
+
+  updatePassword: (newPassword) =>
+    transact((db) => {
+      if (newPassword.length < MIN_PASSWORD_LENGTH) throw new Error(`Use at least ${MIN_PASSWORD_LENGTH} characters.`)
+      const login = db.credentials.find((c) => c.userId === readSession())
+      if (!login) throw new Error('Please sign in first.')
+      login.password = newPassword
+    }),
+
+  listUsers: () => transact((db) => db.users),
 
   isEmailAvailable: (email) =>
     transact((db) => !db.credentials.some((c) => c.email === normalizeEmail(email))),
 
-  registerOrganization: (org, account, location) =>
+  registerOrganization: (org, account, location, destinations = []) =>
     transact((db) => {
       const created: Organization = { ...org, id: newId('org'), status: 'PENDING' }
       const isPartner = org.type === 'PARTNER_ORG'
@@ -242,7 +334,8 @@ export const mockService: DataService = {
       db.organizations.push(created)
       if (house) db.houses.push(house)
       db.users.push(user)
-      return { org: created, user }
+      for (const dest of destinations) db.destinations.push({ ...dest, id: newId('dest'), orgId: created.id })
+      return { status: 'SIGNED_IN', user }
     }),
 
   listOrganizations: () => transact((db) => db.organizations),
@@ -251,21 +344,16 @@ export const mockService: DataService = {
 
   registerDriver: (newUser, driver, login) =>
     transact((db) => {
-      const user: User = {
-        ...newUser,
-        id: newId('u'),
-        email: login ? normalizeEmail(login.email) : undefined,
-        role: 'DRIVER',
-        orgId: driver.orgId,
-      }
-      if (login) addLogin(db, user.id, login.email, login.password)
-      const created: Driver = { ...driver, id: newId('d'), userId: user.id, status: 'PENDING' }
-      db.users.push(user)
-      db.drivers.push(created)
-      return { driver: created, user }
+      const { user } = addDriver(db, newUser, driver, login)
+      return { status: 'SIGNED_IN', user }
     }),
 
+  // The mock trusts driver.orgId; a real backend uses the signed-in organization instead.
+  addOrgDriver: (newUser, driver) => transact((db) => addDriver(db, newUser, driver).driver),
+
   listDrivers: (orgId) => transact((db) => db.drivers.filter((d) => !orgId || d.orgId === orgId)),
+
+  listDriverPool: () => transact((db) => db.drivers.filter((d) => d.status === 'APPROVED')),
 
   updateDriver: (driverId, changes) =>
     transact((db) => {
@@ -287,7 +375,7 @@ export const mockService: DataService = {
       const password = newPassword ?? tempPassword()
       if (password.length < MIN_PASSWORD_LENGTH) throw new Error(`Use at least ${MIN_PASSWORD_LENGTH} characters.`)
       login.password = password
-      return { email: login.email, password }
+      return { kind: 'NEW_PASSWORD', email: login.email, password }
     }),
 
   deleteAccount: (userId) =>
