@@ -76,7 +76,7 @@ export const LIVE_STEPS: LiveStep[] = [
   {
     short: 'On the way',
     title: 'The driver is on the way',
-    caption: 'Staff can see when they’ll arrive.',
+    caption: 'Staff can see whether they’ll be on time.',
     moment: 'onTheWay',
     staff: 'ride',
     staffFocus: 'Trip progress',
@@ -84,7 +84,7 @@ export const LIVE_STEPS: LiveStep[] = [
     action: {
       by: 'driver',
       taps: [
-        { label: '10 min', click: true },
+        { label: 'On time', click: true },
         { label: 'I’m on my way', then: 'onTheWay' },
       ],
     },
@@ -199,7 +199,7 @@ async function build(): Promise<LiveDemo> {
   snap('accepted')
 
   const at = (fn: () => Promise<unknown>) => (mayaOffer ? fn() : Promise.resolve())
-  await at(() => dataService.markOnTheWay(ride.id, 10))
+  await at(() => dataService.markOnTheWay(ride.id, { minutes: 0, relativeTo: 'pickup' }))
   snap('onTheWay')
   await at(() => dataService.markDriverArrived(ride.id))
   snap('arrived')

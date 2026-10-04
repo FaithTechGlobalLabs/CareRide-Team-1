@@ -1,7 +1,10 @@
 import { Check, Clock, MapPin, Navigation, Phone, Route, TriangleAlert, Undo2, UserCheck, Flag } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { driverEtaPhrase, PICKUP_OFFSET_MINUTES, pickupOffsetLabel, TRAVEL_ETA_MINUTES } from '../logic/driverEta'
 import { formatTime } from '../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../logic/maps'
+import { describePickup } from '../logic/pickupTime'
+import { useNow } from '../hooks/useNow'
 import { useDriverLocation } from '../hooks/useMaps'
 import { ExternalLink } from '../native/ExternalLink'
 import { dataService } from '../services'
@@ -10,8 +13,6 @@ import { ConfirmButton } from './ConfirmButton'
 import { DriveTimes } from './maps/DriveTimes'
 import { RouteMap } from './maps/RouteMap'
 import { dangerButton, ghostButton, primaryButton, secondaryButton } from './ui'
-
-const ETA_CHOICES = [5, 10, 15, 20, 30]
 
 // 0 head to pickup, 1 arrive, 2 client gets in, 3 drop off
 function stepIndex(ride: Ride): number {
@@ -48,6 +49,60 @@ function DirectionsLink({ href, children }: { href: string; children: ReactNode 
       <span className="sr-only">(opens Google Maps)</span>
     </ExternalLink>
   )
+}
+
+function ArrivalHint({
+  ride,
+  eta,
+  setEta,
+}: {
+  ride: Ride
+  eta: number | undefined
+  setEta: (minutes: number | undefined) => void
+}) {
+  const scheduled = ride.type === 'SCHEDULED'
+  const now = useNow()
+  const choices = scheduled ? PICKUP_OFFSET_MINUTES : TRAVEL_ETA_MINUTES
+  return (
+    <fieldset>
+      <legend className="text-sm font-semibold text-ink">
+        {scheduled ? (
+          <>
+            Scheduled for {describePickup(Date.parse(ride.pickupTime), now)}
+            <span className="font-normal text-slate-500"> (optional, the front desk sees it)</span>
+          </>
+        ) : (
+          <>
+            How far away are you? <span className="font-normal text-slate-500">(optional, the front desk sees it)</span>
+          </>
+        )}
+      </legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {choices.map((m) => {
+          const on = eta === m
+          return (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setEta(on ? undefined : m)}
+              className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:scale-95 ${
+                on ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
+              }`}
+            >
+              {scheduled ? pickupOffsetLabel(m) : `${m} min`}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+function onTheWayLabel(ride: Ride, eta: number | undefined): string {
+  if (eta === undefined) return "I'm on my way"
+  if (ride.type === 'SCHEDULED') return `I'm on my way · ${pickupOffsetLabel(eta).toLowerCase()}`
+  return `I'm on my way · ${eta} min`
 }
 
 // The trip, one step at a time. Finished steps show a tick and when they happened;
@@ -126,44 +181,29 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, 
       done: ride.driverOnTheWayAt && (
         <DoneChip>
           Left at {formatTime(ride.driverOnTheWayAt)}
-          {ride.driverEta ? ` · expected at pickup by ${formatTime(ride.driverEta)}` : ''}
+          {ride.driverEta ? ` · ${driverEtaPhrase(ride)}` : ''}
         </DoneChip>
       ),
       body: (
         <div className="space-y-4">
           {pickupBlock}
           {pickupKnown && <DirectionsLink href={directionsTo(ride.pickupAddress)}>Directions to pickup</DirectionsLink>}
-          <fieldset>
-            <legend className="text-sm font-semibold text-ink">
-              How far away are you? <span className="font-normal text-slate-500">(optional, the front desk sees it)</span>
-            </legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {ETA_CHOICES.map((m) => {
-                const on = eta === m
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setEta(on ? undefined : m)}
-                    className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:scale-95 ${
-                      on ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
-                    }`}
-                  >
-                    {m} min
-                  </button>
-                )
-              })}
-            </div>
-          </fieldset>
+          <ArrivalHint ride={ride} eta={eta} setEta={setEta} />
           <button
             type="button"
             className={`${primaryButton} w-full`}
             disabled={busy}
-            onClick={() => run(() => dataService.markOnTheWay(ride.id, eta))}
+            onClick={() =>
+              run(() =>
+                dataService.markOnTheWay(
+                  ride.id,
+                  eta === undefined ? undefined : { minutes: eta, relativeTo: ride.type === 'SCHEDULED' ? 'pickup' : 'now' },
+                ),
+              )
+            }
           >
             <Route className="h-5 w-5" aria-hidden />
-            I'm on my way{eta ? ` · ${eta} min` : ''}
+            {onTheWayLabel(ride, eta)}
           </button>
         </div>
       ),
