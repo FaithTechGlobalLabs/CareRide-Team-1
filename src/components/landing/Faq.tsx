@@ -3,8 +3,8 @@ import { Plus } from 'lucide-react'
 // Answers repeat what the rest of the app already promises. Keep them in step with it.
 const QUESTIONS: { q: string; a: string }[] = [
   {
-    q: 'Is CareRide really free?',
-    a: "Yes. Rides are free for the people being driven, and joining is free for organizations and drivers. When there's a choice, free options always come before paid ones.",
+    q: 'Does CareRide cost anything?',
+    a: 'No. CareRide is a not-for-profit platform built for social good. Rides are free for the people being driven, and joining is free for organizations and drivers.',
   },
   {
     q: 'Does the rider need a phone or an app?',
