@@ -34,7 +34,7 @@ const PROFILE_COLUMNS = 'id, name, phone, role, org_id, house_id'
 const ORG_COLUMNS = 'id, name, type, contact_name, contact_phone, booking_notifications, status'
 const HOUSE_COLUMNS = 'id, org_id, name, address, city, phone'
 const DRIVER_COLUMNS =
-  'id, profile_id, org_id, background, vehicle, wheelchair_accessible, seats, service_cities, request_hours, min_notice_hours, status'
+  'id, profile_id, org_id, background, vehicle, wheelchair_accessible, seats, service_cities, request_hours, status'
 const DESTINATION_COLUMNS = 'id, org_id, name, address, city, notes'
 const RIDE_COLUMNS = [
   'id, type, org_id, house_id, requested_by, rider_names, passengers, pickup_address, pickup_instructions',
@@ -83,7 +83,6 @@ interface DriverRow {
   seats: number
   service_cities: string[]
   request_hours: RequestHours
-  min_notice_hours: number
   status: VerificationStatus
 }
 
@@ -191,7 +190,6 @@ function toDriver(row: DriverRow): Driver {
     seats: row.seats,
     serviceCities: row.service_cities,
     requestHours: row.request_hours,
-    minNoticeHours: row.min_notice_hours,
     status: row.status,
   }
 }
@@ -258,7 +256,6 @@ const DRIVER_SETTING_COLUMNS: Record<keyof DriverSettings, string> = {
   wheelchairAccessible: 'wheelchair_accessible',
   serviceCities: 'service_cities',
   requestHours: 'request_hours',
-  minNoticeHours: 'min_notice_hours',
 }
 
 // What the database functions read when building a driver (see private.insert_driver).
@@ -272,7 +269,6 @@ function driverDetails(user: NewDriverUser, driver: NewDriver) {
     wheelchairAccessible: driver.wheelchairAccessible,
     serviceCities: driver.serviceCities,
     requestHours: driver.requestHours,
-    minNoticeHours: driver.minNoticeHours,
   }
 }
 
@@ -570,7 +566,7 @@ export const supabaseService: DataService = {
   async listDriverPool() {
     const { data, error } = await getSupabase().rpc('booking_driver_pool')
     if (error) fail(error, "We couldn't check which drivers are available.")
-    type PoolRow = Pick<DriverRow, 'seats' | 'wheelchair_accessible' | 'service_cities' | 'request_hours' | 'min_notice_hours'>
+    type PoolRow = Pick<DriverRow, 'seats' | 'wheelchair_accessible' | 'service_cities' | 'request_hours'>
     return (data as PoolRow[]).map((row, i) =>
       toDriver({ ...row, id: `pool-${i}`, profile_id: '', org_id: null, background: 'INDEPENDENT', vehicle: '', status: 'APPROVED' }),
     )

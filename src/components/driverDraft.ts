@@ -14,7 +14,6 @@ export const emptyDriverDraft: DriverDraft = {
   seats: 3,
   serviceCities: [],
   requestHours: DEFAULT_REQUEST_HOURS,
-  minNoticeHours: 1,
 }
 
 export function splitDriverDraft({ name, phone, ...driver }: DriverDraft): [NewDriverUser, NewDriver] {

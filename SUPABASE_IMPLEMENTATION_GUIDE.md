@@ -112,7 +112,7 @@ Visual components such as `AuthShell`, `ConfirmButton`, form layout elements, an
 - Drivers may register themselves or be added by an organization.
 - An organization can add a driver who has no login account.
 - Transport-provider accounts still work even though their sign-up path is hidden.
-- Drivers receive offers based on vehicle capacity, city, wheelchair access, request hours, and notice requirements.
+- Drivers receive offers based on vehicle capacity, city, wheelchair access, and request hours.
 - Usually eligible drivers are asked together; a preferred driver is asked alone first.
 - Return rides are separate bookings linked to an outbound ride.
 - Editing important details can require driver reconfirmation.
@@ -222,7 +222,7 @@ For example, a `ride_offers` row links to one ride and one driver. An offer shou
 | `organizations` | ID, name, type, contact name/phone, notification contact, approval status | Parent of locations, destinations, and organization drivers |
 | `houses` | ID, organization ID, name, address, city, phone | One pickup location per partner organization initially |
 | `profiles` | ID, optional Auth user ID, name, phone, role, organization ID, house ID, active flag | App identity; may exist before an Auth login is created |
-| `drivers` | ID, profile ID, organization ID, background, vehicle, seats, accessibility, cities, request hours, notice, approval status | Driver identity and vehicle eligibility |
+| `drivers` | ID, profile ID, organization ID, background, vehicle, seats, accessibility, cities, request hours, approval status | Driver identity and vehicle eligibility |
 | `destinations` | ID, organization ID, name, address, city, notes | Organization-owned saved destinations |
 | `rides` | ID, organization/location/requester IDs, route, passenger information, needs, timing, status, driver links, lifecycle timestamps | Current and historical bookings |
 | `ride_offers` | ID, ride ID, driver ID, status, sent/expiry/response times, optional dispatch revision | Driver requests and responses |
@@ -533,11 +533,10 @@ Operation names are proposed; they do not currently exist in the repository.
 3. Require enough passenger seats.
 4. Require wheelchair access when requested.
 5. Check request hours at the time of dispatch, not as a guarantee of availability at pickup.
-6. Apply notice requirements to scheduled trips; on-demand behavior currently skips that notice check.
-7. Exclude drivers already asked in the applicable round, with the current exception for offers marked `TAKEN`.
-8. Apply the current busy-driver rule for on-demand rides, including the outbound-trip exception on returns.
-9. Ask an eligible preferred driver alone first, then ask other eligible drivers if needed.
-10. Preserve `SEARCHING`, `OFFERED`, and `NEEDS_ATTENTION` distinctions.
+6. Exclude drivers already asked in the applicable round, with the current exception for offers marked `TAKEN`.
+7. Apply the current busy-driver rule for on-demand rides, including the outbound-trip exception on returns.
+8. Ask an eligible preferred driver alone first, then ask other eligible drivers if needed.
+9. Preserve `SEARCHING`, `OFFERED`, and `NEEDS_ATTENTION` distinctions.
 
 The frontend may retain match hints for usability, but the backend must recalculate before committing. If previews need broad private data, replace them with a limited backend preview result.
 

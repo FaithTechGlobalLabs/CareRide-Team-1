@@ -113,19 +113,3 @@ export function nextRequestStart(hours: RequestHours, now = new Date()): Date | 
   return undefined
 }
 
-// Was the ride booked far enough ahead for this driver?
-export function meetsNotice(minNoticeHours: number, when: Date, now = new Date()): boolean {
-  return when.getTime() - now.getTime() >= minNoticeHours * 3_600_000
-}
-
-export const NOTICE_OPTIONS = [
-  { hours: 1, text: '1 hour' },
-  { hours: 2, text: '2 hours' },
-  { hours: 4, text: '4 hours' },
-  { hours: 24, text: '1 day' },
-  { hours: 48, text: '2 days' },
-]
-
-export function formatNotice(hours: number): string {
-  return NOTICE_OPTIONS.find((o) => o.hours === hours)?.text ?? (hours < 24 ? `${hours} hours` : `${hours / 24} days`)
-}

@@ -684,7 +684,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 is cancelled so you can make other plans.
               </p>
             )}
-            <InlineMatchHint match={match} checks={['schedule', 'notice']} />
+            <InlineMatchHint match={match} checks={['schedule']} />
           </FormSection>
 
           <FormSection id="who" step={3} title="Who's riding" required done={whoDone}>

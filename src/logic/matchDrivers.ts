@@ -1,9 +1,9 @@
 import type { Driver, House, Ride } from '../types'
-import { isWithinRequestHours, meetsNotice } from './requestHours'
+import { isWithinRequestHours } from './requestHours'
 
 // Returns drivers who can take this ride, best match first.
 // Eligible: approved, serves the house's city, has enough
-// spaces, fits wheelchair needs, wants requests right now, and got enough notice.
+// spaces, fits wheelchair needs, and wants requests right now.
 // Request hours are about when we notify the driver; they decide if the pickup time suits them.
 export function matchDrivers(
   ride: Ride,
@@ -13,8 +13,6 @@ export function matchDrivers(
   now = new Date(),
   checkRequestHours = true, // false: also count drivers whose request hours open later
 ): Driver[] {
-  const pickup = new Date(ride.pickupTime)
-
   const eligible = drivers.filter(
     (d) =>
       d.status === 'APPROVED' &&
@@ -22,8 +20,7 @@ export function matchDrivers(
       (!house || d.serviceCities.includes(house.city)) &&
       d.seats >= ride.passengers &&
       (!ride.needsWheelchair || d.wheelchairAccessible) &&
-      (!checkRequestHours || isWithinRequestHours(d.requestHours, now)) &&
-      (ride.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)),
+      (!checkRequestHours || isWithinRequestHours(d.requestHours, now)),
   )
 
   // Ask the preferred driver first (e.g. the outbound driver for a return trip).

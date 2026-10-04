@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import {
   ALL_DAY,
   describeRequestHours,
-  formatNotice,
   formatTime,
   isWithinRequestHours,
   nextRequestStart,
@@ -72,9 +71,6 @@ export function RequestStatusCard({ driver, showSettingsLink = false }: Props) {
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-white/20 pt-4 text-sm text-white/90">
         <span>
           <span className="font-semibold">Hours:</span> {describeRequestHours(driver.requestHours)}
-        </span>
-        <span>
-          <span className="font-semibold">Notice:</span> {formatNotice(driver.minNoticeHours)}
         </span>
         {showSettingsLink && (
           <Link

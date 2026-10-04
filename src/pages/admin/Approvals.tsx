@@ -5,7 +5,7 @@ import { StatTile } from '../../components/dashboard/StatTile'
 import { card, primaryButton, secondaryButton } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { formatDollars } from '../../logic/estimateFare'
-import { describeRequestHours, formatNotice } from '../../logic/requestHours'
+import { describeRequestHours } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
@@ -108,7 +108,7 @@ export function Approvals() {
                 {driver.wheelchairAccessible && ' · Wheelchair accessible'} · {driver.serviceCities.join(', ')}
               </p>
               <p className="text-slate-600">
-                Requests: {describeRequestHours(driver.requestHours)} · {formatNotice(driver.minNoticeHours)} notice
+                Requests: {describeRequestHours(driver.requestHours)}
               </p>
               <p className="text-slate-600">
                 Licence: {driver.licenceFile ?? 'missing'}
