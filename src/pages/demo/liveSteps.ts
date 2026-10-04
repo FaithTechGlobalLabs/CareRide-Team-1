@@ -3,6 +3,7 @@
 // Every moment is made with the real data service, so the screens always match the current app.
 import { ridePath } from '../../logic/homeFor'
 import { toLocalInput } from '../../logic/pickupTime'
+import { ALL_DAY, hoursOn, isWithinRequestHours } from '../../logic/requestHours'
 import { estimateFare } from '../../logic/estimateFare'
 import { dataService } from '../../services'
 import { STORAGE_KEY, resetDemoData } from '../../services/mockService'
@@ -29,8 +30,9 @@ export interface LiveStep {
   caption: string
   moment: Moment // which saved database snapshot to show
   staff: 'request' | 'ride' // the booking form, or the ride's page
-  staffScroll?: string // text of a heading to scroll the staff frame to
-  driverScroll: string // id of the section to scroll the driver's phone to
+  // The part of each screen this step is about, scrolled to when the screen settles. No staff focus: the top of the page.
+  staffFocus?: string // text of a heading on the staff page
+  driverFocus: string // id of a heading on the driver's phone
   action?: { by: 'staff' | 'driver'; taps: Tap[] } // played when stepping forward; the other screen catches up after
 }
 
@@ -41,7 +43,7 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'They ask staff at Belkin House.',
     moment: 'start',
     staff: 'request',
-    driverScroll: 'requests-title',
+    driverFocus: 'requests-title',
   },
   {
     short: 'Booked',
@@ -49,7 +51,7 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'It goes to drivers who can take it.',
     moment: 'booked',
     staff: 'ride',
-    driverScroll: 'requests-title',
+    driverFocus: 'requests-title',
     action: { by: 'staff', taps: [{ label: 'Request ride', then: 'booked' }] },
   },
   {
@@ -58,7 +60,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Staff are told right away.',
     moment: 'accepted',
     staff: 'ride',
-    driverScroll: 'current-title',
+    staffFocus: 'Trip progress',
+    driverFocus: 'current-title',
     action: { by: 'driver', taps: [{ label: 'Accept', then: 'accepted' }] },
   },
   {
@@ -67,8 +70,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Printed in large type: when, where to wait, and who’s coming.',
     moment: 'accepted',
     staff: 'ride',
-    staffScroll: 'Your ride',
-    driverScroll: 'current-title',
+    staffFocus: 'Your ride',
+    driverFocus: 'current-title',
   },
   {
     short: 'On the way',
@@ -76,7 +79,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Staff can see when they’ll arrive.',
     moment: 'onTheWay',
     staff: 'ride',
-    driverScroll: 'current-title',
+    staffFocus: 'Trip progress',
+    driverFocus: 'current-title',
     action: {
       by: 'driver',
       taps: [
@@ -91,7 +95,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Staff see each step as it happens.',
     moment: 'pickedUp',
     staff: 'ride',
-    driverScroll: 'current-title',
+    staffFocus: 'Trip progress',
+    driverFocus: 'current-title',
     action: {
       by: 'driver',
       taps: [
@@ -106,7 +111,8 @@ export const LIVE_STEPS: LiveStep[] = [
     caption: 'Staff know the resident has arrived.',
     moment: 'droppedOff',
     staff: 'ride',
-    driverScroll: 'past-title',
+    staffFocus: 'Trip progress',
+    driverFocus: 'past-title',
     action: { by: 'driver', taps: [{ label: 'Client dropped off', then: 'droppedOff' }] },
   },
 ]
@@ -144,6 +150,12 @@ async function build(): Promise<LiveDemo> {
   const snapshots: LiveDemo['snapshots'] = {}
   const snap = (moment: Moment) => (snapshots[moment] = localStorage.getItem(STORAGE_KEY) ?? '')
   const problems: string[] = []
+
+  // The demo driver only takes requests in the day and evening. Shown outside those hours, open them all day,
+  // so the story plays at any time (the demo data resets with every build)
+  const maya = (await dataService.listDrivers()).find((d) => d.id === MAYA)
+  if (maya && !isWithinRequestHours(maya.requestHours, new Date()))
+    await dataService.updateDriver(MAYA, { requestHours: hoursOn([0, 1, 2, 3, 4, 5, 6], ALL_DAY) })
 
   const [house] = await dataService.listHouses('org-belkin')
   const dest = (await dataService.listDestinations('org-belkin')).find((d) => d.id === 'dest-stp-belkin')!

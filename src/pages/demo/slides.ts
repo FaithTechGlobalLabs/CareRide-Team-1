@@ -35,7 +35,7 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'Potential impact',
     notes: [
       'If this works, getting to care no longer depends on owning a phone.',
-      'Staff get time back, and organizations can share drivers instead of each finding their own.',
+      'Case workers get time back, and organizations can share drivers instead of each finding their own.',
       'Belkin House is the start. Richmond House and Grace Mansion are next, and any organization can join.',
     ],
   },
@@ -43,7 +43,7 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     id: 'approach',
     label: 'Approach',
     kicker: 'Our approach',
-    notes: ['We built a working MVP, not a prototype.', 'Our angle: staff book on the resident’s behalf, so the resident needs nothing new.'],
+    notes: ['We built a working MVP, not a prototype.', 'Our angle: case workers book on the resident’s behalf, so the resident needs nothing new.'],
   },
   {
     id: 'live',

@@ -76,22 +76,22 @@ export function Pitch({ slide, step, onStep }: Props) {
           <Points
             items={[
               { icon: HandHeart, tone: 'coral', title: 'People get to appointments, no phone needed' },
-              { icon: Clock, tone: 'brand', title: 'Staff spend less time finding rides' },
+              { icon: Clock, tone: 'brand', title: 'Case workers spend less time finding rides' },
               { icon: Share2, tone: 'violet', title: 'Organizations share drivers, instead of each going it alone' },
             ]}
           />
         </Slide>
       )}
       {id === 'approach' && (
-        <Slide title="A working MVP, built around staff.">
+        <Slide title="A working MVP, built around case workers.">
           <div className="grid gap-5 sm:grid-cols-2">
             <List
               heading="Our angle"
-              items={['Staff book rides for residents', 'Residents need no phone, app, or account', 'Drivers accept or decline each request']}
+              items={['Case workers book rides for residents', 'Residents need no phone, app, or account', 'Drivers accept or decline each request']}
             />
             <List
               heading="Our assumptions"
-              items={['Staff are the right people to book', 'Drivers will sign up to give rides', 'A printed slip is enough for the resident']}
+              items={['Case workers are the right people to book', 'Drivers will sign up to give rides', 'A printed slip is enough for the resident']}
             />
           </div>
         </Slide>
