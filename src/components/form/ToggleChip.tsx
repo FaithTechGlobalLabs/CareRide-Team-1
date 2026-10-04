@@ -10,7 +10,7 @@ interface Props {
 export function ToggleChip({ checked, onChange, children }: Props) {
   return (
     <label
-      className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 ${
+      className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
         checked
           ? 'border-brand-600 bg-brand-600 text-white'
           : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'

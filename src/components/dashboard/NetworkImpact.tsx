@@ -16,20 +16,20 @@ export function NetworkImpact() {
   ]
 
   return (
-    <section aria-labelledby="network-title" className="rounded-2xl bg-gradient-to-r from-brand-50 via-white to-violet-50 p-5 ring-1 ring-slate-200/70">
-      <h2 id="network-title" className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-brand-700">
+    <section aria-labelledby="network-title" className="border-t border-slate-200 pt-5">
+      <h2 id="network-title" className="flex items-center gap-2 font-sans text-sm font-bold text-slate-600">
         <HeartHandshake className="h-4 w-4" aria-hidden />
         Across CareRide
       </h2>
       <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         {stats.map((s) => (
           <li key={s.label} className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 ring-1 ring-slate-200" aria-hidden>
+            <span className="shrink-0 text-brand-600" aria-hidden>
               {s.icon}
             </span>
             <span className="min-w-0 leading-tight">
               <span className="block font-display text-lg font-black tabular-nums text-ink">{s.value}</span>
-              <span className="block text-xs text-slate-500">{s.label}</span>
+              <span className="block text-sm text-slate-500">{s.label}</span>
             </span>
           </li>
         ))}

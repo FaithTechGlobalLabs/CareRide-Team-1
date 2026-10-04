@@ -50,7 +50,7 @@ export function RideAcceptedNotice() {
           <div
             key={ride.id}
             role="status"
-            className="overflow-hidden rounded-2xl border border-brand-200 bg-white shadow-2xl shadow-brand-900/20"
+            className="overflow-hidden rounded-xl border border-brand-200 bg-white shadow-xl"
           >
             <div className="flex items-start gap-3 p-5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600" aria-hidden>

@@ -488,7 +488,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
       <div className="mb-6 animate-fade-up">
         <Link
           to={backTo}
-          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {source && mode !== 'again' ? 'Back to the ride' : 'Back to your rides'}
@@ -523,7 +523,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
             done={whereDone}
           >
             {isReturn ? (
-              <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 p-4 font-semibold text-ink">
+              <div className="flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 p-4 font-semibold text-ink">
                 <span className="inline-flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-brand-600" aria-hidden />
                   {from.name}
@@ -538,7 +538,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
               <div className="space-y-5">
                 <div>
                   <span className={label}>Pick up from</span>
-                  <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral-50 text-coral-600" aria-hidden>
                       <HouseIcon className="h-5 w-5" />
                     </span>
@@ -656,9 +656,9 @@ function RideForm({ mode, source, house, user }: FormProps) {
                           type="button"
                           aria-pressed={on}
                           onClick={() => update({ pickupTime: p.value })}
-                          className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-95 ${
+                          className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:scale-95 ${
                             on
-                              ? 'border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/20'
+                              ? 'border-brand-600 bg-brand-600 text-white'
                               : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
                           }`}
                         >
@@ -678,7 +678,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 />
               </div>
             ) : (
-              <p key="now" className="mt-4 flex animate-fade-up items-start gap-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
+              <p key="now" className="mt-4 flex animate-fade-up items-start gap-2 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
                 <Zap className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
                 Drivers taking requests right now are asked as soon as you send this. If nobody accepts within {ON_DEMAND_GIVE_UP_MINUTES} minutes, the request
                 is cancelled so you can make other plans.
@@ -814,7 +814,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
       </div>
 
       {/* On phones the send button stays in reach at the bottom of the screen. */}
-      <div className="native-bottom-chrome no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg lg:hidden">
+      <div className="native-bottom-chrome no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3  lg:hidden">
         <div className="mx-auto max-w-5xl space-y-2">
           {problemNote}
           <div className="flex items-center gap-3">

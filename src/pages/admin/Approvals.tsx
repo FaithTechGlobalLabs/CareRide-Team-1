@@ -61,7 +61,7 @@ export function Approvals() {
             note={waiting ? waitingNote(pending?.orgs.length ?? 0, pending?.drivers.length ?? 0) : 'All caught up'}
             alert={waiting > 0}
           />
-          <StatTile label="Organizations" value={impact?.organizations ?? '–'} icon={<Building2 className="h-5 w-5" />} tone="violet" note="Approved partners" />
+          <StatTile label="Organizations" value={impact?.organizations ?? '–'} icon={<Building2 className="h-5 w-5" />} tone="ink" note="Approved partners" />
           <StatTile label="Verified drivers" value={impact?.verifiedDrivers ?? '–'} icon={<BadgeCheck className="h-5 w-5" />} tone="teal" note="Ready to get requests" />
           <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `$${impact.moneySaved.toLocaleString()} in fares saved` : undefined} />
         </div>

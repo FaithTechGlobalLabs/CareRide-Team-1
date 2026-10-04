@@ -22,7 +22,7 @@ const FALLBACK_WINDOW: TimeWindow = { from: '09:00', to: '17:00' }
 const TIMES = [...Array.from({ length: 48 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`), ALL_DAY.to]
 
 const timeSelect =
-  'min-h-11 w-full appearance-none rounded-xl border border-slate-300 bg-white pl-3 pr-8 text-base text-ink transition focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-100 aria-[invalid=true]:border-red-500'
+  'min-h-11 w-full appearance-none rounded-xl border border-slate-300 bg-white pl-3 pr-8 text-base text-ink transition focus:border-teal-500 focus:outline-none focus:ring-[3px] focus:ring-teal-100 aria-[invalid=true]:border-red-500'
 
 function TimeSelect({ label, value, invalid, onChange }: { label: string; value: string; invalid: boolean; onChange: (time: string) => void }) {
   // Keep times saved before half-hour steps, e.g. 8:45, selectable
@@ -78,7 +78,7 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
                 type="button"
                 aria-pressed={active}
                 onClick={() => onChange(p.hours.map((w) => w && { ...w }))}
-                className={`rounded-xl border-2 px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 ${
+                className={`rounded-xl border-2 px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   active ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white hover:border-teal-300'
                 }`}
               >
@@ -109,7 +109,7 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
           <span />
         </div>
 
-        <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
+        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
           {DAY_ORDER.map((day) => {
             const w = value[day]
             const name = DAY_NAMES[day]
@@ -123,8 +123,8 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
                   aria-checked={Boolean(w)}
                   aria-label={`Requests on ${name}`}
                   onClick={() => setDay(day, w ? null : { ...lastWindow() })}
-                  className={`inline-flex min-h-11 w-[5.5rem] items-center justify-center gap-1 rounded-full border-2 font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 ${
-                    w ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-teal-300'
+                  className={`inline-flex min-h-11 w-[5.5rem] items-center justify-center gap-1 rounded-full border-2 font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                    w ? 'border-teal-600 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-teal-300'
                   }`}
                 >
                   {w && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
@@ -137,7 +137,7 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
                   ))}
                   {span && span.width > 0 && (
                     <span
-                      className="absolute inset-y-0 rounded-lg bg-fresh-gradient shadow-sm"
+                      className="absolute inset-y-0 rounded-lg bg-teal-600 shadow-sm"
                       style={{ left: `${span.start * 100}%`, width: `${span.width * 100}%` }}
                     />
                   )}
@@ -166,7 +166,7 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
                       onClick={() => copyToAll(w)}
                       title="Use these hours on every day that's on"
                       aria-label={`Use ${name}'s hours on every day that's on`}
-                      className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 sm:inline-flex transition hover:bg-teal-50 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+                      className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 sm:inline-flex transition hover:bg-teal-50 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                     >
                       <Copy className="h-4 w-4" aria-hidden />
                     </button>
@@ -205,8 +205,8 @@ export function NoticePicker({ value, onChange }: NoticeProps) {
           return (
             <label
               key={o.hours}
-              className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-teal-100 ${
-                checked ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
+              className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
+                checked ? 'border-teal-600 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
               }`}
             >
               <input type="radio" name="notice" className="sr-only" checked={checked} onChange={() => onChange(o.hours)} />

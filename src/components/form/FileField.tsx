@@ -19,7 +19,7 @@ export function FileField({ id, label, hint, error, fileName, onChange }: Props)
       <span className={labelClass}>{label}</span>
       <label
         htmlFor={id}
-        className={`flex min-h-16 cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed px-4 py-3 transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 ${
+        className={`flex min-h-16 cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed px-4 py-3 transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
           error
             ? 'border-red-400 bg-red-50/40'
             : fileName

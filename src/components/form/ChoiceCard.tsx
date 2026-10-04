@@ -3,11 +3,11 @@ import type { ReactNode } from 'react'
 import { tones, type Tone } from '../ui'
 
 const CHECKED: Record<Tone, { card: string; solid: string }> = {
-  brand: { card: 'border-brand-500 bg-brand-50/60 shadow-brand-500/10', solid: 'border-brand-600 bg-brand-600' },
-  violet: { card: 'border-violet-500 bg-violet-50/60 shadow-violet-500/10', solid: 'border-violet-600 bg-violet-600' },
-  coral: { card: 'border-coral-500 bg-coral-50/60 shadow-coral-500/10', solid: 'border-coral-600 bg-coral-600' },
-  teal: { card: 'border-teal-500 bg-teal-50/60 shadow-teal-500/10', solid: 'border-teal-600 bg-teal-600' },
-  amber: { card: 'border-amber-500 bg-amber-50/60 shadow-amber-500/10', solid: 'border-amber-600 bg-amber-600' },
+  brand: { card: 'border-brand-600 bg-brand-50/60', solid: 'border-brand-600 bg-brand-600' },
+  ink: { card: 'border-ink bg-slate-50', solid: 'border-ink bg-ink' },
+  coral: { card: 'border-coral-600 bg-coral-50/60', solid: 'border-coral-600 bg-coral-600' },
+  teal: { card: 'border-teal-600 bg-teal-50/60', solid: 'border-teal-600 bg-teal-600' },
+  amber: { card: 'border-amber-500 bg-sun-50', solid: 'border-amber-600 bg-amber-600' },
 }
 
 interface Props {
@@ -27,9 +27,9 @@ export function ChoiceCard({ name, value, checked, onChange, title, description,
   const on = CHECKED[tone]
   return (
     <label
-      className={`group relative flex cursor-pointer items-start gap-4 rounded-2xl border-2 bg-white p-5 transition duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 ${
+      className={`group relative flex cursor-pointer items-start gap-4 rounded-xl border-2 bg-white p-5 transition duration-150 has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
         checked
-          ? `${on.card} shadow-md`
+          ? on.card
           : `border-slate-200 hover:bg-slate-50/60 ${tones[tone].border}`
       }`}
     >
@@ -46,7 +46,7 @@ export function ChoiceCard({ name, value, checked, onChange, title, description,
       {icon && (
         <span
           className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${
-            checked ? `${tones[tone].solid} shadow-md ${tones[tone].glow}` : tones[tone].tile
+            checked ? tones[tone].solid : tones[tone].tile
           }`}
           aria-hidden
         >

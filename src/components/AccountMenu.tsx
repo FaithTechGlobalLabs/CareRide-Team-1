@@ -45,7 +45,7 @@ export function AccountMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
       >
         <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${tone.solid}`} aria-hidden>
           {initials(currentUser.name)}
@@ -57,7 +57,7 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-2 w-64 origin-top-right animate-fade-up rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10 [animation-duration:200ms]"
+          className="absolute right-0 z-40 mt-2 w-64 origin-top-right animate-fade-up rounded-xl border border-slate-200 bg-white p-2 [animation-duration:200ms]"
         >
           <div className="px-3 py-2">
             <p className="truncate font-semibold text-ink">{currentUser.name}</p>

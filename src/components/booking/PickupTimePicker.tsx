@@ -44,10 +44,10 @@ const time = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: 
 
 function dayClass(on: boolean, isTodayCell: boolean, past: boolean): string {
   const base =
-    'relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:pointer-events-none'
+    'relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none'
   if (past) return `${base} text-slate-300`
-  if (on && isTodayCell) return `${base} bg-brand-600 text-white shadow-md shadow-brand-600/25 ring-2 ring-coral-300`
-  if (on) return `${base} bg-brand-600 text-white shadow-md shadow-brand-600/25`
+  if (on && isTodayCell) return `${base} bg-brand-600 text-white ring-2 ring-coral-300`
+  if (on) return `${base} bg-brand-600 text-white`
   if (isTodayCell) return `${base} bg-coral-50 text-coral-800 ring-2 ring-coral-400`
   return `${base} text-ink hover:bg-slate-100`
 }
@@ -113,7 +113,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
         <RequiredMark />
       </span>
       <div
-        className={`grid overflow-hidden rounded-2xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
+        className={`grid overflow-hidden rounded-xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
           error ? 'border-red-500' : 'border-slate-200'
         }`}
       >
@@ -124,7 +124,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(-1)}
               disabled={!canGoBack}
               aria-label="Previous month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -136,7 +136,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(1)}
               disabled={!canGoForward}
               aria-label="Next month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -192,7 +192,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                 aria-label={`Current time, ${time(now)}`}
               >
                 <span>{time(now)}</span>
-                <span className="text-xs font-bold uppercase tracking-wide">Now</span>
+                <span className="text-xs font-bold">Now</span>
               </div>
             </div>
           )}
@@ -206,8 +206,8 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   type="button"
                   aria-pressed={on}
                   onClick={() => onChange(toLocalInput(slot))}
-                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
-                    on ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
+                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                    on ? 'bg-brand-600 text-white' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
                   }`}
                 >
                   {time(slot)}

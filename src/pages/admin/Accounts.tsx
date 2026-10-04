@@ -46,7 +46,7 @@ function EmailResetPanel({ user, onClose }: { user: User; onClose: () => void })
 
   if (sentTo) {
     return (
-      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5" role="status">
+      <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-5" role="status">
         <p className="flex items-center gap-2 font-bold text-ink">
           <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden /> Reset email sent
         </p>
@@ -62,7 +62,7 @@ function EmailResetPanel({ user, onClose }: { user: User; onClose: () => void })
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5" noValidate>
+    <form onSubmit={submit} className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-slate-50/60 p-5" noValidate>
       <p className="text-slate-700">
         We'll email <strong className="break-all">{user.email}</strong> a link to choose a new password. Their current password
         keeps working until they do.
@@ -117,7 +117,7 @@ function DemoResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean
 
   if (result) {
     return (
-      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5" role="status">
+      <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-5" role="status">
         <p className="mb-3 flex items-center gap-2 font-bold text-ink">
           <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden /> Password reset for {user.name}
         </p>
@@ -149,7 +149,7 @@ function DemoResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean
 
   const fieldName = `reset-mode-${user.id}`
   return (
-    <form onSubmit={submit} className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5" noValidate>
+    <form onSubmit={submit} className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-slate-50/60 p-5" noValidate>
       <fieldset className="space-y-3">
         <legend className="mb-2 font-semibold text-ink">New password for {user.name}</legend>
         <ChoiceCard
@@ -238,7 +238,7 @@ function DeletePanel({ user, onDeleted, onClose }: { user: User; onDeleted: () =
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 space-y-4 rounded-2xl border border-red-200 bg-red-50/60 p-5">
+    <form onSubmit={submit} className="mt-4 space-y-4 rounded-xl border border-red-200 bg-red-50/60 p-5">
       <div>
         <p className="font-bold text-red-900">Delete {user.name}'s account?</p>
         <p className="mt-1 text-slate-700">{DELETE_EFFECTS[user.role]}</p>
@@ -320,7 +320,7 @@ export function Accounts() {
       </div>
 
       {deleted && (
-        <div role="status" className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div role="status" className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <p className="flex items-center gap-2 font-semibold text-emerald-900">
             <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden /> Deleted {deleted}'s account.
           </p>

@@ -80,7 +80,7 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, 
       type="button"
       onClick={undo}
       disabled={busy}
-      className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-50"
+      className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50"
     >
       <Undo2 className="h-4 w-4" aria-hidden />
       Undo
@@ -146,7 +146,7 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, 
                     type="button"
                     aria-pressed={on}
                     onClick={() => setEta(on ? undefined : m)}
-                    className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-95 ${
+                    className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 active:scale-95 ${
                       on ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
                     }`}
                   >
@@ -272,7 +272,7 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, 
               )}
               <span
                 className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                  done ? 'bg-emerald-600 text-white' : now ? 'bg-brand-600 text-white ring-4 ring-brand-100' : 'bg-slate-100 text-slate-400'
+                  done ? 'bg-emerald-700 text-white' : now ? 'bg-brand-600 text-white ring-[3px] ring-brand-100' : 'bg-slate-100 text-slate-400'
                 }`}
                 aria-hidden
               >

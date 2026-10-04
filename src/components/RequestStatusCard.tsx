@@ -34,7 +34,7 @@ export function RequestStatusCard({ driver, showSettingsLink = false }: Props) {
   const state = inHours ? 'live' : 'off'
   const look = {
     live: {
-      box: 'bg-fresh-gradient text-white shadow-lg shadow-teal-600/20',
+      box: 'bg-teal-700 text-white',
       icon: <BellRing className="h-6 w-6" aria-hidden />,
       title: 'Taking requests now',
       detail: window && window.to === ALL_DAY.to && window.from === ALL_DAY.from ? 'All day today.' : window ? `Until ${formatTime(window.to)} today.` : '',
@@ -42,19 +42,19 @@ export function RequestStatusCard({ driver, showSettingsLink = false }: Props) {
       sub: 'text-teal-50',
     },
     off: {
-      box: 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/20',
+      box: 'bg-ink text-white',
       icon: <MoonStar className="h-6 w-6" aria-hidden />,
       title: 'Outside your request hours',
       detail: next ? `We'll start sending requests ${describeStart(next, now)}.` : 'Add some request hours to start getting requests.',
       heading: 'text-white',
-      sub: 'text-indigo-100',
+      sub: 'text-brand-100',
     },
   }[state]
 
   return (
-    <section className={`overflow-hidden rounded-2xl p-5 sm:p-6 ${look.box}`} aria-live="polite">
+    <section className={`overflow-hidden rounded-xl p-5 sm:p-6 ${look.box}`} aria-live="polite">
       <div className="flex items-start gap-4">
-        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20">
+        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20">
           {look.icon}
           {state === 'live' && (
             <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3" aria-hidden>
@@ -79,7 +79,7 @@ export function RequestStatusCard({ driver, showSettingsLink = false }: Props) {
         {showSettingsLink && (
           <Link
             to="/driver/settings"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-semibold text-white underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-semibold text-white underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white"
           >
             <Settings2 className="h-4 w-4" aria-hidden /> Change settings
           </Link>

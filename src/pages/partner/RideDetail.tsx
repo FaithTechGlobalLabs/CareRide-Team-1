@@ -104,7 +104,7 @@ function RideTimeline({ ride }: { ride: Ride }) {
               )}
               <span
                 className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                  done ? 'bg-emerald-600 text-white' : next ? 'bg-white ring-2 ring-brand-500' : 'bg-slate-100'
+                  done ? 'bg-emerald-700 text-white' : next ? 'bg-white ring-2 ring-brand-500' : 'bg-slate-100'
                 }`}
                 aria-hidden
               >
@@ -199,7 +199,7 @@ export function RideDetail() {
       <div className="no-print">
         <Link
           to="/partner"
-          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to your rides
@@ -208,7 +208,7 @@ export function RideDetail() {
       </div>
 
       {justSaved && (
-        <section role="status" className="no-print animate-fade-up rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900">
+        <section role="status" className="no-print animate-fade-up rounded-xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900">
           <div className="flex items-start gap-3">
             <CircleCheckBig className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" aria-hidden />
             <div className="flex-1">
@@ -276,7 +276,7 @@ export function RideDetail() {
       </div>
 
       {ride.status === 'ACCEPTED' && ride.driverArrivedAt && (
-        <section className="no-print rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
+        <section className="no-print rounded-xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
           <h2 className="text-2xl font-bold">Driver is here ({formatTime(ride.driverArrivedAt)})</h2>
           <p className="mt-1">Send the client down to meet them.</p>
         </section>
@@ -290,8 +290,8 @@ export function RideDetail() {
       )}
 
       {driver && HAS_DRIVER.includes(ride.status) && !ride.driverArrivedAt && (
-        <section className="no-print flex items-start gap-4 rounded-2xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-600" aria-hidden>
+        <section className="no-print flex items-start gap-4 rounded-xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600" aria-hidden>
             <CarFront className="h-6 w-6" />
           </span>
           <div>
@@ -314,7 +314,7 @@ export function RideDetail() {
       )}
 
       {ride.reconfirmDriverId && waiting && (
-        <p role="status" className="no-print flex items-start gap-2 rounded-2xl bg-amber-50 p-4 text-amber-900 ring-1 ring-amber-200">
+        <p role="status" className="no-print flex items-start gap-2 rounded-xl bg-amber-50 p-4 text-amber-900 ring-1 ring-amber-200">
           <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
           You changed the ride, so we've asked {driverName(ride.reconfirmDriverId)} to confirm the new details first.
         </p>
@@ -501,7 +501,7 @@ export function RideDetail() {
 
       <dialog
         ref={transitDialog}
-        className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl p-6 text-ink shadow-2xl backdrop:bg-slate-900/50"
+        className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl p-6 text-ink shadow-xl backdrop:bg-slate-900/50"
       >
         <h2 className="text-xl font-bold">Send them on transit?</h2>
         <p className="mt-2 text-slate-700">
