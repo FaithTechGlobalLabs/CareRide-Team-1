@@ -62,14 +62,18 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'The story',
     notes: [
       'We each worked with a coding agent, and brought the work together through pull requests.',
-      'Who did what, then a success and a challenge from the weekend.',
+      'Who did what over the weekend.',
     ],
   },
   {
     id: 'lessons',
     label: 'Lessons',
     kicker: 'We ran a user testing session',
-    notes: ['We tested an early version with Belkin House on Saturday.', 'These were the biggest lessons, and what we changed because of them.'],
+    notes: [
+      'We tested an early version with Belkin House on Saturday.',
+      'These were the biggest lessons, and what we changed because of them.',
+      'When no driver is free, staff can now print a bus slip instead of being left with nothing to do.',
+    ],
   },
   {
     id: 'thanks',
@@ -77,7 +81,7 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'Thank you',
     notes: [
       'Payoff: the resident from the start got to St. Paul’s, and didn’t need a phone to do it.',
-      'Since the weekend: a real database, drive times and directions for drivers, and an Android app in testing.',
+      'Since user testing: a real database, drive times and route previews for drivers, live hospital wait times when booking, and an Android app in testing.',
       'Next: pilot with the houses we talked to, start with professional drivers, and send ride updates by text. Say what you’d like from the audience, then take questions.',
     ],
   },

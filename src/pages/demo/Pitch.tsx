@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Bot,
+  Bus,
   CalendarCheck,
   Check,
   ClipboardList,
@@ -30,13 +31,22 @@ interface Props {
 // How we worked, and who did what, from the repo's pull requests
 const PROCESS = [
   { icon: Bot, text: 'Each of us worked with a coding agent' },
-  { icon: GitPullRequest, text: 'Over 40 pull requests in two days' },
+  { icon: GitPullRequest, text: 'Over 80 pull requests in two days' },
   { icon: Users, text: 'User testing shaped the last round' },
 ]
 const TEAM = [
-  { name: 'Adi', did: ['Product strategy and app setup', 'Sign-in, booking, and dashboard design', 'Driver and admin workflows'] },
-  { name: 'Noah', did: ['Simpler booking form', 'Step-by-step trips for drivers', 'Cloudflare deploy and Android app'] },
-  { name: 'Gilbert', did: ['Day-to-day flows and partner notes', 'Calling, late-ride alerts, and safeguards', 'User testing changes and this demo'] },
+  {
+    name: 'Adi',
+    did: ['Product strategy and app setup', 'Sign-in, booking, and dashboard design', 'Driver and admin workflows', 'The shared database and home page'],
+  },
+  {
+    name: 'Noah',
+    did: ['Simpler booking form', 'Step-by-step trips for drivers', 'Route previews, hospital wait times, and bus slips', 'Cloudflare deploy and Android app'],
+  },
+  {
+    name: 'Gilbert',
+    did: ['Day-to-day flows and partner notes', 'Calling, late-ride alerts, and safeguards', 'Real addresses and drive times for drivers', 'User testing changes and this demo'],
+  },
 ]
 
 export const REPO_URL = 'github.com/FaithTechGlobalLabs/CareRide-Team-1'
@@ -118,10 +128,6 @@ export function Pitch({ slide, step, onStep }: Props) {
               </div>
             ))}
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Placeholder>A success</Placeholder>
-            <Placeholder>A challenge</Placeholder>
-          </div>
         </Slide>
       )}
       {id === 'lessons' && (
@@ -135,6 +141,7 @@ export function Pitch({ slide, step, onStep }: Props) {
             <Heard icon={ClipboardList} heard="Drivers lost track of rides they accepted" changed="Requests and trips on one screen" />
             <Heard icon={CalendarCheck} heard="Staff wanted to know a driver was available before booking" changed="The booking form shows matching drivers" />
             <Heard icon={Undo2} heard="People needed to fix mistakes and change plans" changed="Rides can be edited, and steps undone" />
+            <Heard icon={Bus} heard="When no driver was free, there was nothing to do next" changed="A printable bus slip, with any transfers" />
           </div>
         </Slide>
       )}
@@ -142,7 +149,11 @@ export function Pitch({ slide, step, onStep }: Props) {
         <Slide title="Getting to care, without needing a phone.">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-              <List bare heading="Built since the weekend" items={['A real, shared database', 'Drive times and directions for drivers', 'An Android app, in testing']} />
+              <List
+                bare
+                heading="Built since user testing"
+                items={['A shared database and an Android app', 'Drive times and route previews for drivers', 'Live hospital wait times when booking']}
+              />
               <div className="mt-6">
                 <List
                   bare
@@ -229,14 +240,5 @@ function List({ heading, items, icon: Icon = Check, bare = false }: { heading: s
         ))}
       </ul>
     </div>
-  )
-}
-
-// Something only the team can fill in. Deliberately loud, so it can't be presented by accident.
-function Placeholder({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <p className={`rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 px-4 py-2 text-center text-lg font-semibold text-amber-800 ${className}`}>
-      To add: {children}
-    </p>
   )
 }
