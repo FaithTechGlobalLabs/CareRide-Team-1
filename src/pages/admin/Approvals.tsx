@@ -110,10 +110,13 @@ export function Approvals() {
               <p className="text-slate-600">
                 Requests: {describeRequestHours(driver.requestHours)}
               </p>
-              <p className="text-slate-600">
-                Licence: {driver.licenceFile ?? 'missing'}
-                {driver.proofFile && ` · Professional proof: ${driver.proofFile}`}
-              </p>
+              {(driver.licenceFile || driver.proofFile) && (
+                <p className="text-slate-600">
+                  {driver.licenceFile && `Licence: ${driver.licenceFile}`}
+                  {driver.licenceFile && driver.proofFile && ' · '}
+                  {driver.proofFile && `Professional proof: ${driver.proofFile}`}
+                </p>
+              )}
               <div className="mt-3 grid grid-cols-2 gap-3 sm:flex">
                 <button type="button" className={primaryButton} onClick={() => setDriver(driver.id, 'APPROVED')}>
                   Approve

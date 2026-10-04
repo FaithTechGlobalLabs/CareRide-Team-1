@@ -66,7 +66,7 @@ export function DriverHome() {
         <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-amber-50 text-amber-600" aria-hidden>
           <Hourglass className="h-7 w-7" />
         </span>
-        <h1 className="text-2xl font-extrabold tracking-tight">We're checking your documents</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight">We're reviewing your account</h1>
         <p className="mt-2 text-slate-600">
           The CareRide team reviews every driver before the first ride. Once you're approved, requests that fit your settings will show up right here.
         </p>

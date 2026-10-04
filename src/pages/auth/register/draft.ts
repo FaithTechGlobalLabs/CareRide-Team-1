@@ -1,4 +1,4 @@
-import { emptyDriverDraft, needsProfessionalProof, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
+import { emptyDriverDraft, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
 import { MIN_PASSWORD_LENGTH } from '../../../constants'
 import { requestHoursError } from '../../../logic/requestHours'
 import { EMAIL, MAX_NAME, isPhone, tooLong } from '../../../logic/validate'
@@ -53,6 +53,8 @@ export function validateRole(d: RegisterDraft): FieldErrors {
 export function validateAccount(d: RegisterDraft): FieldErrors {
   return compact({
     name: d.name.trim() ? tooLong(d.name, MAX_NAME) : 'Please enter your name.',
+    phone:
+      d.role === 'DRIVER' ? (isPhone(d.driver.phone) ? undefined : 'Please enter a 10-digit phone number.') : undefined,
     email: !d.email.trim()
       ? 'Please enter your email.'
       : EMAIL.test(d.email.trim())
@@ -74,10 +76,6 @@ export function validateOrganization(d: RegisterDraft): FieldErrors {
   })
 }
 
-export function validateDriverAbout(d: RegisterDraft): FieldErrors {
-  return compact({ phone: isPhone(d.driver.phone) ? undefined : 'Please enter a 10-digit phone number.' })
-}
-
 export function validateVehicle(d: RegisterDraft): FieldErrors {
   return compact({
     vehicle: d.driver.vehicle.trim() ? tooLong(d.driver.vehicle, MAX_NAME) : 'Describe your vehicle so clients can find it.',
@@ -87,12 +85,4 @@ export function validateVehicle(d: RegisterDraft): FieldErrors {
 
 export function validateRequestHours(d: RegisterDraft): FieldErrors {
   return compact({ requestHours: requestHoursError(d.driver.requestHours) })
-}
-
-export function validateDocuments(d: RegisterDraft): FieldErrors {
-  return compact({
-    licenceFile: d.driver.licenceFile ? undefined : 'Please add your driver’s licence.',
-    proofFile:
-      needsProfessionalProof(d.driver) && !d.driver.proofFile ? 'Please add proof you drive professionally.' : undefined,
-  })
 }
