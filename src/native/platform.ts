@@ -112,3 +112,40 @@ export async function listenToKeyboard(): Promise<() => void> {
     void goneDid.remove()
   }
 }
+
+export async function openExternal(url: string): Promise<void> {
+  if (!isNative) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  const { AppLauncher } = await import('@capacitor/app-launcher')
+  try {
+    await AppLauncher.openUrl({ url })
+  } catch {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
+export async function copyText(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    if (!isNative) throw new Error('Copy is not available.')
+    const { Clipboard } = await import('@capacitor/clipboard')
+    await Clipboard.write({ string: text })
+  }
+}
+
+interface CarePrintPlugin {
+  print(): Promise<void>
+}
+
+export async function printPage(): Promise<void> {
+  if (!isNative) {
+    window.print()
+    return
+  }
+  const { registerPlugin } = await import('@capacitor/core')
+  const CarePrint = registerPlugin<CarePrintPlugin>('CarePrint')
+  await CarePrint.print()
+}
