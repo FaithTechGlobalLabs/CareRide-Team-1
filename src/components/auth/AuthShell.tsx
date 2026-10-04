@@ -12,7 +12,7 @@ const WIDTHS = { md: 'max-w-md', xl: 'max-w-2xl', wide: 'max-w-5xl' }
 // Calm, focused frame for signing in and registering.
 export function AuthShell({ aside, children, width = 'md' }: Props) {
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
       <div className="relative z-20 h-1 bg-spectrum" aria-hidden />
       <div className="pointer-events-none absolute -left-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-brand-200/40 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -bottom-48 -right-40 h-[30rem] w-[30rem] rounded-full bg-aqua-300/30 blur-3xl" aria-hidden />
