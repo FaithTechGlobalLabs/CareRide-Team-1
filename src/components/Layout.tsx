@@ -1,10 +1,10 @@
-import { CalendarPlus, Clock } from 'lucide-react'
+import { AlertTriangle, CalendarPlus, Clock, RefreshCw } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { useCurrentDriver, useCurrentOrg } from '../hooks/useCurrent'
 import { useData } from '../hooks/useData'
 import { HOME_FOR } from '../logic/homeFor'
-import { dataService } from '../services'
+import { dataService, isDemoBackend } from '../services'
 import { resetDemoData } from '../services/mockService'
 import type { UserRole } from '../types'
 import { AccountMenu } from './AccountMenu'
@@ -13,7 +13,7 @@ import { IncomingRequests } from './IncomingRequests'
 import { Logo } from './Logo'
 import { RideAcceptedNotice } from './RideAcceptedNotice'
 import { RideCancelledNotice } from './RideCancelledNotice'
-import { dangerButton, primaryButton, ROLE_TONE, type Tone } from './ui'
+import { dangerButton, primaryButton, ROLE_TONE, secondaryButton, type Tone } from './ui'
 
 type NavLinkItem = { to: string; label: string }
 
@@ -86,7 +86,7 @@ function Badge({ count, active }: { count?: number; active: boolean }) {
 
 // The signed-in app: header with navigation and account menu.
 export function Layout() {
-  const { currentUser, refresh } = useApp()
+  const { currentUser, refresh, loadError } = useApp()
   const org = useCurrentOrg()
   const driver = useCurrentDriver()
   const { pathname } = useLocation()
@@ -173,6 +173,19 @@ export function Layout() {
       )}
 
       <main className={`mx-auto max-w-5xl px-4 py-8 sm:px-6 ${showRequest ? 'pb-24 sm:pb-8' : ''}`}>
+        {loadError && (
+          <div role="alert" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-start gap-2 text-sm text-amber-900">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                <strong>Some information didn't load.</strong> {loadError}
+              </span>
+            </p>
+            <button type="button" className={`${secondaryButton} min-h-10 shrink-0 px-4 text-sm`} onClick={refresh}>
+              <RefreshCw className="h-4 w-4" aria-hidden /> Try again
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
 
@@ -195,21 +208,23 @@ export function Layout() {
       </div>
 
       <footer className="no-print mx-auto max-w-5xl px-4 pb-10 text-sm text-slate-500 sm:px-6">
-        Demo data only. CareRide is an independent platform.{' '}
-        {/* Used before every demo, so it stays visible, but asks first: it wipes everything. */}
-        <ConfirmButton
-          className="inline-flex min-h-12 items-center font-semibold underline-offset-2 hover:underline"
-          title="Reset all demo data?"
-          body="Every ride, account and change goes back to the starting demo."
-          confirmLabel="Yes, reset everything"
-          confirmClassName={dangerButton}
-          onConfirm={() => {
-            resetDemoData()
-            refresh()
-          }}
-        >
-          Reset demo data
-        </ConfirmButton>
+        {isDemoBackend ? 'Demo data only. ' : ''}CareRide is an independent platform.{' '}
+        {/* Used before every demo, so it stays visible, but asks first: it wipes everything. Local mock only. */}
+        {isDemoBackend && (
+          <ConfirmButton
+            className="inline-flex min-h-12 items-center font-semibold underline-offset-2 hover:underline"
+            title="Reset all demo data?"
+            body="Every ride, account and change goes back to the starting demo."
+            confirmLabel="Yes, reset everything"
+            confirmClassName={dangerButton}
+            onConfirm={() => {
+              resetDemoData()
+              refresh()
+            }}
+          >
+            Reset demo data
+          </ConfirmButton>
+        )}
       </footer>
     </div>
   )

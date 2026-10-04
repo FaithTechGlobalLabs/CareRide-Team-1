@@ -1,4 +1,4 @@
-import { Building2, Bus, Car, CheckCircle2, Eye, KeyRound, Search, ShieldCheck, Trash2, X } from 'lucide-react'
+import { Building2, Bus, Car, CheckCircle2, Eye, KeyRound, Mail, Search, ShieldCheck, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { CopyButton } from '../../components/CopyButton'
@@ -11,7 +11,8 @@ import { MIN_PASSWORD_LENGTH } from '../../constants'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { HOME_FOR, ROLE_LABELS } from '../../logic/homeFor'
-import { dataService } from '../../services'
+import { dataService, isDemoBackend } from '../../services'
+import type { PasswordReset } from '../../services/dataService'
 import type { User, UserRole } from '../../types'
 import { AccountDetails } from './AccountDetails'
 
@@ -24,13 +25,77 @@ const ROLE_ICONS: Record<UserRole, ReactNode> = {
 
 const ROLE_ORDER: UserRole[] = ['PARTNER', 'DRIVER', 'ORG_ADMIN', 'PLATFORM_ADMIN']
 
-// Lets a platform admin set a new password for someone who is locked out.
+// Real accounts: email the person a reset link. Nobody but them ever sees or chooses the new password.
+function EmailResetPanel({ user, onClose }: { user: User; onClose: () => void }) {
+  const [error, setError] = useState<string>()
+  const [busy, setBusy] = useState(false)
+  const [sentTo, setSentTo] = useState<string>()
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    setError(undefined)
+    try {
+      setSentTo((await dataService.resetPassword(user.id)).email)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (sentTo) {
+    return (
+      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5" role="status">
+        <p className="flex items-center gap-2 font-bold text-ink">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden /> Reset email sent
+        </p>
+        <p className="mt-2 text-slate-700">
+          We sent a link to <strong className="break-all">{sentTo}</strong>. It lets {user.name} choose a new password. Ask them
+          to check their spam folder if it doesn't arrive.
+        </p>
+        <button type="button" className={`${secondaryButton} mt-4 w-full sm:w-auto`} onClick={onClose}>
+          Done
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-5" noValidate>
+      <p className="text-slate-700">
+        We'll email <strong className="break-all">{user.email}</strong> a link to choose a new password. Their current password
+        keeps working until they do.
+      </p>
+      {error && (
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+          {error}
+        </p>
+      )}
+      <div className="grid gap-3 sm:flex sm:flex-wrap">
+        <button type="submit" className={primaryButton} disabled={busy} autoFocus>
+          <Mail className="h-5 w-5" aria-hidden /> {busy ? 'Sending…' : 'Send reset email'}
+        </button>
+        <button type="button" className={secondaryButton} onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// Lets a platform admin help someone who is locked out.
 function ResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean; onClose: () => void }) {
+  return isDemoBackend ? <DemoResetPanel user={user} isSelf={isSelf} onClose={onClose} /> : <EmailResetPanel user={user} onClose={onClose} />
+}
+
+// Demo accounts: set a new password for the admin to share.
+function DemoResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean; onClose: () => void }) {
   const [mode, setMode] = useState<'temp' | 'custom'>('temp')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string>()
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<{ email: string; password: string }>()
+  const [result, setResult] = useState<Extract<PasswordReset, { kind: 'NEW_PASSWORD' }>>()
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -41,7 +106,8 @@ function ResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean; on
     setBusy(true)
     setError(undefined)
     try {
-      setResult(await dataService.resetPassword(user.id, mode === 'custom' ? password : undefined))
+      const reset = await dataService.resetPassword(user.id, mode === 'custom' ? password : undefined)
+      if (reset.kind === 'NEW_PASSWORD') setResult(reset)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {

@@ -255,7 +255,8 @@ function RideForm({ mode, source, house, user }: FormProps) {
   const navigate = useNavigate()
   const pastRides = useData(() => dataService.listRidesForHouse(house.id), house.id) ?? []
   const destinations = useData(() => dataService.listDestinations(user.orgId), user.orgId) ?? []
-  const drivers = useData(() => dataService.listDrivers())
+  // Anonymous eligibility only: enough to say how many drivers could take the ride, not who
+  const drivers = useData(() => dataService.listDriverPool())
   const sorted = sortByPopularity(destinations, pastRides, house.id)
 
   // When the form was opened. The default pickup times are based on it.
@@ -272,6 +273,8 @@ function RideForm({ mode, source, house, user }: FormProps) {
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
   const errorRef = useRef<HTMLParagraphElement>(null)
+  // One id per booking attempt, kept across retries, so a lost response can't book the ride twice
+  const requestId = useRef(crypto.randomUUID())
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30_000)
@@ -420,13 +423,17 @@ function RideForm({ mode, source, house, user }: FormProps) {
         }
         ride =
           mode === 'return' && source
-            ? await dataService.requestRide({
-                ...base,
-                pickupAddress: source.destinationAddress,
-                returnOfRideId: source.id,
-                preferredDriverId: source.driverId, // ask the same driver first
-              })
-            : await dataService.requestRide({ ...base, pickupAddress: house.address })
+            ? await dataService.requestRide(
+                {
+                  ...base,
+                  pickupAddress: source.destinationAddress,
+                  returnOfRideId: source.id,
+                  preferredDriverId: source.driverId, // ask the same driver first
+                },
+                requestId.current,
+              )
+            : await dataService.requestRide({ ...base, pickupAddress: house.address }, requestId.current)
+        requestId.current = crypto.randomUUID()
       }
       if (mode === 'new') clearDraft(user.id)
       refresh()

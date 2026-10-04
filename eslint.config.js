@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'supabase/functions']), // Edge Functions run on Deno, not in the browser
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
