@@ -2,35 +2,6 @@ import { Capacitor } from '@capacitor/core'
 
 export const isNative = Capacitor.isNativePlatform()
 
-const memoryStore = (): Storage => {
-  const data = new Map<string, string>()
-  return {
-    get length() {
-      return data.size
-    },
-    clear: () => data.clear(),
-    getItem: (key) => data.get(key) ?? null,
-    key: (index) => [...data.keys()][index] ?? null,
-    removeItem: (key) => {
-      data.delete(key)
-    },
-    setItem: (key, value) => {
-      data.set(key, value)
-    },
-  }
-}
-
-function pickStore(): Storage {
-  try {
-    return isNative ? localStorage : sessionStorage
-  } catch {
-    return memoryStore()
-  }
-}
-
-// Phone: stay signed in across restarts. Browser: still sign out when the tab closes.
-export const sessionStore = pickStore()
-
 function closeOverlay(): boolean {
   const dialog = document.querySelector('dialog[open]')
   if (dialog instanceof HTMLDialogElement) {
