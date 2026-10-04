@@ -4,6 +4,7 @@ import { CopyButton } from '../../components/CopyButton'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
+import { formatDollars } from '../../logic/estimateFare'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { dataService } from '../../services'
@@ -153,7 +154,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                 <div className="grid grid-cols-3 gap-3">
                   <Stat value={completed.length} label="Rides completed" />
                   <Stat value={upcoming.length} label="Open or upcoming" />
-                  <Stat value={`$${Math.round(saved)}`} label="Fares saved" />
+                  <Stat value={formatDollars(saved)} label="Bus fares saved" />
                 </div>
               )}
 

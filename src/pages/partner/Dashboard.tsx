@@ -12,6 +12,7 @@ import { card, primaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
+import { formatDollars } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
 import {
   actionTitle,
@@ -192,11 +193,11 @@ export function Dashboard() {
           actionLabel="Show past rides"
         />
         <StatTile
-          label="Fares saved"
-          value={`$${stats.faresSaved.toLocaleString()}`}
+          label="Bus fares saved"
+          value={formatDollars(stats.faresSaved)}
           icon={<PiggyBank className="h-5 w-5" />}
           tone="ink"
-          note="Compared with a taxi"
+          note="One-zone bus fare"
         />
       </div>
 

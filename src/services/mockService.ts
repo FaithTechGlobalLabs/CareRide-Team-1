@@ -12,8 +12,9 @@ import { seed, type Database } from './seed'
 // v5: houses and their organizations became single partner organizations.
 // Older saves can't be mapped onto that, so they start again from the seed.
 // v6: real house addresses and each house's frequent destinations.
-export const STORAGE_KEY = 'careride-db-v6'
-const OLD_STORAGE_KEYS = ['careride-db-v5', 'careride-db-v4', 'careride-db-v3']
+// v7: each completed trip counts as a one-zone Vancouver bus fare.
+export const STORAGE_KEY = 'careride-db-v7'
+const OLD_STORAGE_KEYS = ['careride-db-v6', 'careride-db-v5', 'careride-db-v4', 'careride-db-v3']
 
 // Still waiting for a driver: these expire if nobody accepts in time
 const WAITING: RideStatus[] = ['SEARCHING', 'OFFERED', 'NEEDS_ATTENTION']

@@ -14,6 +14,7 @@ import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
+import { formatDollars } from '../../logic/estimateFare'
 import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
 import { dataService } from '../../services'
@@ -155,8 +156,8 @@ export function DriverHome() {
           />
           <StatTile label="Rides given" value={completed.length} icon={<Trophy className="h-5 w-5" />} tone="ink" note={`${thisWeek} this week`} />
           <StatTile
-            label="Fares saved"
-            value={`$${faresSaved.toLocaleString()}`}
+            label="Bus fares saved"
+            value={formatDollars(faresSaved)}
             icon={<PiggyBank className="h-5 w-5" />}
             tone="coral"
             note="For the people you drove"
