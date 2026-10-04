@@ -6,6 +6,7 @@ import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 import { formatDayTime } from '../logic/formatTime'
+import { rideStage } from '../logic/rideStage'
 import { passengersLabel, riderLabel } from '../logic/rideText'
 
 interface Props {
@@ -17,12 +18,22 @@ interface Props {
   alert?: string // one-line reason the ride needs action, shown in red
 }
 
-const FINISHED: Ride['status'][] = ['COMPLETED', 'NO_SHOW', 'CANCELLED']
+const FILLED = 'border-brand-600 bg-brand-600'
+const OPEN = 'border-brand-600 bg-white'
+
+// Colours for the pickup dot, the road and the drop-off dot at each stage (see rideStage)
+function roadColours(stage: number | undefined) {
+  if (stage === undefined) return { pickup: 'border-slate-400 bg-white', line: 'bg-slate-200', dropoff: 'border-slate-400 bg-slate-400' }
+  if (stage === 3) return { pickup: 'border-emerald-600 bg-emerald-600', line: 'bg-emerald-600', dropoff: 'border-emerald-600 bg-emerald-600' }
+  return { pickup: stage >= 1 ? FILLED : OPEN, line: stage >= 2 ? 'bg-brand-300' : 'bg-brand-200', dropoff: OPEN }
+}
 
 export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
   // Only rides that need someone get a note. The badge carries every other status.
   const note = alert ?? (ride.status === 'NEEDS_ATTENTION' ? 'No driver has accepted yet' : undefined)
-  const done = FINISHED.includes(ride.status)
+  const stage = rideStage(ride.status)
+  const road = roadColours(stage)
+  const done = stage === undefined || stage === 3
   const riders = riderLabel(ride)
   const needs = [
     passengersLabel(ride.passengers),
@@ -46,18 +57,21 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
         </span>
         <StatusBadge status={ride.status} label={statusLabel} />
       </div>
-      {/* The route as a short road, like the logo: open dot for pickup, filled dot for drop-off. Grey once the ride is over. */}
+      {/* The route as a short road, like the logo. It fills in as the ride goes: pickup dot once a driver confirms,
+          a dot travels the road while the client is in the car, and it all turns green on arrival. Grey if the ride stopped short. */}
       <div className="space-y-1">
         {from && (
           <p className="relative flex items-center gap-3 text-slate-600">
-            <span className={`h-3 w-3 shrink-0 rounded-full border-2 bg-white ${done ? 'border-slate-400' : 'border-brand-600'}`} aria-hidden />
-            <span className={`absolute -bottom-3 left-[5px] top-[18px] w-0.5 ${done ? 'bg-slate-200' : 'bg-brand-200'}`} aria-hidden />
+            <span className={`h-3 w-3 shrink-0 rounded-full border-2 ${road.pickup}`} aria-hidden />
+            <span className={`absolute -bottom-3 left-[5px] top-[18px] w-0.5 ${road.line}`} aria-hidden>
+              {stage === 2 && <span className="absolute -left-[2px] h-1.5 w-1.5 -translate-y-1/2 animate-travel-y rounded-full bg-brand-600" />}
+            </span>
             <span className="sr-only">From </span>
             {from}
           </p>
         )}
         <p className={`flex items-start gap-3 break-words text-lg font-semibold ${done ? 'text-slate-700' : 'text-ink'}`}>
-          <span className={`mt-2 h-3 w-3 shrink-0 rounded-full ${done ? 'bg-slate-400' : 'bg-brand-600'}`} aria-hidden />
+          <span className={`mt-2 h-3 w-3 shrink-0 rounded-full border-2 ${road.dropoff}`} aria-hidden />
           <span className="min-w-0">
             {from && <span className="sr-only">To </span>}
             {ride.destinationName}

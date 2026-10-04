@@ -6,6 +6,7 @@ import { ridePath } from '../../logic/homeFor'
 import { countdown } from '../../logic/rideInsights'
 import { riderLabel } from '../../logic/rideText'
 import type { Ride } from '../../types'
+import { RideProgress } from '../RideProgress'
 import { StatusBadge } from '../StatusBadge'
 import { card, primaryButton } from '../ui'
 
@@ -76,6 +77,10 @@ export function NextPickup({ ride, driverName, vehicle, now }: Props) {
               </span>
             </p>
           )}
+        </div>
+
+        <div className="mt-5">
+          <RideProgress status={ride.status} />
         </div>
 
         <Link

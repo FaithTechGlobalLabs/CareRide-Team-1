@@ -1,5 +1,5 @@
-import { BellRing, CalendarCheck, CalendarClock, ChevronDown, History, Hourglass, Navigation, PiggyBank, Settings2, Trophy, Undo2 } from 'lucide-react'
-import { useState } from 'react'
+import { BellRing, CalendarCheck, CalendarClock, ChevronDown, HandHeart, History, Hourglass, Navigation, PiggyBank, Settings2, Trophy, Undo2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader'
 import { StatTile } from '../../components/dashboard/StatTile'
@@ -16,6 +16,7 @@ import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
 import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
+import { buzz } from '../../native/platform'
 import { dataService } from '../../services'
 import type { Ride } from '../../types'
 
@@ -46,8 +47,16 @@ export function DriverHome() {
     const found = await Promise.all(pending.map((o) => dataService.getRide(o.rideId)))
     return pending.flatMap((offer, i) => (found[i] ? [{ offer, ride: found[i] }] : []))
   }, driverId)
-  const [celebrate, setCelebrate] = useState<Ride>()
+  const [celebrate, setCelebrate] = useState<{ ride: Ride; count: number }>()
   const [pastShown, setPastShown] = useState(PAST_PAGE)
+
+  // A short buzz on the phone when a new request arrives, not on first load
+  const lastOfferCount = useRef<number>(undefined)
+  useEffect(() => {
+    if (!offers) return
+    if (lastOfferCount.current !== undefined && offers.length > lastOfferCount.current) void buzz()
+    lastOfferCount.current = offers.length
+  }, [offers])
 
   if (!driver) return <p>No driver profile found.</p>
   if (driver.status !== 'APPROVED') {
@@ -100,7 +109,7 @@ export function DriverHome() {
       house={houseOf(r)}
       driverId={driverId}
       onDone={refresh}
-      onCompleted={setCelebrate}
+      onCompleted={(ride) => setCelebrate({ ride, count: completed.length + 1 })}
       showMap={showMap}
     />
   )
@@ -109,6 +118,7 @@ export function DriverHome() {
   const weekStart = startOfWeek(now)
   const thisWeek = completed.filter((r) => new Date(finishedAt(r)).getTime() >= weekStart).length
   const faresSaved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const peopleHelped = completed.reduce((sum, r) => sum + r.passengers, 0)
   const offerCount = offers?.length ?? 0
 
   // One sentence on what to do next, most urgent first
@@ -162,6 +172,12 @@ export function DriverHome() {
             note="For the people you drove"
           />
         </div>
+        {peopleHelped > 0 && (
+          <p className="flex items-center gap-2 text-slate-600">
+            <HandHeart className="h-5 w-5 shrink-0 text-coral-600" aria-hidden />
+            You've helped {peopleHelped} {peopleHelped === 1 ? 'person' : 'people'} get where they needed to go. Thank you.
+          </p>
+        )}
       </div>
       <RequestStatusCard driver={driver} showSettingsLink />
 
@@ -251,7 +267,14 @@ export function DriverHome() {
         )}
       </section>
 
-      {celebrate && <RideCelebration ride={celebrate} onClose={() => setCelebrate(undefined)} onUndo={() => undoFinish(celebrate)} />}
+      {celebrate && (
+        <RideCelebration
+          ride={celebrate.ride}
+          count={celebrate.count}
+          onClose={() => setCelebrate(undefined)}
+          onUndo={() => undoFinish(celebrate.ride)}
+        />
+      )}
     </div>
   )
 }

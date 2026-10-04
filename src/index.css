@@ -47,6 +47,9 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-shake: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   --animate-confetti: confetti 2.6s cubic-bezier(0.25, 0.6, 0.5, 1) forwards;
+  --animate-travel-x: travel-x 2s ease-in-out infinite;
+  --animate-travel-y: travel-y 2s ease-in-out infinite;
+  --animate-status-in: status-in 0.9s ease-out both;
   --animate-ring-fill: ring-fill 1s linear both; /* duration set where it's used */
   --animate-dim-in: dim-in 0.4s ease-out both;
 
@@ -82,6 +85,23 @@
   @keyframes confetti {
     from { opacity: 1; transform: translate3d(0, -10vh, 0) rotate(0); }
     to { opacity: 0; transform: translate3d(var(--drift, 0), 105vh, 0) rotate(var(--spin, 540deg)); }
+  }
+  /* A small dot moving along the road while the client is in the car */
+  @keyframes travel-x {
+    0% { left: 0; opacity: 0; }
+    15%, 85% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+  }
+  @keyframes travel-y {
+    0% { top: 0; opacity: 0; }
+    15%, 85% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  /* A status badge that just changed: fades in with a ring that settles */
+  @keyframes status-in {
+    0% { opacity: 0.3; transform: scale(0.92); box-shadow: 0 0 0 0 var(--color-brand-200); }
+    30% { opacity: 1; transform: none; box-shadow: 0 0 0 5px var(--color-brand-200); }
+    100% { box-shadow: 0 0 0 0 transparent; }
   }
   @keyframes float {
     0%, 100% { transform: translateY(0); }
