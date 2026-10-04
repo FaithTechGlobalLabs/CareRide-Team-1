@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { isNative, sessionStore } from '../native/platform'
 import { dataService } from '../services'
 import type { User } from '../types'
 import { AppContext } from './appContext'
@@ -8,16 +7,19 @@ import { DEMO_FRAME_USER as FRAME_USER, DEMO_REFRESH } from './demoFrame'
 const SESSION_KEY = 'careride-session-v3'
 const POLL_MS = 4000
 
-// Browser: sessionStorage, so a closed tab starts signed out.
-// Phone: localStorage, so reopening the app keeps you signed in.
+// The session is saved in localStorage so people stay signed in when they come back
+// to the site or reopen the phone app. Each tab also keeps its own copy in
+// sessionStorage, which wins on reload, so two tabs signed in as different people
+// (e.g. a house and a driver) don't swap accounts. A new tab picks up whoever
+// signed in last.
 function readSession(): string {
   if (FRAME_USER) return FRAME_USER
   try {
-    if (!isNative) {
-      // Drop sessions saved by older builds, which kept people signed in forever
-      localStorage.removeItem(SESSION_KEY)
-    }
-    return sessionStore.getItem(SESSION_KEY) ?? ''
+    const tabSession = sessionStorage.getItem(SESSION_KEY)
+    if (tabSession) return tabSession
+    const saved = localStorage.getItem(SESSION_KEY) ?? ''
+    if (saved) sessionStorage.setItem(SESSION_KEY, saved)
+    return saved
   } catch {
     return ''
   }
@@ -26,8 +28,13 @@ function readSession(): string {
 function writeSession(userId: string): void {
   if (FRAME_USER) return
   try {
-    if (userId) sessionStore.setItem(SESSION_KEY, userId)
-    else sessionStore.removeItem(SESSION_KEY)
+    if (userId) {
+      sessionStorage.setItem(SESSION_KEY, userId)
+      localStorage.setItem(SESSION_KEY, userId)
+    } else {
+      sessionStorage.removeItem(SESSION_KEY)
+      localStorage.removeItem(SESSION_KEY)
+    }
   } catch {
     // Ignore: the session just won't survive a reload
   }

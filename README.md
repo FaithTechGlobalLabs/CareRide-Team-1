@@ -134,7 +134,7 @@ The HACKVAN pitch lives at **[/demo](https://careride-team-1.careride.workers.de
 | Styling and icons | Tailwind CSS 4, Lucide React |
 | Development and build | Vite 8 |
 | Code quality | ESLint with TypeScript and React rules |
-| Demo persistence | `localStorage` for data; `sessionStorage` for sign-in on the website, `localStorage` in the Android app |
+| Demo persistence | `localStorage` for data and sign-in, plus a per-tab `sessionStorage` copy of the sign-in |
 | Deployment configuration | Cloudflare Workers static assets via Wrangler |
 | Mobile | Capacitor 8 Android wrapper around the same Vite build |
 
