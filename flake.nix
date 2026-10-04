@@ -27,7 +27,11 @@
           # pick versions that exist in this nixpkgs pin.
           android = pkgs.androidenv.composeAndroidPackages {
             platformVersions = [ "36" ];
-            buildToolsVersions = [ "36.0.0" ];
+            # AGP 8.13 still asks for 35; keep 36 for Capacitor 8 / compileSdk.
+            buildToolsVersions = [
+              "35.0.0"
+              "36.0.0"
+            ];
             includeEmulator = false;
             includeSources = false;
             includeSystemImages = false;
