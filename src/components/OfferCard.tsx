@@ -1,10 +1,12 @@
 import { RefreshCw } from 'lucide-react'
 import type { Ride, RideOffer } from '../types'
+import { useDriverLocation } from '../hooks/useMaps'
 import { RideCard } from './RideCard'
 import { primaryButton, secondaryButton } from './ui'
 import { formatTime } from '../logic/formatTime'
 import { isRealAddress } from '../logic/maps'
 import { DriveTimes } from './maps/DriveTimes'
+import { RouteMap } from './maps/RouteMap'
 
 interface Props {
   offer: RideOffer
@@ -16,11 +18,28 @@ interface Props {
   onRespond: (accept: boolean) => void
 }
 
-// What a driver sees before accepting. Exact pickup details show only after accepting:
-// drive times are fine, but no address or map until then.
+// What a driver sees before accepting. The route sits on the right so the trip is
+// clear before they answer. The street address stays hidden until they accept.
 export function OfferCard({ offer, ride, from, driverName, changed, fromMe, onRespond }: Props) {
+  const pickup = isRealAddress(ride.pickupAddress) ? ride.pickupAddress : undefined
+  const dropoff = isRealAddress(ride.destinationAddress) ? ride.destinationAddress : undefined
+  const location = useDriverLocation(Boolean(fromMe))
+
   return (
-    <RideCard ride={ride} from={from}>
+    <RideCard
+      ride={ride}
+      from={from}
+      aside={
+        pickup && dropoff ? (
+          <RouteMap
+            pickup={pickup}
+            dropoff={dropoff}
+            driver={fromMe ? location.coords : undefined}
+            className="order-first h-44 w-full sm:order-last sm:h-52 sm:w-72 sm:shrink-0"
+          />
+        ) : undefined
+      }
+    >
       {changed && (
         <p className="flex w-full items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
           <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
@@ -30,11 +49,7 @@ export function OfferCard({ offer, ride, from, driverName, changed, fromMe, onRe
           </span>
         </p>
       )}
-      <DriveTimes
-        pickup={isRealAddress(ride.pickupAddress) ? ride.pickupAddress : undefined}
-        dropoff={isRealAddress(ride.destinationAddress) ? ride.destinationAddress : undefined}
-        fromMe={fromMe}
-      />
+      <DriveTimes pickup={pickup} dropoff={dropoff} fromMe={fromMe} />
       <p className="w-full text-sm text-slate-600">
         {driverName && <>For {driverName} · </>}
         Please answer by {formatTime(offer.expiresAt)}
