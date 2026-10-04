@@ -94,16 +94,18 @@ Matches `RideStatus` in `src/types/index.ts` and the labels in `StatusBadge.tsx`
 
 | Status | Colour | Icon | Label |
 | --- | --- | --- | --- |
-| `SEARCHING` | Blue tint | Dot | "Finding a driver" |
-| `OFFERED` | Sun yellow fill, ink text | Dot | "Waiting for driver" |
-| `ACCEPTED` | Green tint | Dot | "Driver confirmed" |
-| `PICKED_UP` | Cyan tint | Dot | "Picked up" |
-| `COMPLETED` | Slate tint | Dot | "Completed" |
-| `NEEDS_ATTENTION` | Care red fill, white text | Dot | "Needs attention" |
-| `NO_SHOW` | Coral tint | Dot | "Client didn't show" |
-| `CANCELLED` | Slate, muted | Dot | "Cancelled" |
+| `SEARCHING` | Blue tint | Clock | "Finding a driver" |
+| `OFFERED` | Sun yellow fill, ink text | Bell | "Waiting for driver" |
+| `ACCEPTED` | Green tint | Check | "Driver confirmed" |
+| `PICKED_UP` | Cyan tint | Car | "Picked up" |
+| `COMPLETED` | Slate tint | Check-circle | "Completed" |
+| `NEEDS_ATTENTION` | Care red fill, white text | Alert triangle | "Needs attention" |
+| `NO_SHOW` | Coral tint | User-x | "Client didn't show" |
+| `CANCELLED` | Slate, muted | X-circle | "Cancelled" |
 
-Done in v0.2: `StatusBadge` follows this table, and `RideCard` uses the same colour for its top rule. Badges still use a dot, not an icon; the text label carries the meaning. Icons per status are a possible follow-up.
+Done in v0.2: `StatusBadge` follows this table, with the icon beside the words (`STATUS_ICON`). The short phone label in the ride list uses the same icons. Status is never shown by colour alone.
+
+On a `RideCard`, the badge carries the status. Only a ride that needs someone gets more: a light red strip across the top of the card that says why in words ("No driver has accepted yet", "Late: the client hasn't been picked up"). Finished rides (completed, no-show, cancelled) turn their route grey, so live rides stand out.
 
 ## 4. Typography
 
@@ -142,11 +144,11 @@ Sizes in use: 14 and 16px for UI and body, 18 to 24px for card and section title
 A solid 4px rule across the top edge, like the road in the logo. It appears in four places only:
 
 1. The top of every page (app header, landing header, auth screens, landing footer). Brand blue.
-2. The top of each `RideCard`, coloured by ride status (§3).
-3. The next-pickup panel and the closing call to action on the landing page.
+2. The next-pickup panel and the closing call to action on the landing page. One of each per screen, so it still means "this one matters".
+3. The route on every ride card: an open brand-blue dot for pickup, a filled dot for drop-off, joined by a short blue line. It turns grey once the ride is over.
 4. The landing "How it works" steps, which sit on one horizontal (or, on phones, vertical) road line.
 
-It replaces the old rainbow `bg-spectrum` bar. Never put the rule on the left side of a card: side stripes are the most recognisable "AI template" tell.
+It replaces the old rainbow `bg-spectrum` bar. Plain cards (audience cards, stat tiles) get no rule; a bar on every card stops meaning anything. Never put the rule on the left side of a card: side stripes are the most recognisable "AI template" tell.
 
 ## 6. Components
 
@@ -154,7 +156,7 @@ It replaces the old rainbow `bg-spectrum` bar. Never put the rule on the left si
 - **Urgent button:** red fill, white text, used only for "Rebook now" on an unfilled ride.
 - **Secondary button:** white with blue border and blue text.
 - **Status chip:** tinted background, matching text, icon, label (see §3).
-- **Cards:** white, `slate-200` border, 12px radius, optional coloured top rule.
+- **Cards:** white, `slate-200` border, 12px radius, no coloured top bar (see the road rule).
 - **Banners:** yellow tint for notices, red tint for problems, blue tint for info. Always include an icon and a clear next action.
 - **Forms:** visible labels above fields (no placeholder-only labels), helper text below, inline errors in `coral-700` with an icon.
 - **Focus:** 3px `brand-500` ring with 2px offset on buttons, links, chips and choice cards. Text inputs instead turn their border `brand-500` and add a soft 3px `brand-100` halo, so the caret stays the focus. Never remove outlines. On navy surfaces the ring is white with a navy offset.
@@ -234,9 +236,10 @@ Checked against the `frontend-design-deslop` checklist on 2026-10-03.
 | Type and structure | Pill above the hero headline, all-caps kicker above every section, icon tiles above every card heading, sparkle icons | Headings stand alone, icons inline with headings, demo accounts listed with dividers instead of cards within a card |
 | Focus | Pale 4px `brand-100` ring, hard to see | 3px `brand-500` ring with offset |
 
-Still open: Inter as the body face (kept by choice), motion (left alone by choice), and status badges using dots instead of icons.
+Still open: Inter as the body face (kept by choice) and motion (left alone by choice).
 
 ## Changelog
 
+- **v0.2.1 (2026-10-04):** Status badges get icons. Ride cards lose the coloured top bar: the route is drawn as a short blue road, and only rides that need action get a red note strip. Decorative bars removed from landing audience cards and the hero preview.
 - **v0.2 (2026-10-03):** Applied the draft to the code. Added the canvas and OKLCH accent tokens, the road rule signature, and the role tone table. Removed gradients, glows, blur and violet across the app.
 - **v0.1:** First draft for team review.

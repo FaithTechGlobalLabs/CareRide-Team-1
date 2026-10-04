@@ -39,14 +39,26 @@ export function HeroPreview() {
           </div>
         </div>
 
-        <div className="relative mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 pt-5 sm:mt-3">
-          <span className="absolute inset-x-0 top-0 h-1 bg-brand-600" />
+        <div className="relative mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 sm:mt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="whitespace-nowrap text-sm font-semibold text-slate-600">Scheduled · 9:15 am</span>
-            <span className="whitespace-nowrap rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">Driver confirmed</span>
+            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-100 py-0.5 pl-2 pr-2.5 text-xs font-bold text-emerald-900">
+              <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+              Driver confirmed
+            </span>
           </div>
-          <p className="mt-2 font-display text-lg font-extrabold text-ink">Belkin House → St. Paul's Hospital</p>
-          <p className="mt-1 flex items-start gap-2 text-sm text-slate-600">
+          <div className="mt-3 space-y-0.5">
+            <p className="relative flex items-center gap-2.5 text-sm text-slate-600">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-brand-600 bg-white" aria-hidden />
+              <span className="absolute -bottom-2.5 left-1 top-[15px] w-0.5 bg-brand-200" aria-hidden />
+              Belkin House
+            </p>
+            <p className="flex items-center gap-2.5 font-display text-lg font-extrabold text-ink">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-600" aria-hidden />
+              St. Paul's Hospital
+            </p>
+          </div>
+          <p className="mt-2 flex items-start gap-2 text-sm text-slate-600">
             <Car className="mt-0.5 h-4 w-4 shrink-0" /> Maya · White sedan · Meets in the lobby
           </p>
 

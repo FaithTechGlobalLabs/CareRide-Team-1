@@ -7,7 +7,7 @@ import { ridePath } from '../../logic/homeFor'
 import { actionReason, dayLabel } from '../../logic/rideInsights'
 import { passengersLabel, riderLabel } from '../../logic/rideText'
 import type { Ride } from '../../types'
-import { StatusBadge } from '../StatusBadge'
+import { STATUS_ICON, StatusBadge } from '../StatusBadge'
 import { card, input, primaryButton, secondaryButton } from '../ui'
 
 export interface DriverInfo {
@@ -268,23 +268,24 @@ function BookAgain({ rideId }: { rideId: string }) {
   )
 }
 
-// On phones the full badge crowds the row, so show a short version: still words, not colour alone.
-const SHORT_STATUS: Record<Ride['status'], { text: string; dot: string }> = {
-  SEARCHING: { text: 'Finding', dot: 'bg-brand-500' },
-  OFFERED: { text: 'Waiting', dot: 'bg-sun-400' },
-  ACCEPTED: { text: 'Confirmed', dot: 'bg-emerald-600' },
-  NEEDS_ATTENTION: { text: 'Attention', dot: 'bg-care-red' },
-  PICKED_UP: { text: 'Riding', dot: 'bg-cyan-600' },
-  COMPLETED: { text: 'Done', dot: 'bg-slate-500' },
-  NO_SHOW: { text: 'No show', dot: 'bg-coral-600' },
-  CANCELLED: { text: 'Cancelled', dot: 'bg-slate-400' },
+// On phones the full badge crowds the row, so show a short version: still words and an icon, not colour alone.
+const SHORT_STATUS: Record<Ride['status'], { text: string; color: string }> = {
+  SEARCHING: { text: 'Finding', color: 'text-brand-700' },
+  OFFERED: { text: 'Waiting', color: 'text-amber-800' },
+  ACCEPTED: { text: 'Confirmed', color: 'text-emerald-700' },
+  NEEDS_ATTENTION: { text: 'Attention', color: 'text-red-700' },
+  PICKED_UP: { text: 'Riding', color: 'text-cyan-700' },
+  COMPLETED: { text: 'Done', color: 'text-slate-600' },
+  NO_SHOW: { text: 'No show', color: 'text-coral-700' },
+  CANCELLED: { text: 'Cancelled', color: 'text-slate-500' },
 }
 
 function StatusDot({ ride }: { ride: Ride }) {
   const s = SHORT_STATUS[ride.status]
+  const Icon = STATUS_ICON[ride.status]
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-      <span className={`h-2 w-2 rounded-full ${s.dot}`} aria-hidden />
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.color}`}>
+      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
       {ride.expired ? 'No driver' : s.text}
     </span>
   )

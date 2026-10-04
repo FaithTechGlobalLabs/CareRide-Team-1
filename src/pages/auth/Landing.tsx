@@ -262,7 +262,6 @@ export function Landing() {
               {AUDIENCES.map((a) => {
                 const inner = (
                   <>
-                    <span className={`absolute inset-x-0 top-0 h-1 ${tones[a.tone].solid}`} aria-hidden />
                     <h3 className="flex items-center gap-3 text-xl font-extrabold">
                       <span className={tones[a.tone].text} aria-hidden>{a.icon}</span>
                       {a.title}
