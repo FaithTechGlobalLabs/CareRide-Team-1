@@ -10,5 +10,15 @@ export const DEMO_FRAME_USER = (() => {
   }
 })()
 
+// True on the /demo deck and in its frames. The deck resets and rewrites its data on every run,
+// so it always plays on the browser-only mock and never touches a real database.
+export const ON_DEMO_DECK = (() => {
+  try {
+    return window.location.pathname === '/demo' || (window.parent !== window && window.parent.location.pathname === '/demo')
+  } catch {
+    return false
+  }
+})()
+
 // The deck posts this when a frame should show the latest data, so it can show one role's screen changing before the other's
 export const DEMO_REFRESH = 'careride-refresh'

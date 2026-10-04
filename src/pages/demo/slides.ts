@@ -35,7 +35,7 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'Potential impact',
     notes: [
       'If this works, getting to care no longer depends on owning a phone.',
-      'Staff get time back, and organizations can share drivers instead of each finding their own.',
+      'Case workers get time back, and organizations can share drivers instead of each finding their own.',
       'Belkin House is the start. Richmond House and Grace Mansion are next, and any organization can join.',
     ],
   },
@@ -43,7 +43,7 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     id: 'approach',
     label: 'Approach',
     kicker: 'Our approach',
-    notes: ['We built a working MVP, not a prototype.', 'Our angle: staff book on the resident’s behalf, so the resident needs nothing new.'],
+    notes: ['We built a working MVP, not a prototype.', 'Our angle: case workers book on the resident’s behalf, so the resident needs nothing new.'],
   },
   {
     id: 'live',
@@ -77,7 +77,8 @@ export const SLIDES: { id: SlideId; label: string; kicker: string; steps?: numbe
     kicker: 'Thank you',
     notes: [
       'Payoff: the resident from the start got to St. Paul’s, and didn’t need a phone to do it.',
-      'Next steps come from our user testing notes. Say what you’d like from the audience, then take questions.',
+      'Since the weekend: a real database, drive times and directions for drivers, and an Android app in testing.',
+      'Next: pilot with the houses we talked to, start with professional drivers, and send ride updates by text. Say what you’d like from the audience, then take questions.',
     ],
   },
 ]
