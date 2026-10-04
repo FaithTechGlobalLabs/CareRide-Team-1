@@ -1,7 +1,18 @@
 import { CarFront, Home, TriangleAlert } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { DEMO_REFRESH } from '../../context/demoFrame'
-import { LIVE_STEPS, buildLiveDemo, frameSrc, showSnapshot, staffPath, type LiveDemo, type LiveStep, type Tap } from './liveSteps'
+import {
+  LIVE_STEPS,
+  buildLiveDemo,
+  frameSrc,
+  setDraft,
+  showSnapshot,
+  staffPath,
+  startOf,
+  type LiveDemo,
+  type LiveStep,
+  type Tap,
+} from './liveSteps'
 
 // Screen sizes the frames render at, before being scaled down to fit the slide
 const LAPTOP = { w: 1280, h: 800 }
@@ -45,12 +56,15 @@ export function LiveScreens({ index, onChange }: Props) {
 
   // Fresh data every time the slide opens, so times like "arriving in 10 min" are about now.
   // The staff frame loads once; after that it moves between pages inside the app.
+  // Only the first step plays on opening, so the frame opens where it starts: the staff dashboard.
   useEffect(() => {
     let active = true
     buildLiveDemo().then((d) => {
       if (!active) return
-      showSnapshot(d, LIVE_STEPS[indexRef.current].moment)
-      setStaffSrc(frameSrc(staffPath(d, LIVE_STEPS[indexRef.current]), 'partner'))
+      const i = indexRef.current
+      const at = i === 0 ? startOf(d, 0) : { moment: LIVE_STEPS[i].moment, staffPath: staffPath(d, LIVE_STEPS[i]) }
+      showSnapshot(d, at.moment)
+      setStaffSrc(frameSrc(at.staffPath, 'partner'))
       setDemo(d)
     })
     return () => {
@@ -81,6 +95,8 @@ export function LiveScreens({ index, onChange }: Props) {
     again.current = undefined
     const behavior: ScrollBehavior = forward ? 'smooth' : 'auto'
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // A thank-you left open from the last time round (closing it tells the app it's gone)
+    for (const frame of [staff.current, phone.current]) frame?.contentDocument?.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((d) => d.close())
 
     // Scrolls a screen to the part this step is about (or the top) and waits for the scroll to finish
     async function bringIntoView(role: Role) {
@@ -89,7 +105,7 @@ export function LiveScreens({ index, onChange }: Props) {
       const find = (doc: Document) => (role === 'staff' ? headingNamed(doc, focus) : doc.getElementById(focus!))
       const target = focus ? await findWhenReady(frame, run, find) : undefined
       if (target) {
-        target.scrollIntoView({ block: role === 'staff' ? 'center' : 'start', behavior })
+        scrollWithin(target, role === 'staff' ? 'center' : 'start', behavior)
         await still(target, run)
       } else frame?.contentDocument?.scrollingElement?.scrollTo({ top: 0, behavior })
     }
@@ -129,25 +145,42 @@ export function LiveScreens({ index, onChange }: Props) {
       await wait(ZOOM_MS)
     }
 
+    // Fills in a text box a letter at a time, the way React hears typing. Never focused, so the deck keeps the keyboard.
+    async function typeInto(field: HTMLElement, text: string) {
+      const win = field.ownerDocument.defaultView as typeof window
+      const setValue = Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value')!.set!
+      for (let i = 1; i <= text.length; i++) {
+        setValue.call(field, text.slice(0, i))
+        field.dispatchEvent(new win.Event('input', { bubbles: true }))
+        await wait(TYPE_MS)
+      }
+    }
+
     async function play(by: Role, taps: Tap[]) {
       const frame = frames[by].current
-      // Start from the moment before, in case the last step was skipped part way through
-      const before = LIVE_STEPS[index - 1]
-      showSnapshot(demo!, before.moment)
-      goTo(staff.current, staffPath(demo!, before))
+      // Start from where the step before left off, in case it was skipped part way through.
+      // The first step fills in the booking form on screen, so the form opens blank for it.
+      const start = startOf(demo!, index)
+      showSnapshot(demo!, start.moment)
+      setDraft(demo!, index > 0)
+      goTo(staff.current, start.staffPath)
       refreshFrame(staff.current)
       refreshFrame(phone.current)
-      for (const t of taps) {
-        const button = await findWhenReady(frame, run, (doc) => buttonNamed(doc, t.label))
+      for (const [i, t] of taps.entries()) {
+        // The first tap can come while the frame is still loading the app
+        const button = await findWhenReady(frame, run, (doc) => tapTarget(doc, t), i === 0 ? 60 : 25)
         if (button) {
-          button.scrollIntoView({ block: 'center', behavior: 'smooth' })
+          scrollWithin(button, 'center', 'smooth')
           await still(button, run)
-          await point(by, button)
+          if (!t.quick) await point(by, button)
           const r = button.getBoundingClientRect()
           setTap({ by, x: r.left + r.width / 2, y: r.top + r.height / 2 })
-          await wait(TAP_MS)
-          if (t.click) button.click()
+          await wait(t.quick ? QUICK_TAP_MS : TAP_MS)
           setTap(undefined)
+          // The screen may have redrawn since it was found, when the latest data came in; a stale button does nothing
+          const now = button.isConnected ? button : frame?.contentDocument && tapTarget(frame.contentDocument, t)
+          if (now && t.type) await typeInto(now, t.type)
+          if (now && t.click) now.click()
           setSpot(undefined)
         }
         if (t.then) {
@@ -155,7 +188,8 @@ export function LiveScreens({ index, onChange }: Props) {
           if (by === 'staff') goTo(frame, staffPath(demo!, step), { justSaved: 'booked' })
           else refreshFrame(frame)
         }
-        await wait(REACT_MS)
+        await wait(t.quick ? QUICK_REACT_MS : REACT_MS)
+        keepDeckFocus()
       }
       await settle(by)
       await wait(CATCH_UP_MS)
@@ -165,6 +199,7 @@ export function LiveScreens({ index, onChange }: Props) {
     // A step with no taps: both screens settle
     async function show() {
       showSnapshot(demo!, step.moment)
+      setDraft(demo!, true)
       await Promise.all([settle('staff'), settle('driver')])
     }
 
@@ -287,6 +322,10 @@ const SPOT_MS = 1500 // the phone dimmed round the button, before the tap
 const TAP_MS = 1300 // how long a tap shows before the screen reacts
 const REACT_MS = 1200 // watching the tapped screen change
 const CATCH_UP_MS = 1000 // between one screen changing and the other
+// Filling in a form goes quicker: one control after the next, as staff would
+const QUICK_TAP_MS = 700
+const QUICK_REACT_MS = 500
+const TYPE_MS = 90 // each letter typed
 const MAX_ZOOM = 2
 // How close the laptop is zoomed in, and where its page sits, in the page's own pixels
 type View = { x: number; y: number; s: number }
@@ -301,10 +340,28 @@ const SPOT_PAD = 10 // room round the lit buttons
 function playTime(step: LiveStep) {
   if (!step.action) return 800
   const before = step.action.by === 'staff' ? 2 * ZOOM_MS + LOOK_MS : SPOT_MS
-  return step.action.taps.length * (700 + before + TAP_MS + REACT_MS) + CATCH_UP_MS + 1200
+  const tap = (t: Tap) =>
+    700 + (t.quick ? QUICK_TAP_MS + QUICK_REACT_MS + (t.type?.length ?? 0) * TYPE_MS : before + TAP_MS + REACT_MS)
+  return step.action.taps.reduce((ms, t) => ms + tap(t), 0) + CATCH_UP_MS + 1200
+}
+
+// A frame can take the keyboard when the app inside focuses something, like the thank-you's Done button.
+// Hand it back, so the clicker keeps moving the deck.
+function keepDeckFocus() {
+  if (document.activeElement instanceof HTMLIFrameElement) document.activeElement.blur()
 }
 
 const within = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
+
+// Scrolls a frame's own page to an element. Unlike scrollIntoView, it leaves the deck's boxes round the frame alone:
+// those would scroll too, and a zoomed-in laptop would stay pushed sideways.
+function scrollWithin(el: Element, block: 'center' | 'start', behavior: ScrollBehavior) {
+  const win = el.ownerDocument.defaultView
+  if (!win) return
+  const r = el.getBoundingClientRect()
+  const offset = block === 'center' ? (win.innerHeight - r.height) / 2 : parseFloat(win.getComputedStyle(el).scrollMarginTop) || 0
+  win.scrollTo({ top: win.scrollY + r.top - offset, behavior })
+}
 
 // Waits for a smooth scroll to end: the element has stopped moving. Gives up after a couple of seconds.
 async function still(el: Element, run: Run) {
@@ -334,8 +391,13 @@ function goTo(frame: HTMLIFrameElement | null, path: string, state?: unknown) {
 
 const plain = (text: string | null | undefined) => (text ?? '').replace(/[‘’]/g, "'").trim()
 
-function buttonNamed(doc: Document, label: string) {
-  return [...doc.querySelectorAll('button')].find((b) => plain(b.textContent).startsWith(plain(label)) && b.offsetParent)
+// What a tap presses: a button, link or form option by its words, or a text box
+function tapTarget(doc: Document, t: Tap) {
+  if (t.field) return doc.querySelector<HTMLElement>(t.field) ?? undefined
+  const scope = t.in ? doc.querySelector(t.in) : doc
+  return [...(scope?.querySelectorAll<HTMLElement>('button, a, label') ?? [])].find(
+    (b) => plain(b.textContent).startsWith(plain(t.label)) && b.offsetParent,
+  )
 }
 
 function headingNamed(doc: Document, text?: string) {
@@ -343,8 +405,13 @@ function headingNamed(doc: Document, text?: string) {
 }
 
 // Looks for something in a frame while its page renders. Gives up after a few seconds.
-async function findWhenReady<T extends Element>(frame: HTMLIFrameElement | null, run: Run, find: (doc: Document) => T | null | undefined) {
-  for (let tries = 0; tries < 25 && !run.cancelled; tries++) {
+async function findWhenReady<T extends Element>(
+  frame: HTMLIFrameElement | null,
+  run: Run,
+  find: (doc: Document) => T | null | undefined,
+  tries = 25,
+) {
+  for (let i = 0; i < tries && !run.cancelled; i++) {
     const doc = frame?.contentDocument
     const found = doc && find(doc)
     if (found) return found
@@ -387,7 +454,7 @@ function Screen({
 }) {
   const at = (n: number, shift: number) => (shift + n * view.s) * scale // a point on the page, in the frame
   return (
-    <div style={{ width: size.w * scale, height: size.h * scale }} className="relative overflow-hidden">
+    <div style={{ width: size.w * scale, height: size.h * scale }} className="relative overflow-clip">
       {src && (
         <iframe
           ref={ref}
