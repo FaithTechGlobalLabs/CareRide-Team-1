@@ -2,9 +2,10 @@
 // The driver is Maya in the demo data; the slide just says "the driver".
 // Every moment is made with the real data service, so the screens always match the current app.
 import { ridePath } from '../../logic/homeFor'
-import { toLocalInput } from '../../logic/pickupTime'
+import { parseLocalInput, quickPicks } from '../../logic/pickupTime'
 import { ALL_DAY, hoursOn, isWithinRequestHours } from '../../logic/requestHours'
 import { estimateFare } from '../../logic/estimateFare'
+import { DEFAULT_PICKUP_INSTRUCTIONS } from '../../constants'
 import { dataService } from '../../services'
 import { STORAGE_KEY, resetDemoData } from '../../services/mockService'
 import type { NewRide } from '../../services/dataService'
@@ -13,14 +14,19 @@ const PARTNER = 'u-belkin'
 const DRIVER = 'u-olive' // Maya, the driver shown
 const FRANK = 'd-frank'
 const MAYA = 'd-olive'
+const RIDER = 'Doris' // the resident staff book for, by first name
 
 export type Moment = 'start' | 'booked' | 'accepted' | 'onTheWay' | 'arrived' | 'pickedUp' | 'droppedOff'
 
 // A button press shown on one screen on the way into a step. The press is only shown, not made, unless `click` is set
 // (for buttons that just change the screen, like choosing an ETA). `then` is the moment the data moves to afterwards.
 export interface Tap {
-  label: string // the button's text, or how it starts
+  label: string // the button's, link's or option's text, or how it starts
+  in?: string // where on the page to look (a CSS selector), when the same words show up elsewhere too
+  field?: string // a text box to type into (a CSS selector), in place of something to press
+  type?: string // what's typed into the field
   click?: boolean
+  quick?: boolean // part of filling in a form: tapped one after the next, without zooming in
   then?: Moment
 }
 
@@ -44,6 +50,17 @@ export const LIVE_STEPS: LiveStep[] = [
     moment: 'start',
     staff: 'request',
     driverFocus: 'requests-title',
+    action: {
+      by: 'staff',
+      taps: [
+        { label: 'Request a ride', in: 'main', click: true },
+        // The form, top to bottom: where to, when, who, and extra details
+        { label: 'St. Paul’s Hospital', in: 'main', click: true, quick: true },
+        { label: 'In 2 hours', in: 'main', click: true, quick: true },
+        { label: 'Passenger’s name', field: '#rider-name-0', type: RIDER, quick: true },
+        { label: 'Help getting in and out', in: 'main', click: true, quick: true },
+      ],
+    },
   },
   {
     short: 'Booked',
@@ -62,7 +79,7 @@ export const LIVE_STEPS: LiveStep[] = [
     staff: 'ride',
     staffFocus: 'Trip progress',
     driverFocus: 'current-title',
-    action: { by: 'driver', taps: [{ label: 'Accept', then: 'accepted' }] },
+    action: { by: 'driver', taps: [{ label: 'Accept', in: '[aria-labelledby="requests-title"]', then: 'accepted' }] },
   },
   {
     short: 'Slip',
@@ -113,27 +130,21 @@ export const LIVE_STEPS: LiveStep[] = [
     staff: 'ride',
     staffFocus: 'Trip progress',
     driverFocus: 'past-title',
-    action: { by: 'driver', taps: [{ label: 'Client dropped off', then: 'droppedOff' }] },
+    // Pressed for real, so the driver sees the app's own thank-you
+    action: { by: 'driver', taps: [{ label: 'Client dropped off', click: true, then: 'droppedOff' }] },
   },
 ]
 
 export interface LiveDemo {
   snapshots: Partial<Record<Moment, string>>
   rideId: string
+  draft: string // the booking form as staff leave it, filled in
   warning?: string // the story couldn't be told as written, e.g. a driver is outside their request hours
 }
 
-const PICKUP_AT = 'Front lobby'
-const DRAFT = { type: 'SCHEDULED', customAddress: '', passengers: 1, riderNames: [''], needsWheelchair: false, needsAssistance: false, notes: '' }
+const DRAFT_KEY = `careride-ride-draft:${PARTNER}`
 
 export const frameSrc = (path: string, as: 'partner' | 'driver') => `${path}?as=${as === 'partner' ? PARTNER : DRIVER}`
-
-// Next quarter hour, a bit over an hour from now, so the scheduled pickup looks upcoming.
-function pickupSoon(): Date {
-  const at = new Date(Date.now() + 75 * 60_000)
-  at.setMinutes(Math.ceil(at.getMinutes() / 15) * 15, 0, 0)
-  return at
-}
 
 // Resets the demo data, then plays one ride through the real service, saving the database after each moment.
 // Leaves the last moment in place, so you can switch to the app and carry on from there.
@@ -159,30 +170,42 @@ async function build(): Promise<LiveDemo> {
 
   const [house] = await dataService.listHouses('org-belkin')
   const dest = (await dataService.listDestinations('org-belkin')).find((d) => d.id === 'dest-stp-belkin')!
-  const pickup = pickupSoon()
+  // The ride staff fill in on screen: the form's first suggested time, the lobby, and a hand getting in and out
+  const pickupTime = quickPicks(Date.now())[0].value
+  const pickup = new Date(parseLocalInput(pickupTime))
   const base: Omit<NewRide, 'pickupAddress' | 'pickupTime' | 'destinationId' | 'destinationName' | 'destinationAddress'> = {
     type: 'SCHEDULED',
     orgId: house.orgId,
     houseId: house.id,
     requestedBy: PARTNER,
     passengers: 1,
+    riderNames: [RIDER],
     needsWheelchair: false,
-    needsAssistance: false,
+    needsAssistance: true,
     estimatedFareSaved: estimateFare(),
   }
 
-  // The booking form opens filled in with this ride, as if staff had just typed it
-  localStorage.setItem(
-    `careride-ride-draft:${PARTNER}`,
-    JSON.stringify({ ...DRAFT, destinationId: dest.id, pickupTime: toLocalInput(pickup.getTime()), pickupInstructions: PICKUP_AT }),
-  )
+  // The booking form as staff leave it. It opens like this whenever it isn't being filled in on screen.
+  const draft = JSON.stringify({
+    type: 'SCHEDULED',
+    destinationId: dest.id,
+    customAddress: '',
+    pickupTime,
+    passengers: 1,
+    riderNames: [RIDER],
+    pickupInstructions: DEFAULT_PICKUP_INSTRUCTIONS,
+    needsWheelchair: false,
+    needsAssistance: true,
+    notes: '',
+  })
+  localStorage.setItem(DRAFT_KEY, draft)
   snap('start')
 
   const ride = await dataService.requestRide({
     ...base,
     pickupAddress: house.address,
     pickupTime: pickup.toISOString(),
-    pickupInstructions: PICKUP_AT,
+    pickupInstructions: DEFAULT_PICKUP_INSTRUCTIONS,
     destinationId: dest.id,
     destinationName: dest.name,
     destinationAddress: dest.address,
@@ -211,11 +234,24 @@ async function build(): Promise<LiveDemo> {
   return {
     snapshots,
     rideId: ride.id,
+    draft,
     warning: problems.length ? `Heads up: ${problems.join(', and ')}. Switch to the app to show this part.` : undefined,
   }
 }
 
 export const staffPath = (demo: LiveDemo, step: LiveStep) => (step.staff === 'request' ? '/partner/request' : ridePath(demo.rideId))
+
+// Where a step starts from: where the step before left off. The first starts on the staff dashboard, before the form is opened.
+export function startOf(demo: LiveDemo, index: number): { moment: Moment; staffPath: string } {
+  const before = LIVE_STEPS[index - 1]
+  return before ? { moment: before.moment, staffPath: staffPath(demo, before) } : { moment: 'start', staffPath: '/partner' }
+}
+
+// The booking form opens blank, to be filled in on screen, or already filled in
+export function setDraft(demo: LiveDemo, filled: boolean): void {
+  if (filled) localStorage.setItem(DRAFT_KEY, demo.draft)
+  else localStorage.removeItem(DRAFT_KEY)
+}
 
 export function showSnapshot(demo: LiveDemo, moment: Moment): void {
   const data = demo.snapshots[moment]
