@@ -1,7 +1,6 @@
-import { Building2, Car, Mail, Pencil, User as UserIcon } from 'lucide-react'
+import { Building2, Car, Mail, Pencil, Phone, User as UserIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
-  DriverAboutFields,
   DriverDocumentFields,
   DriverRequestFields,
   DriverVehicleFields,
@@ -13,7 +12,6 @@ import { FieldMessage } from '../../../components/form/FieldMessage'
 import { PasswordField } from '../../../components/form/PasswordField'
 import { TextField } from '../../../components/form/TextField'
 import { tones, type Tone } from '../../../components/ui'
-import { BACKGROUND_LABELS } from '../../../constants'
 import { describeRequestHours } from '../../../logic/requestHours'
 import type { RegisterDraft, RegisterRole } from './draft'
 
@@ -97,6 +95,21 @@ export function AccountStep({ draft, update, errors, goTo }: StepProps) {
         onChange={(e) => update({ name: e.target.value })}
         data-autofocus
       />
+      {draft.role === 'DRIVER' && (
+        <TextField
+          id="driver-phone"
+          label="Mobile phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          icon={<Phone className="h-5 w-5" />}
+          placeholder="604-555-0123"
+          hint="We use this to reach you about a ride."
+          value={draft.driver.phone}
+          error={errors.phone}
+          onChange={(e) => update({ driver: { ...draft.driver, phone: e.target.value } })}
+        />
+      )}
       <TextField
         id="email"
         label="Email"
@@ -164,12 +177,6 @@ export function OrganizationStep({ draft, update, errors }: StepProps) {
   )
 }
 
-export function DriverAboutStep({ draft, update, errors }: StepProps) {
-  return (
-    <DriverAboutFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} showName={false} />
-  )
-}
-
 export function VehicleStep({ draft, update, errors }: StepProps) {
   return <DriverVehicleFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
@@ -227,6 +234,7 @@ export function ReviewStep({ draft, goTo }: StepProps) {
         goTo={goTo}
         rows={[
           [draft.role === 'PARTNER' ? 'Contact' : 'Name', draft.name],
+          ...(draft.role === 'DRIVER' ? ([['Phone', d.phone]] as [string, string][]) : []),
           ['Email', draft.email],
           ['Password', '•'.repeat(Math.min(draft.password.length, 12))],
         ]}
@@ -255,15 +263,6 @@ export function ReviewStep({ draft, goTo }: StepProps) {
 
       {draft.role === 'DRIVER' && (
         <>
-          <ReviewSection
-            title="About you"
-            stepId="about"
-            goTo={goTo}
-            rows={[
-              ['Phone', d.phone],
-              ['Drives as', BACKGROUND_LABELS[d.background]],
-            ]}
-          />
           <ReviewSection
             title="Vehicle"
             stepId="vehicle"

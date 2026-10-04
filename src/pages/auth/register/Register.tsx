@@ -14,7 +14,6 @@ import {
   validateAccount,
   validateRequestHours,
   validateDocuments,
-  validateDriverAbout,
   validateOrganization,
   validateRole,
   validateVehicle,
@@ -25,7 +24,6 @@ import {
   AccountStep,
   RequestHoursStep,
   DocumentsStep,
-  DriverAboutStep,
   OrganizationStep,
   ReviewStep,
   RoleStep,
@@ -38,7 +36,6 @@ type StepId =
   | 'account'
   | 'organization'
   | 'destinations'
-  | 'about'
   | 'vehicle'
   | 'requests'
   | 'documents'
@@ -83,13 +80,6 @@ const STEPS: Record<StepId, StepDef> = {
     subtitle: () => 'These show up as one-tap choices when booking. You can change them anytime.',
     Component: DestinationsStep,
   },
-  about: {
-    title: 'About you',
-    heading: (d) => `Nice to meet you${d.name ? `, ${d.name.split(' ')[0]}` : ''}`,
-    subtitle: () => 'We’re starting with professional drivers, who are already vetted.',
-    Component: DriverAboutStep,
-    validate: validateDriverAbout,
-  },
   vehicle: {
     title: 'Vehicle',
     heading: () => 'Your vehicle',
@@ -122,13 +112,13 @@ const STEPS: Record<StepId, StepDef> = {
 
 const FLOWS: Record<RegisterRole, StepId[]> = {
   PARTNER: ['role', 'account', 'organization', 'destinations', 'review'],
-  DRIVER: ['role', 'account', 'about', 'vehicle', 'requests', 'documents', 'review'],
+  DRIVER: ['role', 'account', 'vehicle', 'requests', 'documents', 'review'],
 }
 
 const ROLE_PARAM: Record<string, RegisterRole> = { partner: 'PARTNER', driver: 'DRIVER' }
 
 // The draft survives a refresh, the back button, and closing the tab (but never keeps the password).
-const DRAFT_KEY = 'careride-register-draft-v3'
+const DRAFT_KEY = 'careride-register-draft-v4'
 
 function loadDraft(roleParam: string | null): { draft: RegisterDraft; stepId: StepId } {
   const fromParam = roleParam ? ROLE_PARAM[roleParam] : undefined

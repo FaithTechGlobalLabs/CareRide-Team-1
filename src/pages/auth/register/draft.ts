@@ -53,6 +53,8 @@ export function validateRole(d: RegisterDraft): FieldErrors {
 export function validateAccount(d: RegisterDraft): FieldErrors {
   return compact({
     name: d.name.trim() ? tooLong(d.name, MAX_NAME) : 'Please enter your name.',
+    phone:
+      d.role === 'DRIVER' ? (isPhone(d.driver.phone) ? undefined : 'Please enter a 10-digit phone number.') : undefined,
     email: !d.email.trim()
       ? 'Please enter your email.'
       : EMAIL.test(d.email.trim())
@@ -72,10 +74,6 @@ export function validateOrganization(d: RegisterDraft): FieldErrors {
         : 'Search for the address and pick it from the list.',
     orgPhone: isPhone(d.orgPhone) ? undefined : 'Please enter a 10-digit phone number.',
   })
-}
-
-export function validateDriverAbout(d: RegisterDraft): FieldErrors {
-  return compact({ phone: isPhone(d.driver.phone) ? undefined : 'Please enter a 10-digit phone number.' })
 }
 
 export function validateVehicle(d: RegisterDraft): FieldErrors {
