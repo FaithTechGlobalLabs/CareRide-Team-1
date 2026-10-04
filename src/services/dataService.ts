@@ -94,9 +94,9 @@ export interface DataService {
   // Locations (point A): one per partner organization
   listHouses(orgId?: string): Promise<House[]>
 
-  // Drivers: self sign-up with a login, or added by the signed-in organization without one
+  // Drivers: self sign-up with a login, or added by a transport provider without one
   registerDriver(user: NewDriverUser, driver: NewDriver, login: Pick<NewAccount, 'email' | 'password'>): Promise<Registration>
-  addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // the backend decides which org
+  addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // transport providers only; the backend uses the signed-in org
   listDrivers(orgId?: string): Promise<Driver[]>
   // Approved drivers' eligibility (seats, cities, hours) for booking previews, without saying who they are
   listDriverPool(): Promise<Driver[]>

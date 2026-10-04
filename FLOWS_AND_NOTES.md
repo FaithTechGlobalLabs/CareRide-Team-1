@@ -85,7 +85,7 @@ Draft. **[open]** = undecided or unclear.
 
 ## 3. What a new org or provider goes through
 
-**Partner org:** register, enter basic info, add point B locations, optionally add transport options (driver, availability, spaces), then book from the single location account.
+**Partner org:** register, enter basic info, add point B locations, then book from the single location account.
 
 **Transport provider:** register, enter basic info, set booking notifications, specify driver, set availability and spaces, then receive and accept bookings.
 
