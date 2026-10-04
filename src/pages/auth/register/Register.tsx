@@ -187,6 +187,10 @@ export function Register() {
   const [initial] = useState(() => loadDraft(params.get('role')))
   const [draft, setDraft] = useState(initial.draft)
   const [stepId, setStepId] = useState<StepId>(initial.stepId)
+  const [furthest, setFurthest] = useState(() => {
+    const savedFlow = FLOWS[initial.draft.role ?? 'PARTNER']
+    return Math.max(0, savedFlow.indexOf(initial.stepId))
+  })
   const [direction, setDirection] = useState<'forward' | 'back'>('forward')
   const [errors, setErrors] = useState<FieldErrors>({})
   const [busy, setBusy] = useState(false)
@@ -204,6 +208,10 @@ export function Register() {
     if (!result) saveDraft(draft, stepId)
   }, [draft, stepId, result])
 
+  useEffect(() => {
+    setFurthest((reached) => Math.max(reached, index))
+  }, [index])
+
   // Move focus to the new step so keyboard and screen reader users land in the right place
   useEffect(() => {
     if (firstRender.current) {
@@ -217,6 +225,7 @@ export function Register() {
   }, [stepId])
 
   function update(patch: Partial<RegisterDraft>) {
+    if (patch.role !== undefined && patch.role !== draft.role) setFurthest(0)
     setDraft((d) => ({ ...d, ...patch }))
     // Clear errors for whatever the person is fixing
     if (Object.keys(errors).length) setErrors({})
@@ -227,6 +236,11 @@ export function Register() {
     setDirection(dir)
     setErrors({})
     setStepId(to)
+  }
+
+  function goToStep(i: number) {
+    if (busy || i === index || i < 0 || i > furthest) return
+    go(flow[i], i < index ? 'back' : 'forward')
   }
 
   function focusFirstError() {
@@ -304,7 +318,13 @@ export function Register() {
       <div className={showStepper ? 'grid gap-8 lg:grid-cols-[15rem_1fr]' : 'mx-auto max-w-2xl'}>
         {showStepper && (
           <aside className="lg:pt-24">
-            <Stepper steps={flow.map((id) => ({ id, title: STEPS[id].title }))} current={index} />
+            <Stepper
+              steps={flow.map((id) => ({ id, title: STEPS[id].title }))}
+              current={index}
+              furthest={furthest}
+              onSelect={goToStep}
+              disabled={busy}
+            />
           </aside>
         )}
 
