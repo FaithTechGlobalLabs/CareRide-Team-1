@@ -193,6 +193,17 @@ export function RideDetail() {
       ? directionsBetween(ride.pickupAddress, ride.destinationAddress, 'transit')
       : directionsTo(ride.destinationAddress, 'transit')
   const waiting = ride.status === 'SEARCHING' || ride.status === 'OFFERED'
+  const answers = latestPerDriver(offers)
+  const declined = answers.filter((o) => o.status === 'DECLINED').length
+  const unanswered = answers.filter((o) => o.status === 'EXPIRED').length
+  const noMatchReason = house && answers.length === 0 ? previewDriverMatch(ride, house, drivers).reason : undefined
+  const noDriverWhy = [
+    declined > 0 && `${declined === 1 ? '1 driver' : `${declined} drivers`} said no.`,
+    unanswered > 0 && `${unanswered === 1 ? '1 driver' : `${unanswered} drivers`} didn't answer in time.`,
+    answers.length === 0 ? (noMatchReason ? `No driver fits it: ${noMatchReason}` : 'No driver fits it.') : 'Nobody else can be asked.',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div className="space-y-6">
@@ -330,9 +341,9 @@ export function RideDetail() {
       {ride.status === 'NEEDS_ATTENTION' && (
         <section className={`${card} no-print border-2 border-red-500`} aria-labelledby="no-driver-title">
           <h2 id="no-driver-title" className="mb-1 text-xl font-bold text-red-800">
-            No driver accepted this ride
+            No driver is available for this ride
           </h2>
-          <p className="mb-4 text-slate-700">Here's what you can do:</p>
+          <p className="mb-4 text-slate-700">{noDriverWhy}</p>
           {retryNote && (
             <p role="status" className="mb-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
               <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />

@@ -21,7 +21,7 @@ const FINISHED: Ride['status'][] = ['COMPLETED', 'NO_SHOW', 'CANCELLED']
 
 export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
   // Only rides that need someone get a note. The badge carries every other status.
-  const note = alert ?? (ride.status === 'NEEDS_ATTENTION' ? 'No driver has accepted yet' : undefined)
+  const note = alert
   const done = FINISHED.includes(ride.status)
   const riders = riderLabel(ride)
   const needs = [
