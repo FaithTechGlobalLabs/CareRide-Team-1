@@ -33,13 +33,13 @@ export function LandingHeader({ sections, active }: Props) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="On this page">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="On this page">
           {sections.map((s) => (
             <a
               key={s.id}
               href={`#${s.id}`}
               aria-current={active === s.id ? 'true' : undefined}
-              className={`rounded-full px-3.5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+              className={`whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 active === s.id ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-ink'
               }`}
             >
@@ -60,7 +60,7 @@ export function LandingHeader({ sections, active }: Props) {
           </span>
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="landing-menu"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -72,7 +72,7 @@ export function LandingHeader({ sections, active }: Props) {
       </div>
 
       {menuOpen && (
-        <div id="landing-menu" className="animate-fade-up border-t border-slate-200 bg-white px-4 pb-5 pt-2 [animation-duration:250ms] md:hidden">
+        <div id="landing-menu" className="animate-fade-up border-t border-slate-200 bg-white px-4 pb-5 pt-2 [animation-duration:250ms] lg:hidden">
           <nav aria-label="On this page" className="flex flex-col">
             {sections.map((s) => (
               <a
