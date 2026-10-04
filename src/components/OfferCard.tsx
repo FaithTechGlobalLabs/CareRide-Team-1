@@ -3,6 +3,8 @@ import type { Ride, RideOffer } from '../types'
 import { RideCard } from './RideCard'
 import { primaryButton, secondaryButton } from './ui'
 import { formatTime } from '../logic/formatTime'
+import { isRealAddress } from '../logic/maps'
+import { DriveTimes } from './maps/DriveTimes'
 
 interface Props {
   offer: RideOffer
@@ -10,11 +12,13 @@ interface Props {
   from?: string // pickup label, e.g. the partner name and city
   driverName?: string // shown when a provider answers for one of its drivers
   changed?: boolean // the driver already had this ride, and the partner changed it
+  fromMe?: boolean // the driver is the one looking, so offer drive time from their location
   onRespond: (accept: boolean) => void
 }
 
-// What a driver sees before accepting. Exact pickup details show only after accepting.
-export function OfferCard({ offer, ride, from, driverName, changed, onRespond }: Props) {
+// What a driver sees before accepting. Exact pickup details show only after accepting:
+// drive times are fine, but no address or map until then.
+export function OfferCard({ offer, ride, from, driverName, changed, fromMe, onRespond }: Props) {
   return (
     <RideCard ride={ride} from={from}>
       {changed && (
@@ -26,6 +30,11 @@ export function OfferCard({ offer, ride, from, driverName, changed, onRespond }:
           </span>
         </p>
       )}
+      <DriveTimes
+        pickup={isRealAddress(ride.pickupAddress) ? ride.pickupAddress : undefined}
+        dropoff={isRealAddress(ride.destinationAddress) ? ride.destinationAddress : undefined}
+        fromMe={fromMe}
+      />
       <p className="w-full text-sm text-slate-600">
         {driverName && <>For {driverName} · </>}
         Please answer by {formatTime(offer.expiresAt)}

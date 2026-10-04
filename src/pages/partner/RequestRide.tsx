@@ -36,6 +36,7 @@ import { ON_DEMAND_GIVE_UP_MINUTES } from '../../logic/dispatch'
 import { previewDriverMatch, type MatchCheck, type MatchPreview } from '../../logic/driverMatchPreview'
 import { estimateFare } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
+import { houseAddress } from '../../logic/maps'
 import { describePickup, quickPicks, toLocalInput } from '../../logic/pickupTime'
 import { sortByPopularity } from '../../logic/popularDestinations'
 import { passengersLabel, riderLabel } from '../../logic/rideText'
@@ -392,7 +393,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
 
     const pickupTime = form.type === 'ON_DEMAND' ? new Date().toISOString() : new Date(pickupMs).toISOString()
     const destination = isReturn
-      ? { destinationId: undefined, destinationName: house.name, destinationAddress: house.address }
+      ? { destinationId: undefined, destinationName: house.name, destinationAddress: houseAddress(house) }
       : saved
         ? { destinationId: saved.id, destinationName: saved.name, destinationAddress: saved.address }
         : { destinationId: undefined, destinationName: form.customAddress.trim(), destinationAddress: form.customAddress.trim() }
@@ -433,7 +434,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 },
                 requestId.current,
               )
-            : await dataService.requestRide({ ...base, pickupAddress: house.address }, requestId.current)
+            : await dataService.requestRide({ ...base, pickupAddress: houseAddress(house) }, requestId.current)
         requestId.current = crypto.randomUUID()
       }
       if (mode === 'new') clearDraft(user.id)

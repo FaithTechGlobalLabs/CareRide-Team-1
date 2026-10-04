@@ -88,7 +88,7 @@ Open the local URL printed by Vite, normally **http://localhost:5173**.
 
 If you use nvm, run `nvm install` and `nvm use` in the repository before installing dependencies.
 
-**No environment variables, API keys, database setup, or backend server are required for the demo.** Seed data loads automatically.
+**No environment variables, API keys, database setup, or backend server are required for the demo.** Seed data loads automatically. A Google Maps key is optional: it adds route maps and drive times for drivers (see [Google Maps (optional)](#google-maps-optional)).
 
 ## Try the demo
 
@@ -100,7 +100,7 @@ Open **Sign in** and choose a one-tap demo account, or use one of the credential
 | Frank | `frank@careride.demo` | Accept requests and complete rides. |
 | CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
 
-Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names. **Partner pickup addresses are placeholders** (“Address to confirm”), so drivers are asked to call the front desk instead of getting directions to the pickup.
+Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names and addresses. Belkin House, Richmond House, and Grace Mansion use their real addresses, and each starts with saved destinations taken from its case workers' answers in [PARTNER_ORG_NOTES.md](PARTNER_ORG_NOTES.md).
 
 ### Walk through a complete ride
 
@@ -208,6 +208,36 @@ npm run android:apk
 The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`. On a pull request, GitHub Actions uploads the same file as the **careride-debug-apk** artifact. Install it with Android Studio, `npx cap open android`, or `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
 
 The website is unchanged: the marketing page still opens at `/`, and a closed browser tab still signs you out.
+
+### Google Maps (optional)
+
+With a Google Maps key, drivers see:
+
+- **Before accepting:** about how long the ride takes, and, if they share their location, how far they are from the pickup. The pickup address stays hidden until they accept.
+- **On their current ride:** a map of the route from pickup (A) to drop-off (B), with a dashed line from where they are to the pickup until the client is in the car.
+
+Without a key, nothing changes: drivers keep the **Directions** buttons that open Google Maps.
+
+**Set it up (about 10 minutes):**
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or pick a project and turn on billing. Google Maps Platform has a monthly free allowance; check [current pricing](https://mapsplatform.google.com/pricing/).
+2. Under **APIs & Services → Library**, enable **Maps JavaScript API** and **Routes API**. Both are required: routes are worked out by the Routes API, even though they're requested through the JavaScript API.
+3. Under **APIs & Services → Credentials**, create an API key and restrict it:
+   - **Application restrictions → Websites:** `http://localhost:5173/*`, your deployed domain (for example `https://careride.example.workers.dev/*`), `https://localhost/*` for the Android app, and `https://*.trycloudflare.com/*` if you demo through a Cloudflare tunnel.
+   - **API restrictions:** Maps JavaScript API and Routes API.
+4. Copy `.env.example` to `.env.local` and paste the key into `VITE_GOOGLE_MAPS_API_KEY`. `.env.local` is git-ignored.
+5. Restart `npm run dev`.
+
+`VITE_GOOGLE_MAPS_MAP_ID` is optional. Without it, the map uses Google's `DEMO_MAP_ID`. For production, create a Map ID under **Google Maps Platform → Map management** (JavaScript, vector) and set it.
+
+**Deploying:** Vite builds the key into the JavaScript, so set `VITE_GOOGLE_MAPS_API_KEY` wherever `npm run build` runs, such as the Cloudflare Workers build settings under **Build variables**, not as a runtime Worker variable. The key is visible to anyone who opens the site, which is normal for Maps JavaScript keys; the website restriction in step 3 is what protects it.
+
+**Things to know:**
+
+- Each route is requested once per page load and remembered, so the four-second refresh doesn't call Google again. Only the current ride shows a map.
+- The browser asks for the driver's location only when they tap **Use my location**. Once they've allowed it, the driver's screens read it again on later visits without a tap; the organization's Bookings page never does. It's kept in memory for that tab, rounded to about 100 m, and sent only to Google to work out the drive time. Browsers only ask for location over HTTPS or on `localhost`, so a phone opening `http://192.168.x.x:5173` won't get the prompt. Use a tunnel or the Android app instead.
+- If Google rejects the key (wrong restrictions, an API not enabled, or billing off), the maps and times disappear and the Directions buttons stay. Check the browser console for the reason.
+- Drive times don't include traffic.
 
 ## Current boundaries and next steps
 
