@@ -455,10 +455,10 @@ Demo data is fictional except public place names. Use **Reset demo data** in the
 1. **An organization registers.** A new partner organization signs up. The CareRide admin approves it.
 2. **A driver registers.** A taxi driver signs up with availability and documents, and the admin approves them.
 3. **Belkin House books a ride.** St. Paul's is a one-tap button because it's the house's most-visited place. Two people are riding. The 911 banner is visible.
-4. **Frank declines.** The request moves on to Olive automatically, and the house sees who was asked.
-5. **Olive accepts.** Belkin House prints the reminder slip: when, where to wait, driver, car.
-6. **The ride completes.** Olive taps Picked up, then Dropped off, and Belkin House sees the client arrived.
-7. **The return trip.** Belkin House books the return; it goes to Olive first.
+4. **Frank declines.** The request moves on to Maya automatically, and the house sees who was asked.
+5. **Maya accepts.** Belkin House prints the reminder slip: when, where to wait, driver, car.
+6. **The ride completes.** Maya taps Picked up, then Dropped off, and Belkin House sees the client arrived.
+7. **The return trip.** Belkin House books the return; it goes to Maya first.
 8. **A ride nobody can take.** A same-day wheelchair ride: the accessible van needs 24 hours' notice, so it turns red with the free fallbacks.
 9. **A transport provider.** The Community Van Share admin sees bookings for its drivers.
 10. **Impact counter:** rides done, dollars saved, organizations and drivers on the platform.

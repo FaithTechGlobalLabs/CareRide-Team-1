@@ -86,7 +86,7 @@ const demoUsers: User[] = [
   { id: 'u-grace', name: 'Grace Mansion', email: 'grace@careride.demo', phone: '604-555-0122', role: 'PARTNER', orgId: 'org-grace', houseId: 'house-grace' },
   { id: 'u-vanshare-admin', name: 'Community Van Share Admin', email: 'vanshare@careride.demo', phone: '604-555-0110', role: 'ORG_ADMIN', orgId: 'org-vanshare' },
   { id: 'u-frank', name: 'Frank', email: 'frank@careride.demo', phone: '604-555-0103', role: 'DRIVER' },
-  { id: 'u-olive', name: 'Olive', email: 'olive@careride.demo', phone: '604-555-0104', role: 'DRIVER' },
+  { id: 'u-olive', name: 'Maya', email: 'maya@careride.demo', phone: '604-555-0104', role: 'DRIVER' },
   { id: 'u-sam', name: 'Sam', email: 'sam@careride.demo', phone: '604-555-0105', role: 'DRIVER', orgId: 'org-vanshare' },
   { id: 'u-jordan', name: 'Jordan', email: 'jordan@careride.demo', phone: '604-555-0106', role: 'DRIVER' },
 ]

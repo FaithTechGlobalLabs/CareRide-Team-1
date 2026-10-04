@@ -8,6 +8,7 @@ import { Approvals } from './pages/admin/Approvals'
 import { Landing } from './pages/auth/Landing'
 import { Register } from './pages/auth/register/Register'
 import { SignIn } from './pages/auth/SignIn'
+import { Demo } from './pages/demo/Demo'
 import { DriverHome } from './pages/driver/DriverHome'
 import { Settings } from './pages/driver/Settings'
 import { Bookings } from './pages/org/Bookings'
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/demo" element={<Demo />} />
 
       <Route element={<RequireAuth />}>
         <Route path="/home" element={<RoleHome />} />

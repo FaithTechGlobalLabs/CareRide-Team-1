@@ -6,9 +6,22 @@ import { AppContext } from './appContext'
 const SESSION_KEY = 'careride-session-v3'
 const POLL_MS = 4000
 
+// The /demo deck shows the real app in frames, one per role. Frames share the tab's sessionStorage,
+// so each says who it is with ?as=<user id>. Only honoured inside a frame on the /demo page.
+// The mock backend lives in the browser anyway; a real backend must ignore this.
+const FRAME_USER = (() => {
+  try {
+    if (window.parent === window || window.parent.location.pathname !== '/demo') return ''
+    return new URLSearchParams(window.location.search).get('as') ?? ''
+  } catch {
+    return ''
+  }
+})()
+
 // The session lives in sessionStorage, so it survives a reload but not closing the
 // tab or browser: every fresh visit starts signed out on the home page.
 function readSession(): string {
+  if (FRAME_USER) return FRAME_USER
   try {
     // Drop sessions saved by older builds, which kept people signed in forever
     localStorage.removeItem(SESSION_KEY)
@@ -19,6 +32,7 @@ function readSession(): string {
 }
 
 function writeSession(userId: string): void {
+  if (FRAME_USER) return
   try {
     if (userId) sessionStorage.setItem(SESSION_KEY, userId)
     else sessionStorage.removeItem(SESSION_KEY)
