@@ -1,8 +1,9 @@
-import { ChevronDown, LogOut, Repeat } from 'lucide-react'
+import { ChevronDown, LogOut, Repeat, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { ROLE_LABELS } from '../logic/homeFor'
+import { DeleteMyAccount } from './DeleteMyAccount'
 import { ROLE_TONE, tones } from './ui'
 
 function initials(name: string): string {
@@ -17,6 +18,7 @@ function initials(name: string): string {
 export function AccountMenu() {
   const { currentUser, signOut } = useApp()
   const [open, setOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export function AccountMenu() {
 
   if (!currentUser) return null
   const tone = tones[ROLE_TONE[currentUser.role]]
+  const canDelete = currentUser.role === 'DRIVER' || currentUser.role === 'PARTNER'
 
   return (
     <div ref={ref} className="relative">
@@ -67,6 +70,19 @@ export function AccountMenu() {
             </p>
           </div>
           <div className="my-1 border-t border-slate-100" />
+          {canDelete && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                setDeleting(true)
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden /> Delete account
+            </button>
+          )}
           <Link
             to="/signin"
             role="menuitem"
@@ -85,6 +101,7 @@ export function AccountMenu() {
           </button>
         </div>
       )}
+      {deleting && <DeleteMyAccount user={currentUser} onClose={() => setDeleting(false)} />}
     </div>
   )
 }

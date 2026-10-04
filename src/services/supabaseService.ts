@@ -662,6 +662,17 @@ export const supabaseService: DataService = {
     throw new Error(`We couldn't remove this account. ${CONNECTION}`)
   },
 
+  // Server-side: delete-my-account switches this driver or partner off, then removes their login.
+  async deleteMyAccount() {
+    const { error } = await getSupabase().functions.invoke('delete-my-account', { body: {} })
+    if (!error) return
+    if (error instanceof FunctionsHttpError) {
+      const body = (await error.context.json().catch(() => ({}))) as { error?: string }
+      throw new Error(body.error ?? "We couldn't close this account. Please try again.")
+    }
+    throw new Error(`We couldn't close this account. ${CONNECTION}`)
+  },
+
   async listDestinations(orgId) {
     let query = getSupabase().from('destinations').select(DESTINATION_COLUMNS).order('name')
     if (orgId) query = query.eq('org_id', orgId)
