@@ -37,7 +37,7 @@ export function HeroPreview() {
             </span>
             <div className="min-w-0">
               <p className="whitespace-nowrap text-sm font-bold leading-tight text-ink">On the way</p>
-              <p className="mt-0.5 text-xs leading-tight text-slate-500">Olive · 5 min away</p>
+              <p className="mt-0.5 text-xs leading-tight text-slate-500">Maya · 5 min away</p>
             </div>
           </div>
         </div>
@@ -51,7 +51,7 @@ export function HeroPreview() {
           </div>
           <p className="mt-2 font-display text-lg font-extrabold text-ink">Belkin House → St. Paul's Hospital</p>
           <p className="mt-1 flex items-start gap-2 text-sm text-slate-600">
-            <Car className="mt-0.5 h-4 w-4 shrink-0" /> Olive · White sedan · Meets in the lobby
+            <Car className="mt-0.5 h-4 w-4 shrink-0" /> Maya · White sedan · Meets in the lobby
           </p>
 
           <ol className="mt-4 flex border-t border-slate-100 pt-4">

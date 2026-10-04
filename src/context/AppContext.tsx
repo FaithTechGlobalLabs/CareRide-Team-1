@@ -3,6 +3,7 @@ import { isNative, sessionStore } from '../native/platform'
 import { dataService } from '../services'
 import type { User } from '../types'
 import { AppContext } from './appContext'
+import { DEMO_FRAME_USER as FRAME_USER, DEMO_REFRESH } from './demoFrame'
 
 const SESSION_KEY = 'careride-session-v3'
 const POLL_MS = 4000
@@ -10,6 +11,7 @@ const POLL_MS = 4000
 // Browser: sessionStorage, so a closed tab starts signed out.
 // Phone: localStorage, so reopening the app keeps you signed in.
 function readSession(): string {
+  if (FRAME_USER) return FRAME_USER
   try {
     if (!isNative) {
       // Drop sessions saved by older builds, which kept people signed in forever
@@ -22,6 +24,7 @@ function readSession(): string {
 }
 
 function writeSession(userId: string): void {
+  if (FRAME_USER) return
   try {
     if (userId) sessionStore.setItem(SESSION_KEY, userId)
     else sessionStore.removeItem(SESSION_KEY)
@@ -59,8 +62,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [version])
 
-  // Keep two open tabs (e.g. a house and a driver) in sync during the demo
+  // Keep two open tabs (e.g. a house and a driver) in sync during the demo.
+  // In a /demo frame, the deck says when instead.
   useEffect(() => {
+    if (FRAME_USER) {
+      const onMessage = (e: MessageEvent) => {
+        if (e.source === window.parent && e.data === DEMO_REFRESH) refresh()
+      }
+      window.addEventListener('message', onMessage)
+      return () => window.removeEventListener('message', onMessage)
+    }
     window.addEventListener('storage', refresh)
     return () => window.removeEventListener('storage', refresh)
   }, [refresh])
@@ -69,7 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // This also moves timed-out requests on to other drivers.
   // TODO: a real backend should push changes instead
   useEffect(() => {
-    if (!currentUserId) return
+    if (!currentUserId || FRAME_USER) return
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') refresh()
     }, POLL_MS)
