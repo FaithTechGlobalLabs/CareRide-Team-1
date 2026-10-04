@@ -4,7 +4,7 @@ import { CopyButton } from '../../components/CopyButton'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
-import { formatDollars } from '../../logic/estimateFare'
+import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours } from '../../logic/requestHours'
 import { dataService } from '../../services'
@@ -105,7 +105,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
   const rides = details?.rides ?? []
   const completed = rides.filter((r) => r.status === 'COMPLETED')
   const upcoming = rides.filter((r) => ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION', 'PICKED_UP'].includes(r.status))
-  const saved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const saved = faresSavedFor(completed.length)
   const { org, house, driver } = details ?? {}
 
   return (
