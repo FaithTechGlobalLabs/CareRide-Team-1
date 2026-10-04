@@ -1,5 +1,20 @@
 import type { Ride } from '../types'
 
+export const TRANSIT_TICKET_REASON = 'Sent on transit. Gave a Compass Ticket.'
+export const TRANSIT_PASS_REASON = 'Sent on transit. Client already has a pass.'
+export const SENT_ON_TRANSIT_LABEL = 'Sent on transit'
+
+export function isSentOnTransit(ride: Pick<Ride, 'status' | 'cancelReason'>): boolean {
+  return ride.status === 'CANCELLED' && !!ride.cancelReason?.startsWith('Sent on transit')
+}
+
+// Override the status badge when a cancelled ride is actually a transit fallback.
+export function rideBadgeLabel(ride: Pick<Ride, 'status' | 'cancelReason' | 'expired'>): string | undefined {
+  if (isSentOnTransit(ride)) return SENT_ON_TRANSIT_LABEL
+  if (ride.expired) return 'No driver found'
+  return undefined
+}
+
 // "1 passenger", "3 passengers"
 export function passengersLabel(n: number): string {
   return `${n} ${n === 1 ? 'passenger' : 'passengers'}`

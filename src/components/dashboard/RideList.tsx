@@ -5,7 +5,7 @@ import { acceptedMessage } from '../../logic/acceptedMessage'
 import { formatTime } from '../../logic/formatTime'
 import { ridePath } from '../../logic/homeFor'
 import { actionReason, dayLabel } from '../../logic/rideInsights'
-import { passengersLabel, riderLabel } from '../../logic/rideText'
+import { passengersLabel, rideBadgeLabel, riderLabel, SENT_ON_TRANSIT_LABEL } from '../../logic/rideText'
 import type { Ride } from '../../types'
 import { StatusBadge } from '../StatusBadge'
 import { card, input, primaryButton, secondaryButton } from '../ui'
@@ -248,7 +248,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
       </div>
 
       <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
-        <StatusBadge status={ride.status} label={ride.expired ? 'No driver found' : undefined} />
+        <StatusBadge status={ride.status} label={rideBadgeLabel(ride)} />
         {past && !ride.returnOfRideId && <BookAgain rideId={ride.id} />}
       </div>
     </li>
@@ -281,11 +281,17 @@ const SHORT_STATUS: Record<Ride['status'], { text: string; dot: string }> = {
 }
 
 function StatusDot({ ride }: { ride: Ride }) {
-  const s = SHORT_STATUS[ride.status]
+  const label = rideBadgeLabel(ride)
+  const s =
+    label === SENT_ON_TRANSIT_LABEL
+      ? { text: 'Transit', dot: 'bg-teal-500' }
+      : ride.expired
+        ? { text: 'No driver', dot: 'bg-amber-500' }
+        : SHORT_STATUS[ride.status]
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
       <span className={`h-2 w-2 rounded-full ${s.dot}`} aria-hidden />
-      {ride.expired ? 'No driver' : s.text}
+      {s.text}
     </span>
   )
 }

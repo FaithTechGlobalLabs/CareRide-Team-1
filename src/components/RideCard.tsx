@@ -5,7 +5,7 @@ import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 import { formatDayTime } from '../logic/formatTime'
-import { passengersLabel, riderLabel } from '../logic/rideText'
+import { isSentOnTransit, passengersLabel, rideBadgeLabel, riderLabel } from '../logic/rideText'
 
 interface Props {
   ride: Ride
@@ -30,6 +30,7 @@ const ACCENT: Record<Ride['status'], string> = {
 
 export function RideCard({ ride, from, to, statusLabel, children, alert }: Props) {
   const highlight = ride.status === 'NEEDS_ATTENTION' || alert ? 'border-red-300 bg-red-50/40' : ''
+  const accent = isSentOnTransit(ride) ? 'border-l-teal-500' : ACCENT[ride.status]
   const riders = riderLabel(ride)
   const needs = [
     passengersLabel(ride.passengers),
@@ -38,7 +39,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
   ].filter(Boolean)
 
   return (
-    <div className={`${card} border-l-4 ${ACCENT[ride.status]} ${highlight}`}>
+    <div className={`${card} border-l-4 ${accent} ${highlight}`}>
       {alert && <p className="mb-2 font-bold text-red-800">⚠ {alert}</p>}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -46,7 +47,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
           {ride.returnOfRideId && ' · Return trip'}
           {riders && ` · ${riders}`}
         </span>
-        <StatusBadge status={ride.status} label={statusLabel} />
+        <StatusBadge status={ride.status} label={statusLabel ?? rideBadgeLabel(ride)} />
       </div>
       <p className="break-words text-lg font-semibold">
         {from ? `${from} → ` : ''}
