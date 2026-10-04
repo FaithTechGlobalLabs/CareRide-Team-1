@@ -1,4 +1,8 @@
-import { card, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
+import { BadgeCheck, Building2, Car, ClipboardCheck, Users } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { DashboardHeader } from '../../components/dashboard/DashboardHeader'
+import { StatTile } from '../../components/dashboard/StatTile'
+import { card, primaryButton, secondaryButton } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
@@ -6,10 +10,18 @@ import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
 import type { VerificationStatus } from '../../types'
 
+// e.g. "1 organization · 2 drivers", skipping a kind with none waiting
+function waitingNote(orgs: number, drivers: number): string {
+  const parts = [orgs && `${orgs} ${orgs === 1 ? 'organization' : 'organizations'}`, drivers && `${drivers} ${drivers === 1 ? 'driver' : 'drivers'}`]
+  return parts.filter(Boolean).join(' · ')
+}
+
 export function Approvals() {
-  const { users, refresh } = useApp()
+  const { currentUser, users, refresh } = useApp()
   const pending = useData(() => dataService.listPending())
   const orgs = useData(() => dataService.listOrganizations()) ?? []
+  const impact = useData(() => dataService.getImpact())
+  const waiting = (pending?.orgs.length ?? 0) + (pending?.drivers.length ?? 0)
 
   async function setOrg(id: string, status: VerificationStatus) {
     await dataService.setOrgStatus(id, status)
@@ -23,7 +35,37 @@ export function Approvals() {
 
   return (
     <div className="space-y-8">
-      <h1 className={pageTitle}>Approvals</h1>
+      <div className="space-y-4">
+        <DashboardHeader
+          name={currentUser?.name ?? 'admin'}
+          summary={
+            pending === undefined
+              ? 'Loading…'
+              : waiting > 0
+                ? `${waiting} ${waiting === 1 ? 'account is' : 'accounts are'} waiting for review.`
+                : 'All caught up. Nothing is waiting for review.'
+          }
+          actions={
+            <Link to="/admin/accounts" className={`${secondaryButton} min-h-12`}>
+              <Users className="h-5 w-5" aria-hidden />
+              All accounts
+            </Link>
+          }
+        />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile
+            label="Waiting for review"
+            value={waiting}
+            icon={<ClipboardCheck className="h-5 w-5" />}
+            tone="amber"
+            note={waiting ? waitingNote(pending?.orgs.length ?? 0, pending?.drivers.length ?? 0) : 'All caught up'}
+            alert={waiting > 0}
+          />
+          <StatTile label="Organizations" value={impact?.organizations ?? '–'} icon={<Building2 className="h-5 w-5" />} tone="violet" note="Approved partners" />
+          <StatTile label="Verified drivers" value={impact?.verifiedDrivers ?? '–'} icon={<BadgeCheck className="h-5 w-5" />} tone="teal" note="Ready to get requests" />
+          <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `$${impact.moneySaved.toLocaleString()} in fares saved` : undefined} />
+        </div>
+      </div>
       {/* TODO: how we verify organizations and drivers is still an open question */}
 
       <section>

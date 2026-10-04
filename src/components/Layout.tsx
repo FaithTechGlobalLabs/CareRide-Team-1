@@ -127,11 +127,14 @@ export function Layout() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            {/* The shared button class sets inline-flex, so a wrapper hides it on phones (they get the bottom button) */}
             {showRequest && (
-              <Link to="/partner/request" className={`${primaryButton} hidden min-h-10 px-4 text-sm sm:inline-flex`}>
-                <CalendarPlus className="h-4 w-4" aria-hidden />
-                Request a ride
-              </Link>
+              <span className="hidden sm:block">
+                <Link to="/partner/request" className={`${primaryButton} min-h-10 px-4 text-sm`}>
+                  <CalendarPlus className="h-4 w-4" aria-hidden />
+                  Request a ride
+                </Link>
+              </span>
             )}
             <AccountMenu />
           </div>
