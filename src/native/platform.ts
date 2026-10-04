@@ -62,6 +62,33 @@ export async function hideSplash(): Promise<void> {
   await SplashScreen.hide()
 }
 
+export type LiveUpdateResult = 'applied' | 'current' | 'unavailable'
+
+export async function applyLiveUpdate(): Promise<LiveUpdateResult> {
+  if (!isNative) return 'unavailable'
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+    const latest = await CapacitorUpdater.getLatest()
+    if (latest.kind === 'blocked' || latest.kind === 'failed') return 'unavailable'
+    if (latest.kind === 'up_to_date' || !latest.url || !latest.version) return 'current'
+
+    const { bundle } = await CapacitorUpdater.current()
+    if (bundle.version === latest.version) return 'current'
+
+    const downloaded = await CapacitorUpdater.download({
+      url: latest.url,
+      version: latest.version,
+      checksum: latest.checksum,
+    })
+    await CapacitorUpdater.next({ id: downloaded.id })
+    await CapacitorUpdater.reload()
+    return 'applied'
+  } catch (error) {
+    console.error('Live update failed', error)
+    return 'unavailable'
+  }
+}
+
 export async function notifyOtaReady(): Promise<void> {
   if (!isNative) return
   try {
