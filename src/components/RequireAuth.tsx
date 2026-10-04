@@ -3,10 +3,12 @@ import { Navigate, Outlet } from 'react-router-dom'
 import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
 import { HOME_FOR } from '../logic/homeFor'
+import { isNative } from '../native/platform'
 import type { UserRole } from '../types'
 import { primaryButton, secondaryButton } from './ui'
 
-// Signed-in pages only. Everyone else goes to the home page to sign in.
+// Signed-in pages only. On the website, everyone else sees the marketing page.
+// On the phone, they go to sign-in — sending them to "/" would bounce forever.
 export function RequireAuth() {
   const { ready, currentUser, sessionError, retrySession, signOut } = useApp()
 
@@ -37,7 +39,7 @@ export function RequireAuth() {
       </div>
     )
   }
-  if (!currentUser) return <Navigate to="/" replace />
+  if (!currentUser) return <Navigate to={isNative ? '/signin' : '/'} replace />
   return <Outlet />
 }
 

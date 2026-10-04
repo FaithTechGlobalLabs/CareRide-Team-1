@@ -1,4 +1,5 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
+import { DEMO_FRAME_USER } from '../context/demoFrame'
 import { maxPassengers } from '../logic/capacity'
 import { UNDO_FINISH_MINUTES, canWaitForDrivers, driversToAsk, isExpired, noDriverDeadline, offerExpiry } from '../logic/dispatch'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
@@ -10,7 +11,7 @@ import { seed, type Database } from './seed'
 
 // v5: houses and their organizations became single partner organizations.
 // Older saves can't be mapped onto that, so they start again from the seed.
-const STORAGE_KEY = 'careride-db-v5'
+export const STORAGE_KEY = 'careride-db-v5'
 const OLD_STORAGE_KEYS = ['careride-db-v4', 'careride-db-v3']
 
 // Still waiting for a driver: these expire if nobody accepts in time
@@ -35,25 +36,37 @@ function save(db: Database): void {
   }
 }
 
-// The demo session lives in sessionStorage, so it survives a reload but not closing the
-// tab or browser: every fresh visit starts signed out on the home page.
+// The demo session is saved in localStorage so people stay signed in when they come back
+// to the site or reopen the phone app. Each tab also keeps its own copy in
+// sessionStorage, which wins on reload, so two tabs signed in as different people
+// (e.g. a house and a driver) don't swap accounts. A new tab picks up whoever
+// signed in last. A /demo frame is always the person the deck asked for.
 const SESSION_KEY = 'careride-session-v3'
 const sessionListeners = new Set<() => void>()
 
 function readSession(): string {
+  if (DEMO_FRAME_USER) return DEMO_FRAME_USER
   try {
-    // Drop sessions saved by older builds, which kept people signed in forever
-    localStorage.removeItem(SESSION_KEY)
-    return sessionStorage.getItem(SESSION_KEY) ?? ''
+    const tabSession = sessionStorage.getItem(SESSION_KEY)
+    if (tabSession) return tabSession
+    const saved = localStorage.getItem(SESSION_KEY) ?? ''
+    if (saved) sessionStorage.setItem(SESSION_KEY, saved)
+    return saved
   } catch {
     return ''
   }
 }
 
 function writeSession(userId: string): void {
+  if (DEMO_FRAME_USER) return
   try {
-    if (userId) sessionStorage.setItem(SESSION_KEY, userId)
-    else sessionStorage.removeItem(SESSION_KEY)
+    if (userId) {
+      sessionStorage.setItem(SESSION_KEY, userId)
+      localStorage.setItem(SESSION_KEY, userId)
+    } else {
+      sessionStorage.removeItem(SESSION_KEY)
+      localStorage.removeItem(SESSION_KEY)
+    }
   } catch {
     // Ignore: the session just won't survive a reload
   }

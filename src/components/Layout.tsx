@@ -101,7 +101,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen">
-      <header className="no-print sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg">
+      <header className="no-print sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg pt-[var(--safe-top)]">
         <div className="h-1 bg-spectrum" aria-hidden />
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo size="sm" to={role ? HOME_FOR[role] : '/'} />
@@ -193,7 +193,7 @@ export function Layout() {
       {showRequest && (
         <Link
           to="/partner/request"
-          className={`${primaryButton} no-print fixed bottom-4 left-1/2 z-30 -translate-x-1/2 shadow-xl sm:hidden`}
+          className={`${primaryButton} native-bottom-chrome no-print fixed bottom-[calc(1rem+var(--safe-bottom))] left-1/2 z-30 -translate-x-1/2 shadow-xl sm:hidden`}
         >
           <CalendarPlus className="h-5 w-5" aria-hidden />
           Request a ride
@@ -201,7 +201,7 @@ export function Layout() {
       )}
 
       {/* Pop-ups: cancelled rides for drivers, accepted rides for the partner who booked, requests for providers */}
-      <div className="no-print fixed inset-x-4 bottom-4 z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
+      <div className="no-print native-bottom-chrome fixed inset-x-4 bottom-[calc(1rem+var(--safe-bottom))] z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
         <RideCancelledNotice />
         <IncomingRequests />
         <RideAcceptedNotice />

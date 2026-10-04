@@ -12,11 +12,21 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "wrangler deploy --config wrangler.jsonc --assets=./dist",
+    "android:sync": "npm run build && cap sync android",
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "db:new": "npx supabase@2 migration new",
     "db:status": "npx supabase@2 migration list",
     "db:push": "npx supabase@2 db push"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/app-launcher": "^8.0.1",
+    "@capacitor/clipboard": "^8.0.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
     "@supabase/supabase-js": "^2.117.2",
     "lucide-react": "^1.51.0",
     "react": "^19.2.8",
@@ -24,6 +34,9 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",

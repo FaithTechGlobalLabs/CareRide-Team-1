@@ -8,6 +8,7 @@ import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { dataService } from '../../services'
 import type { Driver, House, Organization, Ride, User, VerificationStatus } from '../../types'
+import { ExternalLink } from '../../native/ExternalLink'
 
 const STATUS_LOOK: Record<VerificationStatus, { text: string; className: string }> = {
   PENDING: { text: 'Waiting for approval', className: 'bg-amber-50 text-amber-800' },
@@ -159,20 +160,20 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
               <Section title="Contact">
                 <Row label="Email" copy={user.email}>
                   {user.email ? (
-                    <a href={`mailto:${user.email}`} className="inline-flex items-center gap-1.5 break-all hover:underline">
+                    <ExternalLink href={`mailto:${user.email}`} className="inline-flex items-center gap-1.5 break-all hover:underline">
                       <Mail className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
                       {user.email}
-                    </a>
+                    </ExternalLink>
                   ) : (
                     'None'
                   )}
                 </Row>
                 <Row label="Phone" copy={user.phone || undefined}>
                   {user.phone ? (
-                    <a href={`tel:${user.phone}`} className="inline-flex items-center gap-1.5 hover:underline">
+                    <ExternalLink href={`tel:${user.phone}`} className="inline-flex items-center gap-1.5 hover:underline">
                       <Phone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
                       {user.phone}
-                    </a>
+                    </ExternalLink>
                   ) : (
                     'None'
                   )}

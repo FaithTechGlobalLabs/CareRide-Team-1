@@ -58,8 +58,7 @@ export function DriverHome() {
         </span>
         <h1 className="text-2xl font-extrabold tracking-tight">We're checking your documents</h1>
         <p className="mt-2 text-slate-600">
-          The CareRide team reviews every driver before the first ride. Once you're approved, requests that fit your
-          settings will show up right here.
+          The CareRide team reviews every driver before the first ride. Once you're approved, requests that fit your settings will show up right here.
         </p>
       </div>
     )
@@ -93,13 +92,9 @@ export function DriverHome() {
     .filter((r) => r.status === 'ACCEPTED' || r.status === 'PICKED_UP')
     .sort((a, b) => Number(inProgress(b)) - Number(inProgress(a)) || a.pickupTime.localeCompare(b.pickupTime))
   const [current, ...upcoming] = active
-  const past = (rides ?? [])
-    .filter((r) => r.status === 'COMPLETED' || r.status === 'NO_SHOW')
-    .sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
+  const past = (rides ?? []).filter((r) => r.status === 'COMPLETED' || r.status === 'NO_SHOW').sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
 
-  const tripActions = (r: Ride) => (
-    <DriverTripActions ride={r} house={houseOf(r)} driverId={driverId} onDone={refresh} onCompleted={setCelebrate} />
-  )
+  const tripActions = (r: Ride) => <DriverTripActions ride={r} house={houseOf(r)} driverId={driverId} onDone={refresh} onCompleted={setCelebrate} />
 
   const completed = past.filter((r) => r.status === 'COMPLETED')
   const weekStart = startOfWeek(now)
@@ -150,7 +145,13 @@ export function DriverHome() {
             actionLabel="Go to your accepted rides"
           />
           <StatTile label="Rides given" value={completed.length} icon={<Trophy className="h-5 w-5" />} tone="violet" note={`${thisWeek} this week`} />
-          <StatTile label="Fares saved" value={`$${faresSaved.toLocaleString()}`} icon={<PiggyBank className="h-5 w-5" />} tone="coral" note="For the people you drove" />
+          <StatTile
+            label="Fares saved"
+            value={`$${faresSaved.toLocaleString()}`}
+            icon={<PiggyBank className="h-5 w-5" />}
+            tone="coral"
+            note="For the people you drove"
+          />
         </div>
       </div>
       <RequestStatusCard driver={driver} showSettingsLink />
@@ -159,13 +160,9 @@ export function DriverHome() {
         <h2 id="requests-title" className={`${sectionTitle} scroll-mt-28`}>
           <BellRing className="h-5 w-5 text-teal-600" aria-hidden />
           New requests
-          {!!offers?.length && (
-            <span className="rounded-full bg-coral-500 px-2 py-0.5 text-sm font-bold text-white">{offers.length}</span>
-          )}
+          {!!offers?.length && <span className="rounded-full bg-coral-500 px-2 py-0.5 text-sm font-bold text-white">{offers.length}</span>}
         </h2>
-        {offers?.length === 0 && (
-          <p className="text-slate-600">No requests right now. New ones show up here on their own. Decline any that don't suit you.</p>
-        )}
+        {offers?.length === 0 && <p className="text-slate-600">No requests right now. New ones show up here on their own. Decline any that don't suit you.</p>}
         <div className="space-y-3">
           {offers?.map(({ offer, ride }) => (
             <OfferCard
@@ -216,7 +213,7 @@ export function DriverHome() {
       )}
 
       <section aria-labelledby="past-title">
-        <h2 id="past-title" className={sectionTitle}>
+        <h2 id="past-title" className={`${sectionTitle} scroll-mt-28`}>
           <History className="h-5 w-5 text-slate-500" aria-hidden />
           Past rides
         </h2>
@@ -244,9 +241,7 @@ export function DriverHome() {
         )}
       </section>
 
-      {celebrate && (
-        <RideCelebration ride={celebrate} onClose={() => setCelebrate(undefined)} onUndo={() => undoFinish(celebrate)} />
-      )}
+      {celebrate && <RideCelebration ride={celebrate} onClose={() => setCelebrate(undefined)} onUndo={() => undoFinish(celebrate)} />}
     </div>
   )
 }

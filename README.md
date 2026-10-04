@@ -10,7 +10,7 @@ CareRide connects housing and social service organizations with volunteer driver
 
 Built for **HACKVAN 2026**, inspired by the transportation needs of **Belkin Communities of Hope** in Vancouver.
 
-**[Get started](#get-started) · [Try the demo](#try-the-demo) · [How it works](#how-it-works) · [Developer guide](#developer-guide)**
+**[Live app](https://careride-team-1.careride.workers.dev/) · [Pitch deck](https://careride-team-1.careride.workers.dev/demo) · [Get started](#get-started) · [Try the demo](#try-the-demo) · [How it works](#how-it-works) · [Developer guide](#developer-guide)**
 
 > **Project status:** Working hackathon MVP with a browser-based mock backend. CareRide is an independent platform; organizations and public place names used in the demo do not imply an official partnership or endorsement.
 
@@ -115,6 +115,14 @@ Tabs on the same browser origin share ride data while keeping their own sign-in 
 
 **Reset demo data restores every account, ride, and setting to the seeded state for that browser origin.** Use fictional information throughout the walkthrough.
 
+### Pitch deck
+
+The HACKVAN pitch lives at **[/demo](https://careride-team-1.careride.workers.dev/demo)** (locally, `http://localhost:5173/demo`). It follows the event's [pitch guidelines](PITCH_GUIDELINES.md), and its "See it in action" slide plays one ride through the real app, with the staff and driver screens side by side.
+
+- **→ / Space / Page Down** next, **← / Page Up** back, so presentation clickers work. **N** shows speaker notes, **F** goes full screen.
+- Each forward click on the live slide shows a tap on one screen, then the other screen catching up. Going back jumps straight to that step.
+- **Opening the live slide resets the demo data in that browser** and leaves it at the last step, so you can switch to the app and carry on from there.
+
 ## Developer guide
 
 ### Stack
@@ -126,8 +134,9 @@ Tabs on the same browser origin share ride data while keeping their own sign-in 
 | Styling and icons | Tailwind CSS 4, Lucide React |
 | Development and build | Vite 8 |
 | Code quality | ESLint with TypeScript and React rules |
-| Demo persistence | `localStorage` for data; `sessionStorage` for sign-in state |
+| Demo persistence | `localStorage` for data and sign-in, plus a per-tab `sessionStorage` copy of the sign-in |
 | Deployment configuration | Cloudflare Workers static assets via Wrangler |
+| Mobile | Capacitor 8 Android wrapper around the same Vite build |
 
 ### Architecture
 
@@ -145,6 +154,7 @@ src/
 │   ├── index.ts         Active backend selection
 │   ├── mockService.ts   Browser persistence and ride lifecycle operations
 │   └── seed.ts          Demo accounts and initial records
+├── native/         Capacitor-only helpers: session, back button, print, external links
 ├── types/          Shared domain models
 ├── App.tsx         Application routes
 └── index.css       Global styles and design tokens
@@ -164,6 +174,9 @@ To introduce a real backend, implement `DataService` and select it in [src/servi
 | `npm run build` | Run TypeScript project checks and create the production build in `dist/`. |
 | `npm run preview` | Serve an existing production build locally. |
 | `npm run deploy` | Deploy the existing `dist/` build using Wrangler. |
+| `npm run android:sync` | Build the website and copy it into the Android project. |
+| `npm run android:apk` | Sync, then build a debug APK with Gradle. |
+| `npx cap open android` | Open the Android project in Android Studio. |
 
 There is currently no automated test suite or `npm test` script. For changes to ride behavior, run lint and build, then exercise the partner and driver workflows in separate tabs, including declines, cancellations, and uncovered requests where relevant.
 
@@ -180,6 +193,21 @@ npm run deploy
 ```
 
 Deployment publishes the frontend; demo records remain in each visitor's browser. For another static host, publish `dist/` and configure application routes to fall back to `index.html`.
+
+### Android app
+
+The same Vite build is packaged as an Android app with Capacitor. Partner and driver phones do not share demo data yet, so walk through a ride on one phone by switching accounts.
+
+**Requirements:** Android Studio with the Android SDK (API 36), or `nix develop` in this repository, which provides Node 22, JDK 21, and the SDK. JDK 21 is required for Gradle.
+
+```bash
+npm ci
+npm run android:apk
+```
+
+The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`. On a pull request, GitHub Actions uploads the same file as the **careride-debug-apk** artifact. Install it with Android Studio, `npx cap open android`, or `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+
+The website is unchanged: the marketing page still opens at `/`, and a closed browser tab still signs you out.
 
 ## Current boundaries and next steps
 

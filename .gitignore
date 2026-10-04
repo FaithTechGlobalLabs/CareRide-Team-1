@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.direnv/
+.phone-qa/
 
 # Editor directories and files
 .vscode/*

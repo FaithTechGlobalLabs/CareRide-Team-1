@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { dataService, isDemoBackend } from '../services'
 import type { User } from '../types'
 import { AppContext } from './appContext'
+import { DEMO_FRAME_USER as FRAME_USER, DEMO_REFRESH } from './demoFrame'
 
 // The demo has no server, so frequent polling is what moves timed-out requests on and syncs tabs.
 // The real backend pushes changes (live updates) and runs deadlines itself; polling is only a safety net.
@@ -104,8 +105,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [version, currentUser?.id])
 
-  // Keep two open tabs (e.g. a house and a driver) in sync during the demo
+  // Keep two open tabs (e.g. a house and a driver) in sync during the demo.
+  // In a /demo frame, the deck says when instead.
   useEffect(() => {
+    if (FRAME_USER) {
+      const onMessage = (e: MessageEvent) => {
+        if (e.source === window.parent && e.data === DEMO_REFRESH) refresh()
+      }
+      window.addEventListener('message', onMessage)
+      return () => window.removeEventListener('message', onMessage)
+    }
     window.addEventListener('storage', refresh)
     return () => window.removeEventListener('storage', refresh)
   }, [refresh])
@@ -127,8 +136,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [userId, refresh])
 
   // A safety net for anything live updates missed, plus catching up when someone comes back to the tab.
+  // In a /demo frame the deck decides when to refresh, so frames don't poll.
   useEffect(() => {
-    if (!userId) return
+    if (!userId || FRAME_USER) return
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') refresh()
     }, POLL_MS)

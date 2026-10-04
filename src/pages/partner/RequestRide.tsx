@@ -28,6 +28,7 @@ import { RequiredMark } from '../../components/form/RequiredMark'
 import { TextField } from '../../components/form/TextField'
 import { card, ghostButton, input, label, primaryButton } from '../../components/ui'
 import { DEFAULT_PICKUP_INSTRUCTIONS } from '../../constants'
+import { DEMO_FRAME_USER } from '../../context/demoFrame'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { maxPassengers } from '../../logic/capacity'
@@ -264,7 +265,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
   const picks = quickPicks(openedAt)
   const [initial] = useState(() => initialForm(mode, source, user.id, openedAt))
   const [form, setForm] = useState<FormState>(initial.form)
-  const [restored, setRestored] = useState(initial.restored)
+  const [restored, setRestored] = useState(initial.restored && !DEMO_FRAME_USER) // the /demo deck fills the form on purpose
   const [query, setQuery] = useState('')
   // Errors stay hidden until the first send, then update live as staff fix them.
   const [showErrors, setShowErrors] = useState(false)
@@ -655,7 +656,9 @@ function RideForm({ mode, source, house, user }: FormProps) {
                           aria-pressed={on}
                           onClick={() => update({ pickupTime: p.value })}
                           className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-95 ${
-                            on ? 'border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/20' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
+                            on
+                              ? 'border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/20'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
                           }`}
                         >
                           {p.label}
@@ -676,8 +679,8 @@ function RideForm({ mode, source, house, user }: FormProps) {
             ) : (
               <p key="now" className="mt-4 flex animate-fade-up items-start gap-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
                 <Zap className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
-                Drivers taking requests right now are asked as soon as you send this. If nobody accepts within{' '}
-                {ON_DEMAND_GIVE_UP_MINUTES} minutes, the request is cancelled so you can make other plans.
+                Drivers taking requests right now are asked as soon as you send this. If nobody accepts within {ON_DEMAND_GIVE_UP_MINUTES} minutes, the request
+                is cancelled so you can make other plans.
               </p>
             )}
             <InlineMatchHint match={match} checks={['schedule', 'notice']} />
@@ -690,11 +693,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 <RequiredMark />
               </span>
               <PassengerStepper labelId="passengers-label" value={form.passengers} onChange={setPassengers} max={maxRiders} />
-              <FieldMessage
-                id="passengers-message"
-                error={shown.passengers}
-                hint={`Up to ${maxRiders} per ride, the most any driver's vehicle can take.`}
-              />
+              <FieldMessage id="passengers-message" error={shown.passengers} hint={`Up to ${maxRiders} per ride, the most any driver's vehicle can take.`} />
             </div>
             <fieldset className="mt-5" aria-describedby="rider-names-message">
               <legend className={label}>
@@ -714,9 +713,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                       aria-invalid={shown.riderNames && tooLong(name, MAX_NAME) ? true : undefined}
                       placeholder={form.passengers === 1 ? 'e.g. Sam Rivera' : `Passenger ${i + 1}`}
                       value={name}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, riderNames: f.riderNames.map((n, j) => (j === i ? e.target.value : n)) }))
-                      }
+                      onChange={(e) => setForm((f) => ({ ...f, riderNames: f.riderNames.map((n, j) => (j === i ? e.target.value : n)) }))}
                     />
                   </div>
                 ))}
@@ -816,7 +813,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
       </div>
 
       {/* On phones the send button stays in reach at the bottom of the screen. */}
-      <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg lg:hidden">
+      <div className="native-bottom-chrome no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg lg:hidden">
         <div className="mx-auto max-w-5xl space-y-2">
           {problemNote}
           <div className="flex items-center gap-3">
@@ -825,11 +822,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 {doneCount === steps.length ? 'Ready to send' : `${doneCount} of ${steps.length} steps done`}
               </span>
               <span className={`block truncate ${match && match.count === 0 ? 'font-semibold text-amber-700' : 'text-slate-500'}`}>
-                {match && match.count === 0
-                  ? 'No driver fits yet'
-                  : to
-                    ? `To ${to.name} · ${passengersLabel(form.passengers)}`
-                    : 'Choose a destination'}
+                {match && match.count === 0 ? 'No driver fits yet' : to ? `To ${to.name} · ${passengersLabel(form.passengers)}` : 'Choose a destination'}
               </span>
             </div>
             <div className="w-44 shrink-0">{submitButton}</div>
