@@ -1,5 +1,9 @@
 import type { Driver } from '../types'
 
+// Shown when an approved driver tries to change spaces or wheelchair access. Matches the drivers trigger.
+export const CAPACITY_LOCKED =
+  'Passenger spaces and wheelchair access stay as they were when you were approved. Contact CareRide to change them.'
+
 // Used before any driver is approved, so booking still works in a brand-new setup.
 export const DEFAULT_MAX_PASSENGERS = 4
 

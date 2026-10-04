@@ -33,6 +33,7 @@ jobs:
           packages: platform-tools platforms;android-36 build-tools;36.0.0 build-tools;35.0.0
 
       - run: npm ci
+      - run: npm test
       - run: npm run lint
       # Vite bakes VITE_* into the APK. Fork PRs do not receive secrets, so those
       # builds stay on demo data. Same-repo PRs and workflow_dispatch use secrets

@@ -12,7 +12,7 @@ import { card, primaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
-import { formatDollars } from '../../logic/estimateFare'
+import { FARE_SAVED_NOTE, formatDollars } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
 import {
   actionTitle,
@@ -186,7 +186,7 @@ export function Dashboard() {
           value={formatDollars(stats.faresSaved)}
           icon={<PiggyBank className="h-5 w-5" />}
           tone="ink"
-          note="One-zone bus fare"
+          note={FARE_SAVED_NOTE}
         />
       </div>
 

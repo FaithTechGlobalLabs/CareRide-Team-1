@@ -14,7 +14,7 @@ import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
-import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
+import { FARE_SAVED_NOTE, faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
 import { buzz } from '../../native/platform'
@@ -170,7 +170,7 @@ export function DriverHome() {
             value={formatDollars(faresSaved)}
             icon={<PiggyBank className="h-5 w-5" />}
             tone="coral"
-            note="For the people you drove"
+            note={FARE_SAVED_NOTE}
           />
         </div>
         {peopleHelped > 0 && (

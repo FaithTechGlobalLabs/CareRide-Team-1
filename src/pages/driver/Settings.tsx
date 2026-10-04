@@ -124,7 +124,12 @@ export function Settings() {
         title="Rides you can take"
         description="We only send you rides that fit your vehicle and the cities you drive in."
       >
-        <DriverVehicleFields value={vehicleDraft} onChange={changeVehicle} errors={shownErrors} />
+        <DriverVehicleFields
+          value={vehicleDraft}
+          onChange={changeVehicle}
+          errors={shownErrors}
+          lockCapacity={driver.status === 'APPROVED'}
+        />
       </Section>
 
       {/* Save bar: slides up once something changes */}

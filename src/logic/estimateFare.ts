@@ -11,6 +11,9 @@ export function faresSavedFor(completedRides: number): number {
   return completedRides * BUS_FARE
 }
 
+// The dollar total is one fare for each completed trip, not one fare for each passenger.
+export const FARE_SAVED_NOTE = 'One fare per completed trip'
+
 export function formatDollars(amount: number): string {
   return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }

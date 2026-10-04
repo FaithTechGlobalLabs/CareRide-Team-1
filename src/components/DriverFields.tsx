@@ -91,7 +91,7 @@ export function DriverAboutFields({
   )
 }
 
-export function DriverVehicleFields({ value, onChange, errors = {} }: SectionProps) {
+export function DriverVehicleFields({ value, onChange, errors = {}, lockCapacity = false }: SectionProps & { lockCapacity?: boolean }) {
   return (
     <div className="space-y-5">
       <TextField
@@ -104,28 +104,42 @@ export function DriverVehicleFields({ value, onChange, errors = {} }: SectionPro
         onChange={(e) => onChange({ ...value, vehicle: e.target.value })}
         data-autofocus
       />
-      <SelectField
-        id="seats"
-        label="Spaces for passengers"
-        value={value.seats}
-        error={errors.seats}
-        onChange={(e) => onChange({ ...value, seats: Number(e.target.value) })}
-      >
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-          <option key={n} value={n}>
-            {n} {n === 1 ? 'passenger' : 'passengers'}
-          </option>
-        ))}
-      </SelectField>
-      <fieldset>
-        <legend className={labelClass}>Accessibility</legend>
-        <ToggleChip
-          checked={value.wheelchairAccessible}
-          onChange={() => onChange({ ...value, wheelchairAccessible: !value.wheelchairAccessible })}
-        >
-          Wheelchair accessible
-        </ToggleChip>
-      </fieldset>
+      {lockCapacity ? (
+        <p className="text-slate-700">
+          <span className="font-semibold text-ink">
+            {value.seats} {value.seats === 1 ? 'passenger space' : 'passenger spaces'}
+            {value.wheelchairAccessible ? ' · Wheelchair accessible' : ''}
+          </span>
+          <span className="mt-1 block text-sm text-slate-500">
+            Passenger spaces and wheelchair access stay as they were when CareRide approved you. Contact CareRide to change them.
+          </span>
+        </p>
+      ) : (
+        <>
+          <SelectField
+            id="seats"
+            label="Spaces for passengers"
+            value={value.seats}
+            error={errors.seats}
+            onChange={(e) => onChange({ ...value, seats: Number(e.target.value) })}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <option key={n} value={n}>
+                {n} {n === 1 ? 'passenger' : 'passengers'}
+              </option>
+            ))}
+          </SelectField>
+          <fieldset>
+            <legend className={labelClass}>Accessibility</legend>
+            <ToggleChip
+              checked={value.wheelchairAccessible}
+              onChange={() => onChange({ ...value, wheelchairAccessible: !value.wheelchairAccessible })}
+            >
+              Wheelchair accessible
+            </ToggleChip>
+          </fieldset>
+        </>
+      )}
       <fieldset aria-describedby="cities-message">
         <legend className={labelClass}>Cities you can drive in</legend>
         <p className="-mt-1 mb-3 text-sm text-slate-500">You’ll get requests for rides that start in these cities.</p>

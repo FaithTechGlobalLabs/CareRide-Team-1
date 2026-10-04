@@ -11,7 +11,7 @@ export function NetworkImpact() {
 
   const stats: { label: string; value: string; icon: ReactNode }[] = [
     { label: 'free rides', value: impact.ridesCompleted.toLocaleString(), icon: <Car className="h-4 w-4" /> },
-    { label: 'in bus fares saved', value: formatDollars(faresSavedFor(impact.ridesCompleted)), icon: <PiggyBank className="h-4 w-4" /> },
+    { label: 'bus fares saved, one per trip', value: formatDollars(faresSavedFor(impact.ridesCompleted)), icon: <PiggyBank className="h-4 w-4" /> },
     { label: 'organizations', value: impact.organizations.toLocaleString(), icon: <Building2 className="h-4 w-4" /> },
     { label: 'verified drivers', value: impact.verifiedDrivers.toLocaleString(), icon: <BadgeCheck className="h-4 w-4" /> },
   ]
