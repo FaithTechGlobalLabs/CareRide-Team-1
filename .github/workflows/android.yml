@@ -1,0 +1,73 @@
+name: Android debug APK
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "build-tools;35.0.0"
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run android:apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: careride-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  # Play Store signing is not set up. Do not generate a keystore in this repo.
+  # When a release keystore and GitHub secrets exist (ANDROID_KEYSTORE_BASE64,
+  # ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD), a job
+  # like this can build an AAB:
+  #
+  # release:
+  #   if: false
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: .nvmrc
+  #         cache: npm
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: temurin
+  #         java-version: '21'
+  #     - uses: android-actions/setup-android@v3
+  #     - run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+  #     - run: npm ci
+  #     - run: npm run android:sync
+  #     - run: |
+  #         echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/release.keystore
+  #         cd android && ./gradlew bundleRelease
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: careride-release-aab
+  #         path: android/app/build/outputs/bundle/release/app-release.aab
