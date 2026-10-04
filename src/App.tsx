@@ -26,12 +26,21 @@ function RoleHome() {
   return <Navigate to={currentUser ? HOME_FOR[currentUser.role] : '/signin'} replace />
 }
 
+// The website keeps the marketing page at "/". The app skips it: signed-in people
+// go to their role home, everyone else to sign-in. Native RequireAuth also uses
+// /signin so unsigned users are not bounced back to "/" and into a redirect loop.
+function NativeEntry() {
+  const { ready, currentUser } = useApp()
+  if (!ready) return null
+  return <Navigate to={currentUser ? '/home' : '/signin'} replace />
+}
+
 export default function App() {
   return (
     <>
       <NativeBridge />
       <Routes>
-        <Route path="/" element={isNative ? <Navigate to="/home" replace /> : <Landing />} />
+        <Route path="/" element={isNative ? <NativeEntry /> : <Landing />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/register" element={<Register />} />
 

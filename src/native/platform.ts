@@ -67,10 +67,12 @@ export async function listenToNativeApp(options: {
     if (isActive) options.refresh()
   })
 
-  const back = await App.addListener('backButton', ({ canGoBack }) => {
+  // Capacitor's canGoBack is the WebView back stack, which is often empty for this SPA.
+  // Use the route instead: nested screens go back, home / sign-in minimize.
+  const back = await App.addListener('backButton', () => {
     if (closeOverlay()) return
     const path = window.location.pathname
-    if (canGoBack && path !== options.homePath && path !== '/signin' && path !== '/') {
+    if (path !== options.homePath && path !== '/signin' && path !== '/') {
       window.history.back()
       return
     }
