@@ -1,6 +1,7 @@
 import { BadgeCheck, Building2, Car, HeartHandshake, PiggyBank } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useData } from '../../hooks/useData'
+import { formatDollars } from '../../logic/estimateFare'
 import { dataService } from '../../services'
 
 // What everyone on CareRide has done together. Small, at the foot of a dashboard.
@@ -10,7 +11,7 @@ export function NetworkImpact() {
 
   const stats: { label: string; value: string; icon: ReactNode }[] = [
     { label: 'free rides', value: impact.ridesCompleted.toLocaleString(), icon: <Car className="h-4 w-4" /> },
-    { label: 'in taxi fares saved', value: `$${impact.moneySaved.toLocaleString()}`, icon: <PiggyBank className="h-4 w-4" /> },
+    { label: 'in bus fares saved', value: formatDollars(impact.moneySaved), icon: <PiggyBank className="h-4 w-4" /> },
     { label: 'organizations', value: impact.organizations.toLocaleString(), icon: <Building2 className="h-4 w-4" /> },
     { label: 'verified drivers', value: impact.verifiedDrivers.toLocaleString(), icon: <BadgeCheck className="h-4 w-4" /> },
   ]
