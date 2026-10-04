@@ -1,9 +1,9 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { ConfirmButton } from '../../components/ConfirmButton'
-import { RequiredMark } from '../../components/form/RequiredMark'
+import { AddressPicker } from '../../components/form/AddressPicker'
 import { TextField } from '../../components/form/TextField'
-import { card, dangerButton, ghostButton, input, label, pageTitle, primaryButton } from '../../components/ui'
+import { card, dangerButton, ghostButton, pageTitle, primaryButton } from '../../components/ui'
 import { CITIES } from '../../constants'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
@@ -23,6 +23,8 @@ export function Destinations() {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState(CITIES[0])
+  // Picked from the search list, or an existing place's unchanged address
+  const [picked, setPicked] = useState(false)
   const [notes, setNotes] = useState('')
   const [showErrors, setShowErrors] = useState(false)
   const [saved, setSaved] = useState('')
@@ -37,20 +39,24 @@ export function Destinations() {
       found.name = 'You already have a place with this name.'
     else found.name = tooLong(n, MAX_NAME)
     const a = address.trim()
-    if (!a) found.address = 'Add the street address.'
-    else if (a.length < 5) found.address = 'Add the full street address, so drivers can find it.'
+    if (!a) found.address = 'Search for the street address.'
+    else if (!picked) found.address = 'Pick a matching address from the list, so drivers can find it.'
+    else if (!CITIES.includes(city)) found.address = `CareRide covers ${CITIES.join(' and ')}. This address is in ${city}.`
     else found.address = tooLong(a, MAX_NAME * 2)
     found.notes = tooLong(notes, MAX_NOTE)
     return Object.fromEntries(Object.entries(found).filter(([, v]) => v))
   }
 
-  const errors = showErrors ? validate() : {}
+  const found = validate()
+  // A picked address outside the service area is flagged right away, not on save
+  const errors = showErrors ? found : picked && found.address ? { address: found.address } : {}
 
   function clearForm() {
     setEditingId(undefined)
     setName('')
     setAddress('')
     setCity(CITIES[0])
+    setPicked(false)
     setNotes('')
     setShowErrors(false)
     setFormError(undefined)
@@ -60,7 +66,8 @@ export function Destinations() {
     setEditingId(d.id)
     setName(d.name)
     setAddress(d.address)
-    setCity(CITIES.includes(d.city) ? d.city : CITIES[0])
+    setCity(d.city)
+    setPicked(true)
     setNotes(d.notes ?? '')
     setShowErrors(false)
     setSaved('')
@@ -174,35 +181,28 @@ export function Destinations() {
           error={errors.name}
           onChange={(e) => setName(e.target.value)}
         />
-        <TextField
+        <AddressPicker
           id="dest-address"
           label="Address"
           required
-          autoComplete="street-address"
-          maxLength={MAX_NAME * 2}
           placeholder="e.g. 1081 Burrard St"
+          hint={`Search and pick the address from the list, so drivers can find it. ${CITIES.join(' or ')} only.`}
+          selectedHint={city}
           value={address}
+          selected={picked}
           error={errors.address}
-          onChange={(e) => setAddress(e.target.value)}
+          onQueryChange={(text) => {
+            setAddress(text)
+            setPicked(false)
+          }}
+          onSelect={(place) => {
+            setAddress(place.address)
+            setCity(place.city)
+            setPicked(true)
+            // Name the place after it, if staff haven't named it yet
+            if (!name.trim() && place.name) setName(place.name.slice(0, MAX_NAME))
+          }}
         />
-        <div>
-          <label className={label} htmlFor="dest-city">
-            City
-            <RequiredMark />
-          </label>
-          <select
-            id="dest-city"
-            className={input}
-            value={city}
-            onChange={(e) => {
-              if (CITIES.includes(e.target.value)) setCity(e.target.value)
-            }}
-          >
-            {CITIES.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
         <TextField
           id="dest-notes"
           label="Notes for drivers"
