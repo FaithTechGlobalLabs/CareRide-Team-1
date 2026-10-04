@@ -2,6 +2,7 @@ import { Check, Clock, MapPin, Navigation, Phone, Route, TriangleAlert, Undo2, U
 import { useState, type ReactNode } from 'react'
 import { formatTime } from '../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../logic/maps'
+import { ExternalLink } from '../native/ExternalLink'
 import { dataService } from '../services'
 import type { House, Ride } from '../types'
 import { ConfirmButton } from './ConfirmButton'
@@ -37,11 +38,11 @@ function DoneChip({ children }: { children: ReactNode }) {
 
 function DirectionsLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className={`${secondaryButton} w-full sm:w-auto`}>
+    <ExternalLink href={href} target="_blank" rel="noreferrer" className={`${secondaryButton} w-full sm:w-auto`}>
       <Navigation className="h-5 w-5 text-brand-600" aria-hidden />
       {children}
       <span className="sr-only">(opens Google Maps)</span>
-    </a>
+    </ExternalLink>
   )
 }
 
@@ -231,7 +232,7 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }
   return (
     <div className="w-full space-y-5">
       {current === 0 && pickupKnown && dropoffKnown && (
-        <a
+        <ExternalLink
           href={directionsBetween(ride.pickupAddress, ride.destinationAddress)}
           target="_blank"
           rel="noreferrer"
@@ -240,7 +241,7 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }
           <Route className="h-4 w-4" aria-hidden />
           Preview the whole route
           <span className="sr-only">(opens Google Maps)</span>
-        </a>
+        </ExternalLink>
       )}
 
       <ol className="relative" aria-label="Trip steps">
@@ -285,12 +286,12 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }
 
       <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
         {house?.phone && (
-          <a href={`tel:${house.phone}`} className={secondaryButton}>
+          <ExternalLink href={`tel:${house.phone}`} className={secondaryButton}>
             <Phone className="h-5 w-5" aria-hidden />
             <span className="whitespace-normal">
               Call the front desk: <span className="whitespace-nowrap">{house.phone}</span>
             </span>
-          </a>
+          </ExternalLink>
         )}
         {ride.status === 'ACCEPTED' && (
           <ConfirmButton

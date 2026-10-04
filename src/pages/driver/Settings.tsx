@@ -138,7 +138,7 @@ export function Settings() {
 
       {/* Save bar: slides up once something changes */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/90 backdrop-blur-lg transition-transform duration-300 ${
+        className={`native-bottom-chrome fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/90 backdrop-blur-lg transition-transform duration-300 ${
           dirty || saved ? 'translate-y-0' : 'translate-y-full'
         }`}
         aria-hidden={!dirty && !saved}

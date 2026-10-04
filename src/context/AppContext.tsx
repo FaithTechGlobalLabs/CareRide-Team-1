@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { isNative, sessionStore } from '../native/platform'
 import { dataService } from '../services'
 import type { User } from '../types'
 import { AppContext } from './appContext'
@@ -7,14 +8,16 @@ import { DEMO_FRAME_USER as FRAME_USER, DEMO_REFRESH } from './demoFrame'
 const SESSION_KEY = 'careride-session-v3'
 const POLL_MS = 4000
 
-// The session lives in sessionStorage, so it survives a reload but not closing the
-// tab or browser: every fresh visit starts signed out on the home page.
+// Browser: sessionStorage, so a closed tab starts signed out.
+// Phone: localStorage, so reopening the app keeps you signed in.
 function readSession(): string {
   if (FRAME_USER) return FRAME_USER
   try {
-    // Drop sessions saved by older builds, which kept people signed in forever
-    localStorage.removeItem(SESSION_KEY)
-    return sessionStorage.getItem(SESSION_KEY) ?? ''
+    if (!isNative) {
+      // Drop sessions saved by older builds, which kept people signed in forever
+      localStorage.removeItem(SESSION_KEY)
+    }
+    return sessionStore.getItem(SESSION_KEY) ?? ''
   } catch {
     return ''
   }
@@ -23,8 +26,8 @@ function readSession(): string {
 function writeSession(userId: string): void {
   if (FRAME_USER) return
   try {
-    if (userId) sessionStorage.setItem(SESSION_KEY, userId)
-    else sessionStorage.removeItem(SESSION_KEY)
+    if (userId) sessionStore.setItem(SESSION_KEY, userId)
+    else sessionStore.removeItem(SESSION_KEY)
   } catch {
     // Ignore: the session just won't survive a reload
   }

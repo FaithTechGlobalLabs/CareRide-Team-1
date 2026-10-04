@@ -1,8 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import logoMark from '../assets/logo-mark.png'
 import { useApp } from '../hooks/useApp'
+import { isNative } from '../native/platform'
 
-// Signed-in pages only. Everyone else goes to the home page to sign in.
+// Signed-in pages only. On the website, everyone else sees the marketing page.
+// On the phone, they go to sign-in — sending them to "/" would bounce forever.
 export function RequireAuth() {
   const { ready, currentUser } = useApp()
 
@@ -13,6 +15,6 @@ export function RequireAuth() {
       </div>
     )
   }
-  if (!currentUser) return <Navigate to="/" replace />
+  if (!currentUser) return <Navigate to={isNative ? '/signin' : '/'} replace />
   return <Outlet />
 }

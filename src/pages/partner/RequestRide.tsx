@@ -806,7 +806,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
       </div>
 
       {/* On phones the send button stays in reach at the bottom of the screen. */}
-      <div className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg lg:hidden">
+      <div className="native-bottom-chrome no-print fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg lg:hidden">
         <div className="mx-auto max-w-5xl space-y-2">
           {problemNote}
           <div className="flex items-center gap-3">

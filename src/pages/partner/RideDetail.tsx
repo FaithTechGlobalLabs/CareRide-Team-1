@@ -29,6 +29,8 @@ import { directionsBetween, directionsTo, isRealAddress } from '../../logic/maps
 import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
 import { dataService } from '../../services'
 import type { OfferStatus, Ride, RideOffer, RideStatus } from '../../types'
+import { ExternalLink } from '../../native/ExternalLink'
+import { printPage } from '../../native/platform'
 
 const offerText: Record<OfferStatus, string> = {
   PENDING: 'Waiting for answer',
@@ -248,12 +250,12 @@ export function RideDetail() {
                   </>
                 )}
               </p>
-              <a href={telHref(driverUser.phone)} className={`${secondaryButton} w-full sm:w-auto`}>
+              <ExternalLink href={telHref(driverUser.phone)} className={`${secondaryButton} w-full sm:w-auto`}>
                 <Phone className="h-5 w-5" aria-hidden />
                 <span className="whitespace-normal">
                   Call {driverUser.name}: <span className="whitespace-nowrap">{driverUser.phone}</span>
                 </span>
-              </a>
+              </ExternalLink>
             </>
           )}
           {canEdit && (
@@ -362,11 +364,11 @@ export function RideDetail() {
               </div>
               <div className="grid gap-2 sm:flex">
                 {transitLink && (
-                  <a href={transitLink} target="_blank" rel="noreferrer" className={secondaryButton}>
+                  <ExternalLink href={transitLink} target="_blank" rel="noreferrer" className={secondaryButton}>
                     <Bus className="h-5 w-5" aria-hidden />
                     Transit directions
                     <span className="sr-only">(opens Google Maps)</span>
-                  </a>
+                  </ExternalLink>
                 )}
                 <ConfirmButton
                   className={ghostButton}
@@ -389,7 +391,7 @@ export function RideDetail() {
         <section className="space-y-3">
           <p className="no-print">Remind the client about their ride. Print this slip if it helps.</p>
           <ClientSlip ride={ride} driver={driver} driverUser={driverUser} house={house} />
-          <button type="button" className={`${secondaryButton} no-print w-full sm:w-auto`} onClick={() => window.print()}>
+          <button type="button" className={`${secondaryButton} no-print w-full sm:w-auto`} onClick={() => void printPage()}>
             Print slip
           </button>
         </section>
