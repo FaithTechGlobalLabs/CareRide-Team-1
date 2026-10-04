@@ -35,18 +35,9 @@ const PROCESS = [
   { icon: Users, text: 'User testing shaped the last round' },
 ]
 const TEAM = [
-  {
-    name: 'Adi',
-    did: ['Product strategy and app setup', 'Sign-in, booking, and dashboard design', 'Driver and admin workflows', 'The shared database and home page'],
-  },
-  {
-    name: 'Noah',
-    did: ['Simpler booking form', 'Step-by-step trips for drivers', 'Route previews, hospital wait times, and bus slips', 'Cloudflare deploy and Android app'],
-  },
-  {
-    name: 'Gilbert',
-    did: ['Day-to-day flows and partner notes', 'Calling, late-ride alerts, and safeguards', 'Real addresses and drive times for drivers', 'User testing changes and this demo'],
-  },
+  { name: 'Adi', did: ['Major design elements'] },
+  { name: 'Noah', did: ['Cloudflare deploy and Android app'] },
+  { name: 'Gilbert', did: ['Collecting feedback and notes'] },
 ]
 
 export const REPO_URL = 'github.com/FaithTechGlobalLabs/CareRide-Team-1'
