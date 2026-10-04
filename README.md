@@ -100,7 +100,7 @@ Open **Sign in** and choose a one-tap demo account, or use one of the credential
 | Frank | `frank@careride.demo` | Accept requests and complete rides. |
 | CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
 
-Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names. **Partner pickup addresses are placeholders** (“Address to confirm”), so drivers are asked to call the front desk instead of getting directions to the pickup.
+Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names and addresses. Belkin House, Richmond House, and Grace Mansion use their real addresses, and each starts with saved destinations taken from its case workers' answers in [PARTNER_ORG_NOTES.md](PARTNER_ORG_NOTES.md).
 
 ### Walk through a complete ride
 

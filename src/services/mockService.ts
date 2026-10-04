@@ -10,8 +10,9 @@ import { seed, type Database } from './seed'
 
 // v5: houses and their organizations became single partner organizations.
 // Older saves can't be mapped onto that, so they start again from the seed.
-const STORAGE_KEY = 'careride-db-v5'
-const OLD_STORAGE_KEYS = ['careride-db-v4', 'careride-db-v3']
+// v6: real house addresses and each house's frequent destinations.
+const STORAGE_KEY = 'careride-db-v6'
+const OLD_STORAGE_KEYS = ['careride-db-v5', 'careride-db-v4', 'careride-db-v3']
 
 // Still waiting for a driver: these expire if nobody accepts in time
 const WAITING: RideStatus[] = ['SEARCHING', 'OFFERED', 'NEEDS_ATTENTION']

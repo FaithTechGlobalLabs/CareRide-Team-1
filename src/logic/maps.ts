@@ -7,6 +7,11 @@ export function isRealAddress(address?: string): address is string {
   return !!address && address.trim().length >= 5 && !/address to confirm/i.test(address)
 }
 
+// Houses store the street and city apart; rides need both so map links find the right place
+export function houseAddress(house: { address: string; city: string }): string {
+  return `${house.address}, ${house.city}`
+}
+
 // Directions from wherever the phone is now
 export function directionsTo(address: string, mode: 'driving' | 'transit' = 'driving'): string {
   return `${BASE}&destination=${encodeURIComponent(address)}&travelmode=${mode}`
