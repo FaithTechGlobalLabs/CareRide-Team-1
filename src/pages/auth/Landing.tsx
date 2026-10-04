@@ -135,12 +135,6 @@ function Introduction() {
         <Link to="/signin" className={`${secondaryButton} min-h-14 px-7 text-lg`}>
           Sign in
         </Link>
-        <Link
-          to="/demo"
-          className="inline-flex min-h-14 items-center justify-center rounded-full px-3 text-lg font-semibold text-brand-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-        >
-          See a ride
-        </Link>
       </div>
       {/* One row on tablets, a list on phones and beside the preview: never two plus one */}
       <ul className="mx-auto mt-10 grid w-fit animate-fade-up gap-3 border-t border-slate-200 pt-6 text-left text-sm font-medium text-slate-600 [animation-delay:320ms] md:grid-flow-col md:auto-cols-max md:gap-x-8 lg:mx-0 lg:w-full lg:grid-flow-row lg:gap-2.5">
@@ -394,11 +388,6 @@ export function Landing() {
                 <li>
                   <Link to="/register?role=driver" className="text-slate-600 hover:text-brand-700">
                     Become a driver
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/demo" className="text-slate-600 hover:text-brand-700">
-                    See a ride
                   </Link>
                 </li>
               </ul>

@@ -98,6 +98,17 @@ export async function listenToKeyboard(): Promise<() => void> {
   }
 }
 
+// A short buzz on the phone. Does nothing on the web.
+export async function buzz(): Promise<void> {
+  if (!isNative) return
+  try {
+    const { Haptics, NotificationType } = await import('@capacitor/haptics')
+    await Haptics.notification({ type: NotificationType.Success })
+  } catch {
+    // Some phones have no vibration motor; nothing to tell the user
+  }
+}
+
 export async function openExternal(url: string): Promise<void> {
   if (!isNative) {
     window.open(url, '_blank', 'noopener,noreferrer')
