@@ -1,9 +1,6 @@
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useApp } from '../../hooks/useApp'
-import { HOME_FOR } from '../../logic/homeFor'
-import { AccountMenu } from '../AccountMenu'
 import { Logo } from '../Logo'
 import { ghostButton, primaryButton } from '../ui'
 
@@ -17,9 +14,8 @@ interface Props {
   active?: string // the section on screen, highlighted in the nav
 }
 
-// Landing header: jump links to each section, plus sign in or the signed-in account.
+// Landing header: jump links to each section, plus sign in and sign up. Only signed-out visitors see it.
 export function LandingHeader({ sections, active }: Props) {
-  const { currentUser } = useApp()
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -53,28 +49,15 @@ export function LandingHeader({ sections, active }: Props) {
         </nav>
 
         <div className="flex items-center gap-2">
-          {currentUser ? (
-            <>
-              <AccountMenu />
-              {/* The shared button class sets inline-flex, so a wrapper does the hiding on phones. */}
-              <span className="hidden sm:block">
-                <Link to={HOME_FOR[currentUser.role]} className={`${primaryButton} min-h-11`}>
-                  Dashboard <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </span>
-            </>
-          ) : (
-            <>
-              <Link to="/signin" className={`${ghostButton} min-h-11`}>
-                Sign in
-              </Link>
-              <span className="hidden sm:block">
-                <Link to="/register" className={`${primaryButton} min-h-11`}>
-                  Get started
-                </Link>
-              </span>
-            </>
-          )}
+          <Link to="/signin" className={`${ghostButton} min-h-11`}>
+            Sign in
+          </Link>
+          {/* The shared button class sets inline-flex, so a wrapper does the hiding on phones. */}
+          <span className="hidden sm:block">
+            <Link to="/register" className={`${primaryButton} min-h-11`}>
+              Get started
+            </Link>
+          </span>
           <button
             type="button"
             className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 md:hidden"
@@ -104,15 +87,9 @@ export function LandingHeader({ sections, active }: Props) {
             ))}
           </nav>
           <div className="mt-3 border-t border-slate-100 pt-4">
-            {currentUser ? (
-              <Link to={HOME_FOR[currentUser.role]} onClick={close} className={`${primaryButton} w-full`}>
-                Go to dashboard <ArrowRight className="h-5 w-5" aria-hidden />
-              </Link>
-            ) : (
-              <Link to="/register" onClick={close} className={`${primaryButton} w-full`}>
-                Get started <ArrowRight className="h-5 w-5" aria-hidden />
-              </Link>
-            )}
+            <Link to="/register" onClick={close} className={`${primaryButton} w-full`}>
+              Get started <ArrowRight className="h-5 w-5" aria-hidden />
+            </Link>
           </div>
         </div>
       )}

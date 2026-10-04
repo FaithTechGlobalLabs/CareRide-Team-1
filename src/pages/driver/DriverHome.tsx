@@ -1,15 +1,20 @@
-import { BellRing, CalendarClock, ChevronDown, History, Hourglass, Navigation, Undo2 } from 'lucide-react'
+import { BellRing, CalendarCheck, CalendarClock, ChevronDown, History, Hourglass, Navigation, PiggyBank, Settings2, Trophy, Undo2 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { DashboardHeader } from '../../components/dashboard/DashboardHeader'
+import { StatTile } from '../../components/dashboard/StatTile'
 import { DriverTripActions } from '../../components/DriverTripActions'
 import { OfferCard } from '../../components/OfferCard'
 import { RequestStatusCard } from '../../components/RequestStatusCard'
 import { RideCard } from '../../components/RideCard'
 import { RideCelebration } from '../../components/RideCelebration'
-import { card, pageTitle, secondaryButton } from '../../components/ui'
+import { card, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
+import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
+import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
 import { dataService } from '../../services'
 import type { Ride } from '../../types'
@@ -24,8 +29,14 @@ const inProgress = (r: Ride) => r.status === 'PICKED_UP' || !!r.driverOnTheWayAt
 const finishedAt = (r: Ride) => r.completedAt ?? r.cancelledAt ?? r.pickupTime
 
 // Requests and accepted rides in one place: what's new, what's now, what's next, and what's done.
+function scrollToId(id: string) {
+  const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  document.getElementById(id)?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
+}
+
 export function DriverHome() {
-  const { refresh } = useApp()
+  const { currentUser, refresh } = useApp()
+  const now = useNow()
   const driver = useCurrentDriver()
   const driverId = driver?.id ?? ''
   const houses = useData(() => dataService.listHouses()) ?? []
@@ -90,13 +101,62 @@ export function DriverHome() {
     <DriverTripActions ride={r} house={houseOf(r)} driverId={driverId} onDone={refresh} onCompleted={setCelebrate} />
   )
 
+  const completed = past.filter((r) => r.status === 'COMPLETED')
+  const weekStart = startOfWeek(now)
+  const thisWeek = completed.filter((r) => new Date(finishedAt(r)).getTime() >= weekStart).length
+  const faresSaved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const offerCount = offers?.length ?? 0
+
+  // One sentence on what to do next, most urgent first
+  const summary =
+    offerCount > 0
+      ? `${offerCount} new ${offerCount === 1 ? 'request is' : 'requests are'} waiting for you.`
+      : current && inProgress(current)
+        ? `You're on a trip to ${current.destinationName}.`
+        : current
+          ? `Your next ride is ${current.type === 'ON_DEMAND' ? 'as soon as you can' : countdown(new Date(current.pickupTime).getTime(), now)}, to ${current.destinationName}.`
+          : 'No rides right now. New requests show up here on their own.'
+
   return (
     <div className="space-y-8">
-      <h1 className={`${pageTitle} mb-0`}>Your rides</h1>
+      <div className="space-y-4">
+        <DashboardHeader
+          name={currentUser?.name ?? 'driver'}
+          summary={summary}
+          actions={
+            <Link to="/driver/settings" className={`${secondaryButton} min-h-12`}>
+              <Settings2 className="h-5 w-5" aria-hidden />
+              Hours and vehicle
+            </Link>
+          }
+        />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile
+            label="New requests"
+            value={offerCount}
+            icon={<BellRing className="h-5 w-5" />}
+            tone="teal"
+            note={offerCount ? 'Tap to see them' : 'All caught up'}
+            onClick={() => scrollToId('requests-title')}
+            actionLabel="Go to new requests"
+          />
+          <StatTile
+            label="Accepted"
+            value={active.length}
+            icon={<CalendarCheck className="h-5 w-5" />}
+            tone="brand"
+            note={active.length ? 'Rides on your list' : 'None yet'}
+            onClick={() => scrollToId('current-title')}
+            actionLabel="Go to your accepted rides"
+          />
+          <StatTile label="Rides given" value={completed.length} icon={<Trophy className="h-5 w-5" />} tone="violet" note={`${thisWeek} this week`} />
+          <StatTile label="Fares saved" value={`$${faresSaved.toLocaleString()}`} icon={<PiggyBank className="h-5 w-5" />} tone="coral" note="For the people you drove" />
+        </div>
+      </div>
       <RequestStatusCard driver={driver} showSettingsLink />
 
       <section aria-labelledby="requests-title">
-        <h2 id="requests-title" className={sectionTitle}>
+        <h2 id="requests-title" className={`${sectionTitle} scroll-mt-28`}>
           <BellRing className="h-5 w-5 text-teal-600" aria-hidden />
           New requests
           {!!offers?.length && (
@@ -121,7 +181,7 @@ export function DriverHome() {
       </section>
 
       <section aria-labelledby="current-title">
-        <h2 id="current-title" className={sectionTitle}>
+        <h2 id="current-title" className={`${sectionTitle} scroll-mt-28`}>
           <Navigation className="h-5 w-5 text-brand-600" aria-hidden />
           {current && inProgress(current) ? 'Your trip now' : 'Next ride'}
         </h2>

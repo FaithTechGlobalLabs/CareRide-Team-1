@@ -134,9 +134,11 @@ function Introduction() {
 }
 
 // Which section is on screen, so the header can highlight it.
-function useActiveSection(ids: string[]): string | undefined {
+// Pass shown = false while the sections aren't on the page yet; it starts watching once they are.
+function useActiveSection(ids: string[], shown: boolean): string | undefined {
   const [active, setActive] = useState<string>()
   useEffect(() => {
+    if (!shown) return
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id)
@@ -148,7 +150,7 @@ function useActiveSection(ids: string[]): string | undefined {
       if (el) observer.observe(el)
     }
     return () => observer.disconnect()
-  }, [ids])
+  }, [ids, shown])
   return active
 }
 
@@ -166,10 +168,12 @@ function useScrolledPast(px: number): boolean {
 const SECTION_IDS = SECTIONS.map((s) => s.id)
 
 export function Landing() {
-  const { currentUser } = useApp()
-  const active = useActiveSection(SECTION_IDS)
+  const { ready, currentUser } = useApp()
+  const active = useActiveSection(SECTION_IDS, ready && !currentUser)
   const showBackToTop = useScrolledPast(900)
 
+  // Wait until we know who's signed in, so someone returning to their dashboard never sees a flash of this page
+  if (!ready) return null
   // Signed-in people go straight to their dashboard: that's where everything they can do is
   if (currentUser) return <Navigate to={HOME_FOR[currentUser.role]} replace />
 

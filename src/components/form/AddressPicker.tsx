@@ -33,33 +33,36 @@ export function AddressPicker({
   const rootRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
-  const [results, setResults] = useState<AddressSuggestion[]>([])
-  const [busy, setBusy] = useState(false)
-  const [searchError, setSearchError] = useState<string>()
+  const [found, setFound] = useState<AddressSuggestion[]>([])
+  const [searching, setSearching] = useState(false)
+  const [foundError, setFoundError] = useState<string>()
+
+  // Nothing to search once an address is picked or the text is too short. Older results are
+  // hidden rather than cleared, so the effect below never has to reset state as it starts.
+  const searchable = !selected && canSearchAddress(value)
+  const results = searchable ? found : []
+  const busy = searchable && searching
+  const searchError = searchable ? foundError : undefined
 
   useEffect(() => {
-    if (selected || !canSearchAddress(value)) {
-      setResults([])
-      setBusy(false)
-      setSearchError(undefined)
-      return
-    }
+    if (!searchable) return
 
     const controller = new AbortController()
     const timer = window.setTimeout(async () => {
-      setBusy(true)
-      setSearchError(undefined)
+      setSearching(true)
+      setFoundError(undefined)
       try {
-        const found = await searchAddresses(value, controller.signal)
-        setResults(found)
+        const places = await searchAddresses(value, controller.signal)
+        setFound(places)
         setActive(0)
         setOpen(true)
       } catch (err) {
         if (controller.signal.aborted) return
-        setResults([])
-        setSearchError(err instanceof Error ? err.message : 'Address search is unavailable right now.')
+        setFound([])
+        setFoundError(err instanceof Error ? err.message : 'Address search is unavailable right now.')
       } finally {
-        if (!controller.signal.aborted) setBusy(false)
+        // Also when aborted: a newer search sets it again when it starts, and a stopped one must not spin forever
+        setSearching(false)
       }
     }, DEBOUNCE_MS)
 
@@ -67,7 +70,7 @@ export function AddressPicker({
       controller.abort()
       window.clearTimeout(timer)
     }
-  }, [value, selected])
+  }, [value, searchable])
 
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
@@ -84,7 +87,7 @@ export function AddressPicker({
   function pick(place: AddressSuggestion) {
     onSelect(place)
     setOpen(false)
-    setResults([])
+    setFound([])
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
