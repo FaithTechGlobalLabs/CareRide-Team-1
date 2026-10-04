@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   Repeat,
+  Trash2,
   TriangleAlert,
   X,
 } from 'lucide-react'
@@ -18,7 +19,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
 import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
-import { TransitSlip } from '../../components/TransitSlip'
+import { TransitSlip, type TransitLeg } from '../../components/TransitSlip'
 import { card, dangerButton, ghostButton, input, label, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
@@ -139,8 +140,7 @@ export function RideDetail() {
   // "booked" or "changed", set by the booking form, so staff know it worked and what to do next
   const [justSaved, setJustSaved] = useState(() => (location.state as { justSaved?: 'booked' | 'changed' } | null)?.justSaved)
   const [retryNote, setRetryNote] = useState('')
-  const [busLine, setBusLine] = useState('')
-  const [getOffAt, setGetOffAt] = useState('')
+  const [legs, setLegs] = useState<TransitLeg[]>([{ line: '', getOffAt: '' }])
   const transitDialog = useRef<HTMLDialogElement>(null)
 
   if (!ride) return <p>Ride not found.</p>
@@ -409,33 +409,62 @@ export function RideDetail() {
           <p className="no-print">
             Print this slip for the client. Look up the bus in directions first, then fill in the line and stop if you know them.
           </p>
-          <div className="no-print grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className={label} htmlFor="transit-bus">
-                Bus or SkyTrain
-              </label>
-              <input
-                id="transit-bus"
-                className={input}
-                value={busLine}
-                onChange={(e) => setBusLine(e.target.value)}
-                placeholder="e.g. 3 Main"
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="transit-stop">
-                Get off at
-              </label>
-              <input
-                id="transit-stop"
-                className={input}
-                value={getOffAt}
-                onChange={(e) => setGetOffAt(e.target.value)}
-                placeholder="e.g. Burrard Station"
-              />
-            </div>
-          </div>
-          <TransitSlip ride={ride} house={house} busLine={busLine} getOffAt={getOffAt} />
+          <ol className="no-print space-y-3">
+            {legs.map((leg, i) => {
+              const setLeg = (patch: Partial<TransitLeg>) => setLegs((all) => all.map((l, j) => (j === i ? { ...l, ...patch } : l)))
+              return (
+                <li key={i} className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                  <div>
+                    <label className={label} htmlFor={`transit-bus-${i}`}>
+                      {i === 0 ? 'Bus or SkyTrain' : `Transfer ${i}: bus or SkyTrain`}
+                    </label>
+                    <input
+                      id={`transit-bus-${i}`}
+                      className={input}
+                      value={leg.line}
+                      onChange={(e) => setLeg({ line: e.target.value })}
+                      placeholder={i === 0 ? 'e.g. 3 Main' : 'e.g. Canada Line'}
+                    />
+                  </div>
+                  <div>
+                    <label className={label} htmlFor={`transit-stop-${i}`}>
+                      Get off at
+                    </label>
+                    <input
+                      id={`transit-stop-${i}`}
+                      className={input}
+                      value={leg.getOffAt}
+                      onChange={(e) => setLeg({ getOffAt: e.target.value })}
+                      placeholder={i === 0 ? 'e.g. Main Street–Science World' : 'e.g. Burrard Station'}
+                    />
+                  </div>
+                  {i > 0 ? (
+                    <button
+                      type="button"
+                      className="inline-flex h-12 w-12 items-center justify-center rounded-full text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                      aria-label={`Remove transfer ${i}`}
+                      onClick={() => setLegs((all) => all.filter((_, j) => j !== i))}
+                    >
+                      <Trash2 className="h-5 w-5" aria-hidden />
+                    </button>
+                  ) : (
+                    legs.length > 1 && <span className="hidden w-12 sm:block" aria-hidden />
+                  )}
+                </li>
+              )
+            })}
+          </ol>
+          <button
+            type="button"
+            className={`${ghostButton} no-print`}
+            onClick={() => {
+              setLegs((all) => [...all, { line: '', getOffAt: '' }])
+              requestAnimationFrame(() => document.getElementById(`transit-bus-${legs.length}`)?.focus())
+            }}
+          >
+            <Plus className="h-5 w-5" aria-hidden /> Add a transfer
+          </button>
+          <TransitSlip ride={ride} house={house} legs={legs} />
           <button type="button" className={`${secondaryButton} no-print w-full sm:w-auto`} onClick={() => void printPage()}>
             Print slip
           </button>

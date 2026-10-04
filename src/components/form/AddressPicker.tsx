@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { canSearchAddress, searchAddresses, type AddressSuggestion } from '../../services/addressSearch'
 import { input, label as labelClass } from '../ui'
 import { FieldMessage } from './FieldMessage'
+import { RequiredMark } from './RequiredMark'
 
 const DEBOUNCE_MS = 280
 
@@ -13,6 +14,11 @@ type Props = {
   selected: boolean
   error?: string
   hint?: string
+  // Shown under "Confirmed address" once one is picked, e.g. a wait time
+  selectedHint?: string
+  placeholder?: string
+  required?: boolean
+  className?: string
   autoFocus?: boolean
   onQueryChange: (query: string) => void
   onSelect: (place: AddressSuggestion) => void
@@ -25,6 +31,10 @@ export function AddressPicker({
   selected,
   error,
   hint = 'Search and pick a matching address so drivers can find you.',
+  selectedHint,
+  placeholder = 'Start typing a street address',
+  required,
+  className = '',
   autoFocus,
   onQueryChange,
   onSelect,
@@ -82,7 +92,8 @@ export function AddressPicker({
 
   const showList = Boolean(open && !selected && (busy || searchError || canSearchAddress(value)))
   const messageId = `${id}-message`
-  const describedBy = hint || error ? messageId : undefined
+  const message = selected ? selectedHint : hint
+  const describedBy = message || error ? messageId : undefined
 
   function pick(place: AddressSuggestion) {
     onSelect(place)
@@ -112,9 +123,10 @@ export function AddressPicker({
   }
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={`relative ${className}`}>
       <label htmlFor={id} className={labelClass}>
         {label}
+        {required && <RequiredMark />}
       </label>
       <div className="relative">
         <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400" aria-hidden>
@@ -134,7 +146,7 @@ export function AddressPicker({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={`${input} pl-11 pr-11`}
-          placeholder="Start typing a street address"
+          placeholder={placeholder}
           value={value}
           onChange={(e) => {
             onQueryChange(e.target.value)
@@ -206,7 +218,7 @@ export function AddressPicker({
           Confirmed address
         </p>
       )}
-      <FieldMessage id={messageId} hint={selected ? undefined : hint} error={error} />
+      <FieldMessage id={messageId} hint={message} error={error} />
     </div>
   )
 }

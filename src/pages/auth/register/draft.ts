@@ -1,4 +1,4 @@
-import { emptyDriverDraft, needsProfessionalProof, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
+import { emptyDriverDraft, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
 import { MIN_PASSWORD_LENGTH } from '../../../constants'
 import { requestHoursError } from '../../../logic/requestHours'
 import { EMAIL, MAX_NAME, isPhone, tooLong } from '../../../logic/validate'
@@ -85,12 +85,4 @@ export function validateVehicle(d: RegisterDraft): FieldErrors {
 
 export function validateRequestHours(d: RegisterDraft): FieldErrors {
   return compact({ requestHours: requestHoursError(d.driver.requestHours) })
-}
-
-export function validateDocuments(d: RegisterDraft): FieldErrors {
-  return compact({
-    licenceFile: d.driver.licenceFile ? undefined : 'Please add your driver’s licence.',
-    proofFile:
-      needsProfessionalProof(d.driver) && !d.driver.proofFile ? 'Please add proof you drive professionally.' : undefined,
-  })
 }

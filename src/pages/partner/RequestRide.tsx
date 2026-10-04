@@ -23,6 +23,7 @@ import { OptionTile } from '../../components/booking/OptionTile'
 import { PassengerStepper } from '../../components/booking/PassengerStepper'
 import { BOOK_AHEAD_DAYS, PickupTimePicker } from '../../components/booking/PickupTimePicker'
 import { TripSummary } from '../../components/booking/TripSummary'
+import { AddressPicker } from '../../components/form/AddressPicker'
 import { FieldMessage } from '../../components/form/FieldMessage'
 import { RequiredMark } from '../../components/form/RequiredMark'
 import { TextField } from '../../components/form/TextField'
@@ -38,7 +39,7 @@ import { previewDriverMatch, type MatchCheck, type MatchPreview } from '../../lo
 import { estimateFare } from '../../logic/estimateFare'
 import { ridePath } from '../../logic/homeFor'
 import { matchWaitTime, waitNote, waitSummary } from '../../logic/hospitalWaitTimes'
-import { houseAddress } from '../../logic/maps'
+import { houseAddress, isRealAddress } from '../../logic/maps'
 import { describePickup, parseLocalInput, quickPicks, toLocalInput } from '../../logic/pickupTime'
 import { sortByPopularity } from '../../logic/popularDestinations'
 import { passengersLabel, riderLabel } from '../../logic/rideText'
@@ -60,7 +61,9 @@ type Mode = 'new' | 'again' | 'return' | 'edit'
 interface FormState {
   type: RideType
   destinationId: string
-  customAddress: string
+  customAddress: string // what's in the box, then the full picked address
+  customName: string // the picked place's name, e.g. a hospital, or its street address
+  customPicked: boolean // picked from the search list, so it's a real place drivers can find
   pickupTime: string // datetime-local style
   passengers: number
   riderNames: string[]
@@ -136,6 +139,8 @@ function blankForm(now: number): FormState {
     type: 'SCHEDULED',
     destinationId: '',
     customAddress: '',
+    customName: '',
+    customPicked: false,
     pickupTime: quickPicks(now)[0].value,
     passengers: 1,
     riderNames: [''],
@@ -166,9 +171,15 @@ function initialForm(mode: Mode, source: Ride | undefined, userId: string, now: 
     return { form: { ...blank, ...draft, pickupTime: stale ? blank.pickupTime : draft.pickupTime }, restored: true }
   }
   if (!source) return { form: blank, restored: false }
+  // A typed address from an older ride counts as picked, unless it was never a real one
   const destination = source.destinationId
-    ? { destinationId: source.destinationId, customAddress: '' }
-    : { destinationId: CUSTOM, customAddress: source.destinationAddress }
+    ? { destinationId: source.destinationId, customAddress: '', customName: '', customPicked: false }
+    : {
+        destinationId: CUSTOM,
+        customAddress: source.destinationAddress,
+        customName: source.destinationName,
+        customPicked: isRealAddress(source.destinationAddress),
+      }
   if (mode === 'return') return { form: { ...blank, ...copyRiders(source) }, restored: false }
   if (mode === 'again') {
     return {
@@ -315,8 +326,8 @@ function RideForm({ mode, source, house, user }: FormProps) {
     if (!isReturn && !form.destinationId) found.destination = 'Choose where the client is going.'
     if (!isReturn && form.destinationId === CUSTOM) {
       const address = form.customAddress.trim()
-      if (!address) found.customAddress = 'Type the address the client is going to.'
-      else if (address.length < 5) found.customAddress = 'Add the full street address, so the driver can find it.'
+      if (!address) found.customAddress = 'Search for the address the client is going to.'
+      else if (!form.customPicked) found.customAddress = 'Pick a matching address from the list, so the driver can find it.'
       else found.customAddress = tooLong(address, MAX_NAME * 2)
     }
     if (form.type === 'SCHEDULED') {
@@ -371,7 +382,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
     : saved
       ? matchWaitTime(saved.name, saved.address, waits)
       : form.destinationId === CUSTOM
-        ? matchWaitTime(form.customAddress, form.customAddress, waits)
+        ? matchWaitTime(form.customName || form.customAddress, form.customAddress, waits)
         : undefined
 
   // A return trip goes from where the outbound one went, back to the partner's address
@@ -386,8 +397,8 @@ function RideForm({ mode, source, house, user }: FormProps) {
     ? { name: house.name, detail: house.address }
     : saved
       ? { name: saved.name, detail: saved.address }
-      : form.destinationId === CUSTOM && form.customAddress.trim()
-        ? { name: form.customAddress.trim() }
+      : form.destinationId === CUSTOM && form.customPicked
+        ? { name: form.customName || form.customAddress, detail: form.customName ? form.customAddress : undefined }
         : undefined
 
   async function handleSubmit(e: FormEvent) {
@@ -410,7 +421,11 @@ function RideForm({ mode, source, house, user }: FormProps) {
       ? { destinationId: undefined, destinationName: house.name, destinationAddress: houseAddress(house) }
       : saved
         ? { destinationId: saved.id, destinationName: saved.name, destinationAddress: saved.address }
-        : { destinationId: undefined, destinationName: form.customAddress.trim(), destinationAddress: form.customAddress.trim() }
+        : {
+            destinationId: undefined,
+            destinationName: form.customName.trim() || form.customAddress.trim(),
+            destinationAddress: form.customAddress.trim(),
+          }
     const details = {
       type: form.type,
       pickupTime,
@@ -532,7 +547,7 @@ function RideForm({ mode, source, house, user }: FormProps) {
             id="where"
             step={1}
             title="Where to"
-            description={isReturn ? 'The trip back to your address.' : 'Pick a saved place or type any address.'}
+            description={isReturn ? 'The trip back to your address.' : 'Pick a saved place or search any address.'}
             required
             done={whereDone}
           >
@@ -604,14 +619,14 @@ function RideForm({ mode, source, house, user }: FormProps) {
                       checked={form.destinationId === CUSTOM}
                       onChange={() => update({ destinationId: CUSTOM })}
                       title="Somewhere else"
-                      description="Type any address"
+                      description="Search any address"
                       icon={<Navigation className="h-5 w-5" />}
                       dashed
                       invalid={!!shown.destination}
                     />
                   </div>
                   {q && listed.length === 0 && (
-                    <p className="mt-3 text-sm text-slate-500">No saved place matches “{query.trim()}”. Choose “Somewhere else” to type the address.</p>
+                    <p className="mt-3 text-sm text-slate-500">No saved place matches “{query.trim()}”. Choose “Somewhere else” to search for the address.</p>
                   )}
                   <FieldMessage
                     id="destination-message"
@@ -625,19 +640,21 @@ function RideForm({ mode, source, house, user }: FormProps) {
                 </fieldset>
 
                 {form.destinationId === CUSTOM && (
-                  <TextField
+                  <AddressPicker
                     id="custom-address"
                     className="animate-fade-up"
                     label="Address"
                     required
-                    autoComplete="street-address"
-                    maxLength={MAX_NAME * 2}
-                    icon={<MapPin className="h-5 w-5" />}
-                    placeholder="e.g. 1081 Burrard St, Vancouver"
+                    placeholder="e.g. 1081 Burrard St or St. Paul's Hospital"
+                    hint="Search and pick the address from the list, so the driver can find it."
+                    selectedHint={chosenWait ? waitNote(chosenWait) : undefined}
                     value={form.customAddress}
+                    selected={form.customPicked}
                     error={shown.customAddress}
-                    hint={chosenWait ? waitNote(chosenWait) : undefined}
-                    onChange={(e) => update({ customAddress: e.target.value })}
+                    onQueryChange={(customAddress) => update({ customAddress, customName: '', customPicked: false })}
+                    onSelect={(place) =>
+                      update({ customAddress: `${place.address}, ${place.city}`, customName: place.name ?? place.address, customPicked: true })
+                    }
                   />
                 )}
               </div>

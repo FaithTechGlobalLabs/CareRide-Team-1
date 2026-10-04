@@ -1,10 +1,6 @@
 import { Building2, Car, Mail, Pencil, Phone, User as UserIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import {
-  DriverDocumentFields,
-  DriverRequestFields,
-  DriverVehicleFields,
-} from '../../../components/DriverFields'
+import { DriverRequestFields, DriverVehicleFields } from '../../../components/DriverFields'
 import type { FieldErrors } from '../../../components/driverDraft'
 import { AddressPicker } from '../../../components/form/AddressPicker'
 import { ChoiceCard } from '../../../components/form/ChoiceCard'
@@ -185,10 +181,6 @@ export function RequestHoursStep({ draft, update, errors }: StepProps) {
   return <DriverRequestFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
 }
 
-export function DocumentsStep({ draft, update, errors }: StepProps) {
-  return <DriverDocumentFields value={draft.driver} onChange={(driver) => update({ driver })} errors={errors} />
-}
-
 // ---- Review
 
 // A few names and a count, so a long list doesn't take over the review
@@ -278,15 +270,6 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             stepId="requests"
             goTo={goTo}
             rows={[['Send requests', describeRequestHours(d.requestHours)]]}
-          />
-          <ReviewSection
-            title="Documents"
-            stepId="documents"
-            goTo={goTo}
-            rows={[
-              ['Licence', d.licenceFile ?? 'Missing'],
-              ...(d.proofFile ? ([['Proof', d.proofFile]] as [string, string][]) : []),
-            ]}
           />
         </>
       )}
