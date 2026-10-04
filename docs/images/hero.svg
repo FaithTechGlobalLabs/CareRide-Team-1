@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="t d">
+  <title id="t">CareRide</title>
+  <desc id="d">Care shouldn't depend on a ride. Free rides to essential care, coordinated by the people who already help.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b2fd6"/>
+      <stop offset="0.5" stop-color="#1f63f0"/>
+      <stop offset="1" stop-color="#22d3e6"/>
+    </linearGradient>
+    <linearGradient id="spectrum" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="0.25" stop-color="#2f67f2"/>
+      <stop offset="0.45" stop-color="#14bdd0"/>
+      <stop offset="0.62" stop-color="#10b981"/>
+      <stop offset="0.8" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f5573f"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+    <clipPath id="card"><rect width="1200" height="320" rx="28"/></clipPath>
+    <style>
+      text { font-family: Nunito, "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif; }
+      .orb { animation: drift 14s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+      .orb2 { animation-duration: 18s; animation-direction: alternate-reverse; }
+      .orb3 { animation-duration: 11s; }
+      @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(120px, -30px) scale(1.25); } }
+
+      .road { stroke-dasharray: 26 22; animation: roll 1.6s linear infinite; }
+      @keyframes roll { to { stroke-dashoffset: -48; } }
+
+      .fade { opacity: 0; animation: up 0.9s cubic-bezier(.2,.7,.2,1) forwards; }
+      .f2 { animation-delay: 0.25s; } .f3 { animation-delay: 0.5s; } .f4 { animation-delay: 0.75s; }
+      @keyframes up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+      .heart { animation: beat 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      @keyframes beat { 0%, 60%, 100% { transform: scale(1); } 15% { transform: scale(1.12); } 30% { transform: scale(0.97); } 45% { transform: scale(1.06); } }
+
+      .ping { animation: ping 2.4s cubic-bezier(0,0,.2,1) infinite; transform-box: fill-box; transform-origin: center; }
+      @keyframes ping { 0% { transform: scale(1); opacity: .7; } 80%, 100% { transform: scale(2.6); opacity: 0; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .orb, .road, .heart, .ping { animation: none; }
+        .fade { animation: none; opacity: 1; }
+      }
+    </style>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="1200" height="320" fill="url(#bg)"/>
+    <circle class="orb" cx="980" cy="60" r="140" fill="#f5573f" opacity="0.35" filter="url(#blur)"/>
+    <circle class="orb orb2" cx="160" cy="300" r="150" fill="#d946ef" opacity="0.3" filter="url(#blur)"/>
+    <circle class="orb orb3" cx="640" cy="40" r="110" fill="#22d3e6" opacity="0.35" filter="url(#blur)"/>
+
+    <!-- A road running off into the distance -->
+    <path d="M -20 286 C 300 250, 520 300, 820 262 S 1120 236, 1220 250" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="30" stroke-linecap="round"/>
+    <path class="road" d="M -20 286 C 300 250, 520 300, 820 262 S 1120 236, 1220 250" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Heart mark -->
+    <g transform="translate(1012 150)">
+      <circle class="ping" cx="0" cy="0" r="52" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="2"/>
+      <g class="heart">
+        <circle cx="0" cy="0" r="56" fill="#ffffff" fill-opacity="0.16"/>
+        <path d="M0 26 C -30 6, -36 -10, -26 -22 C -16 -33, -4 -28, 0 -18 C 4 -28, 16 -33, 26 -22 C 36 -10, 30 6, 0 26 Z" fill="#ffffff"/>
+        <path d="M-4 18 C 4 6, -10 -2, 0 -12" fill="none" stroke="#1f63f0" stroke-width="5" stroke-linecap="round" stroke-dasharray="5 6"/>
+      </g>
+    </g>
+
+    <g transform="translate(72 0)">
+      <text class="fade" x="0" y="74" font-size="15" font-weight="800" letter-spacing="3" fill="#ffffff" fill-opacity="0.85">NOT-FOR-PROFIT · BUILT FOR SOCIAL GOOD</text>
+      <text class="fade f2" x="0" y="138" font-size="54" font-weight="900" fill="#ffffff">Care shouldn’t depend</text>
+      <text class="fade f3" x="0" y="198" font-size="54" font-weight="900" fill="#ffffff">on a ride.</text>
+      <text class="fade f4" x="0" y="240" font-size="20" font-weight="600" fill="#ffffff" fill-opacity="0.9">Free rides to essential care, for people with no phone, no app, and no way to pay.</text>
+    </g>
+  </g>
+  <rect x="0" y="314" width="1200" height="6" fill="url(#spectrum)" clip-path="url(#card)"/>
+</svg>

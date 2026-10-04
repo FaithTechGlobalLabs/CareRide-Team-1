@@ -1,11 +1,11 @@
-import { AlertTriangle, CalendarPlus, CarFront, History, RotateCcw, Search } from 'lucide-react'
+import { AlertTriangle, Bus, CalendarPlus, CarFront, History, RotateCcw, Search } from 'lucide-react'
 import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { acceptedMessage } from '../../logic/acceptedMessage'
 import { formatTime } from '../../logic/formatTime'
 import { ridePath } from '../../logic/homeFor'
 import { actionReason, dayLabel } from '../../logic/rideInsights'
-import { passengersLabel, riderLabel } from '../../logic/rideText'
+import { passengersLabel, rideBadgeLabel, riderLabel, SENT_ON_TRANSIT_LABEL } from '../../logic/rideText'
 import type { Ride } from '../../types'
 import { STATUS_ICON, StatusBadge } from '../StatusBadge'
 import { card, input, primaryButton, secondaryButton } from '../ui'
@@ -248,7 +248,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
       </div>
 
       <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
-        <StatusBadge status={ride.status} label={ride.expired ? 'No driver found' : undefined} />
+        <StatusBadge status={ride.status} label={rideBadgeLabel(ride)} />
         {past && !ride.returnOfRideId && <BookAgain rideId={ride.id} />}
       </div>
     </li>
@@ -281,12 +281,13 @@ const SHORT_STATUS: Record<Ride['status'], { text: string; color: string }> = {
 }
 
 function StatusDot({ ride }: { ride: Ride }) {
-  const s = SHORT_STATUS[ride.status]
-  const Icon = STATUS_ICON[ride.status]
+  const transit = rideBadgeLabel(ride) === SENT_ON_TRANSIT_LABEL
+  const s = transit ? { text: 'Transit', color: 'text-teal-700' } : SHORT_STATUS[ride.status]
+  const Icon = transit ? Bus : STATUS_ICON[ride.status]
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.color}`}>
       <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
-      {ride.expired ? 'No driver' : s.text}
+      {!transit && ride.expired ? 'No driver' : s.text}
     </span>
   )
 }

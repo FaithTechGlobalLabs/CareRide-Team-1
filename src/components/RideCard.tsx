@@ -6,7 +6,7 @@ import type { Ride } from '../types'
 import { StatusBadge } from './StatusBadge'
 import { card } from './ui'
 import { formatDayTime } from '../logic/formatTime'
-import { passengersLabel, riderLabel } from '../logic/rideText'
+import { passengersLabel, rideBadgeLabel, riderLabel } from '../logic/rideText'
 
 interface Props {
   ride: Ride
@@ -44,7 +44,7 @@ export function RideCard({ ride, from, to, statusLabel, children, alert }: Props
           {ride.returnOfRideId && ' · Return trip'}
           {riders && ` · ${riders}`}
         </span>
-        <StatusBadge status={ride.status} label={statusLabel} />
+        <StatusBadge status={ride.status} label={statusLabel ?? rideBadgeLabel(ride)} />
       </div>
       {/* The route as a short road, like the logo: open dot for pickup, filled dot for drop-off. Grey once the ride is over. */}
       <div className="space-y-1">
