@@ -1,4 +1,5 @@
 import type { RideStatus } from '../types'
+import { SENT_ON_TRANSIT_LABEL } from '../logic/rideText'
 
 // Status is shown in words and colour, never colour alone.
 const styles: Record<RideStatus, { text: string; className: string; dot: string }> = {
@@ -12,8 +13,10 @@ const styles: Record<RideStatus, { text: string; className: string; dot: string 
   CANCELLED: { text: 'Cancelled', className: 'bg-slate-200 text-slate-700', dot: 'bg-slate-400' },
 }
 
+const TRANSIT = { text: SENT_ON_TRANSIT_LABEL, className: 'bg-teal-100 text-teal-900', dot: 'bg-teal-500' }
+
 export function StatusBadge({ status, label }: { status: RideStatus; label?: string }) {
-  const { text, className, dot } = styles[status]
+  const { text, className, dot } = label === SENT_ON_TRANSIT_LABEL ? TRANSIT : styles[status]
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${className}`}>
       <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
