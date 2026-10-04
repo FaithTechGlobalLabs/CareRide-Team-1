@@ -155,7 +155,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                 <div className="grid grid-cols-3 gap-3">
                   <Stat value={completed.length} label="Rides completed" />
                   <Stat value={upcoming.length} label="Open or upcoming" />
-                  <Stat value={formatDollars(saved)} label="Bus fares saved" />
+                  <Stat value={formatDollars(saved)} label="Saved, one fare per trip" />
                 </div>
               )}
 

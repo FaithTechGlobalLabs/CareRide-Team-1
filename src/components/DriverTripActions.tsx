@@ -1,6 +1,8 @@
 import { Check, Clock, MapPin, Navigation, Phone, Route, TriangleAlert, Undo2, UserCheck, Flag } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { canMarkNoShow, NO_SHOW_TOO_SOON, noShowMinutesLeft } from '../logic/dispatch'
 import { formatTime } from '../logic/formatTime'
+import { useNow } from '../hooks/useNow'
 import { directionsBetween, directionsTo, isRealAddress } from '../logic/maps'
 import { useDriverLocation } from '../hooks/useMaps'
 import { ExternalLink } from '../native/ExternalLink'
@@ -55,6 +57,9 @@ function DirectionsLink({ href, children }: { href: string; children: ReactNode 
 export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, showMap = false }: Props) {
   const [busy, setBusy] = useState(false)
   const [eta, setEta] = useState<number | undefined>(undefined)
+  const now = useNow(5_000)
+  const noShowReady = canMarkNoShow(ride, now)
+  const minutesLeft = noShowMinutesLeft(ride, now)
   const current = stepIndex(ride)
   const pickupKnown = isRealAddress(ride.pickupAddress)
   const dropoffKnown = isRealAddress(ride.destinationAddress)
@@ -201,17 +206,28 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, 
             <UserCheck className="h-5 w-5" aria-hidden />
             Client is in the car
           </button>
-          <ConfirmButton
-            className={`${ghostButton} w-full`}
-            disabled={busy}
-            title="Client didn't show?"
-            body="The ride ends and the front desk is told. You can undo this for 15 minutes."
-            confirmLabel="Yes, client didn't show"
-            confirmClassName={dangerButton}
-            onConfirm={() => run(() => dataService.markNoShow(ride.id))}
-          >
-            Client didn't show
-          </ConfirmButton>
+          {noShowReady ? (
+            <ConfirmButton
+              className={`${ghostButton} w-full`}
+              disabled={busy}
+              title="Client didn't show?"
+              body="The ride ends and the front desk is told. You can undo this for 15 minutes."
+              confirmLabel="Yes, client didn't show"
+              confirmClassName={dangerButton}
+              onConfirm={() => run(() => dataService.markNoShow(ride.id))}
+            >
+              Client didn't show
+            </ConfirmButton>
+          ) : (
+            <div className="space-y-2">
+              <button type="button" className={`${ghostButton} w-full`} disabled>
+                Client didn't show
+              </button>
+              <p className="text-sm text-slate-500">
+                {NO_SHOW_TOO_SOON} {minutesLeft <= 1 ? 'Less than a minute left.' : `About ${minutesLeft} minutes left.`}
+              </p>
+            </div>
+          )}
         </div>
       ),
     },

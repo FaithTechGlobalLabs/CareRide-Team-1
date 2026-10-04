@@ -46,6 +46,13 @@ export function driversToAsk(
 // An on-demand ride nobody has accepted after this long is called off, so the partner can make other plans.
 export const ON_DEMAND_GIVE_UP_MINUTES = 30
 
+// A driver can mark a no-show only after they have arrived and waited this long.
+export const NO_SHOW_WAIT_MINUTES = 10
+
+export const NO_SHOW_NOT_HERE = 'Say you are here, and wait with the front desk, before marking a no-show.'
+
+export const NO_SHOW_TOO_SOON = `Wait ${NO_SHOW_WAIT_MINUTES} minutes after you arrive before marking a no-show.`
+
 // When a ride still without a driver is cancelled automatically:
 // at the pickup time for a scheduled ride, or a while after booking for an on-demand one.
 export function noDriverDeadline(ride: Pick<Ride, 'type' | 'pickupTime'>): Date {
@@ -59,4 +66,45 @@ export const UNDO_FINISH_MINUTES = 15
 export function canUndoFinish(ride: Pick<Ride, 'status' | 'completedAt' | 'cancelledAt'>, now = Date.now()): boolean {
   const at = ride.status === 'COMPLETED' ? ride.completedAt : ride.status === 'NO_SHOW' ? ride.cancelledAt : undefined
   return !!at && now - new Date(at).getTime() < UNDO_FINISH_MINUTES * 60_000
+}
+
+export function canMarkNoShow(ride: Pick<Ride, 'status' | 'driverArrivedAt'>, now = Date.now()): boolean {
+  if (ride.status !== 'ACCEPTED' || !ride.driverArrivedAt) return false
+  return now - new Date(ride.driverArrivedAt).getTime() >= NO_SHOW_WAIT_MINUTES * 60_000
+}
+
+// Whole minutes still to wait after arrival. Zero once a no-show is allowed.
+export function noShowMinutesLeft(ride: Pick<Ride, 'driverArrivedAt'>, now = Date.now()): number {
+  if (!ride.driverArrivedAt) return NO_SHOW_WAIT_MINUTES
+  const left = new Date(ride.driverArrivedAt).getTime() + NO_SHOW_WAIT_MINUTES * 60_000 - now
+  return Math.max(0, Math.ceil(left / 60_000))
+}
+
+// Closing a partner account cancels rides nobody has set off for. A driver already on the way,
+// or already at the door, keeps the trip and finishes it.
+export function partnerCloseCancelsRide(
+  ride: Pick<Ride, 'status' | 'driverOnTheWayAt' | 'driverArrivedAt'>,
+): boolean {
+  if (ride.status === 'SEARCHING' || ride.status === 'OFFERED' || ride.status === 'NEEDS_ATTENTION') return true
+  return ride.status === 'ACCEPTED' && !ride.driverOnTheWayAt && !ride.driverArrivedAt
+}
+
+type RideShape = Pick<Ride, 'type' | 'pickupTime' | 'passengers' | 'needsWheelchair' | 'destinationAddress'>
+
+// Changing when, where, or who sends the ride out again. Names, notes, and instructions do not.
+// An on-demand pickup time is not part of this: that clock only restarts when the ride is sent again.
+export function editSendsRideAgain(before: RideShape, after: RideShape): boolean {
+  return (
+    after.type !== before.type ||
+    (after.type === 'SCHEDULED' && after.pickupTime !== before.pickupTime) ||
+    after.passengers !== before.passengers ||
+    after.needsWheelchair !== before.needsWheelchair ||
+    after.destinationAddress !== before.destinationAddress
+  )
+}
+
+// On-demand rides keep their original booking time unless the edit is sent to drivers again.
+export function pickupTimeAfterEdit(before: RideShape, after: RideShape, nowIso: string): string {
+  if (after.type === 'ON_DEMAND') return editSendsRideAgain(before, after) ? nowIso : before.pickupTime
+  return after.pickupTime
 }

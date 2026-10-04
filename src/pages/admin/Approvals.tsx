@@ -64,7 +64,7 @@ export function Approvals() {
           />
           <StatTile label="Organizations" value={impact?.organizations ?? '–'} icon={<Building2 className="h-5 w-5" />} tone="ink" note="Approved partners" />
           <StatTile label="Verified drivers" value={impact?.verifiedDrivers ?? '–'} icon={<BadgeCheck className="h-5 w-5" />} tone="teal" note="Ready to get requests" />
-          <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `${formatDollars(faresSavedFor(impact.ridesCompleted))} in bus fares saved` : undefined} />
+          <StatTile label="Free rides" value={impact?.ridesCompleted ?? '–'} icon={<Car className="h-5 w-5" />} tone="brand" note={impact ? `${formatDollars(faresSavedFor(impact.ridesCompleted))} saved, one fare per trip` : undefined} />
         </div>
       </div>
       {/* TODO: how we verify organizations and drivers is still an open question */}

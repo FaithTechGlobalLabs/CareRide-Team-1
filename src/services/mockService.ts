@@ -1,7 +1,20 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
 import { DEMO_FRAME_USER } from '../context/demoFrame'
-import { maxPassengers } from '../logic/capacity'
-import { UNDO_FINISH_MINUTES, canWaitForDrivers, driversToAsk, isExpired, noDriverDeadline, offerExpiry } from '../logic/dispatch'
+import { CAPACITY_LOCKED, maxPassengers } from '../logic/capacity'
+import {
+  NO_SHOW_NOT_HERE,
+  NO_SHOW_TOO_SOON,
+  UNDO_FINISH_MINUTES,
+  canMarkNoShow,
+  canWaitForDrivers,
+  driversToAsk,
+  editSendsRideAgain,
+  isExpired,
+  noDriverDeadline,
+  offerExpiry,
+  partnerCloseCancelsRide,
+  pickupTimeAfterEdit,
+} from '../logic/dispatch'
 import { faresSavedFor } from '../logic/estimateFare'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
@@ -19,8 +32,6 @@ const OLD_STORAGE_KEYS = ['careride-db-v6', 'careride-db-v5', 'careride-db-v4', 
 
 // Still waiting for a driver: these expire if nobody accepts in time
 const WAITING: RideStatus[] = ['SEARCHING', 'OFFERED', 'NEEDS_ATTENTION']
-// A partner closing their account cancels these. A ride already under way is left to finish.
-const CLOSABLE: RideStatus[] = ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION']
 
 function load(): Database {
   try {
@@ -384,6 +395,13 @@ export const mockService: DataService = {
   updateDriver: (driverId, changes) =>
     transact((db) => {
       const driver = findOrThrow(db.drivers, driverId, 'Driver')
+      if (
+        driver.status === 'APPROVED' &&
+        ((changes.seats !== undefined && changes.seats !== driver.seats) ||
+          (changes.wheelchairAccessible !== undefined && changes.wheelchairAccessible !== driver.wheelchairAccessible))
+      ) {
+        throw new Error(CAPACITY_LOCKED)
+      }
       Object.assign(driver, changes)
       return driver
     }),
@@ -448,7 +466,7 @@ export const mockService: DataService = {
         if (driver) releaseDriverWork(db, driver.id)
       } else {
         for (const ride of db.rides) {
-          if (ride.orgId !== user.orgId || !CLOSABLE.includes(ride.status)) continue
+          if (ride.orgId !== user.orgId || !partnerCloseCancelsRide(ride)) continue
           ride.status = 'CANCELLED'
           ride.cancelReason = 'The organization closed its CareRide account.'
           ride.cancelledAt = now()
@@ -529,19 +547,12 @@ export const mockService: DataService = {
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       requireStatus(ride, ['SEARCHING', 'OFFERED', 'NEEDS_ATTENTION', 'ACCEPTED'], cantChange(ride))
-      // An on-demand ride is wanted now, so editing it restarts the clock
-      const next: RideChanges = { ...changes, pickupTime: changes.type === 'ON_DEMAND' ? now() : changes.pickupTime }
+      // Notes and names keep an on-demand ride's give-up clock. A real change starts it again.
+      const resend = editSendsRideAgain(ride, changes)
+      const next: RideChanges = { ...changes, pickupTime: pickupTimeAfterEdit(ride, changes, now()) }
       checkPickupTime(next)
       checkPassengers(db, next.passengers)
       if (!next.destinationAddress.trim()) throw new Error('Choose where the ride is going.')
-
-      // Changing when, where, or who means drivers must look at the ride again. Notes and names don't.
-      const resend =
-        next.type !== ride.type ||
-        (next.type === 'SCHEDULED' && next.pickupTime !== ride.pickupTime) ||
-        next.passengers !== ride.passengers ||
-        next.needsWheelchair !== ride.needsWheelchair ||
-        next.destinationAddress !== ride.destinationAddress
 
       Object.assign(ride, next, { riderNames: cleanNames(next.riderNames, next.passengers), changedAt: now() })
       if (!resend) return ride
@@ -688,6 +699,8 @@ export const mockService: DataService = {
     transact((db) => {
       const ride = findOrThrow(db.rides, rideId, 'Ride')
       requireStatus(ride, ['ACCEPTED'], cantChange(ride))
+      if (!ride.driverArrivedAt) throw new Error(NO_SHOW_NOT_HERE)
+      if (!canMarkNoShow(ride)) throw new Error(NO_SHOW_TOO_SOON)
       ride.status = 'NO_SHOW'
       ride.cancelReason = 'Client did not show up. The ride is lost.'
       ride.cancelledAt = now()
