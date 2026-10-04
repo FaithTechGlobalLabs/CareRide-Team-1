@@ -1,9 +1,10 @@
-import { PartyPopper, Undo2 } from 'lucide-react'
+import { CircleCheck, PartyPopper, Undo2 } from 'lucide-react'
 import { useEffect, useRef, type CSSProperties } from 'react'
 import type { Ride } from '../types'
 import { primaryButton } from './ui'
 
-const COLOURS = ['#3b2fd6', '#1f63f0', '#22d3e6', '#10b981', '#fbbf24', '#f5573f', '#7c3aed']
+// Brand blue, aqua, sun, coral and navy: the logo's own colours
+const COLOURS = ['var(--color-brand-600)', 'var(--color-aqua-400)', 'var(--color-sun-400)', 'var(--color-coral-500)', 'var(--color-ink)', 'var(--color-brand-300)']
 const PIECES = 48
 
 // Fixed per piece so the burst looks the same on every render
@@ -20,14 +21,25 @@ const confetti = Array.from({ length: PIECES }, (_, i) => {
   }
 })
 
+// Confetti is kept for milestones so it still means something: the first ride, then 5, 10, 25 and every 50.
+function isMilestone(count: number): boolean {
+  return count === 1 || count === 5 || count === 10 || count === 25 || (count > 0 && count % 50 === 0)
+}
+
+function milestoneTitle(count: number): string {
+  return count === 1 ? 'Your first ride. Thank you!' : `That's ${count} rides. Thank you!`
+}
+
 interface Props {
   ride: Ride
+  count: number // the driver's completed rides, including this one
   onClose: () => void
   onUndo: () => void
 }
 
 // A thank-you after a drop-off, with a way back if it was tapped by mistake.
-export function RideCelebration({ ride, onClose, onUndo }: Props) {
+export function RideCelebration({ ride, count, onClose, onUndo }: Props) {
+  const milestone = isMilestone(count)
   const dialog = useRef<HTMLDialogElement>(null)
 
   // No close on cleanup: closing fires onClose, which would end the celebration as soon as it starts
@@ -44,31 +56,33 @@ export function RideCelebration({ ride, onClose, onUndo }: Props) {
       className="m-auto w-[min(26rem,calc(100vw-2rem))] rounded-xl p-8 text-center text-ink shadow-xl backdrop:bg-slate-900/50"
     >
       {/* Inside the dialog so it draws above the backdrop */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
-        {confetti.map((c, i) => (
-          <span
-            key={i}
-            className="absolute top-0 block animate-confetti"
-            style={
-              {
-                left: c.left,
-                width: c.size,
-                height: c.round ? c.size : c.size * 1.6,
-                background: c.colour,
-                borderRadius: c.round ? '9999px' : '2px',
-                animationDelay: c.delay,
-                '--drift': c.drift,
-                '--spin': c.spin,
-              } as CSSProperties
-            }
-          />
-        ))}
-      </div>
+      {milestone && (
+        <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+          {confetti.map((c, i) => (
+            <span
+              key={i}
+              className="absolute top-0 block animate-confetti"
+              style={
+                {
+                  left: c.left,
+                  width: c.size,
+                  height: c.round ? c.size : c.size * 1.6,
+                  background: c.colour,
+                  borderRadius: c.round ? '9999px' : '2px',
+                  animationDelay: c.delay,
+                  '--drift': c.drift,
+                  '--spin': c.spin,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+      )}
       <span className="mx-auto mb-4 flex h-16 w-16 animate-pop items-center justify-center rounded-xl bg-teal-700 text-white" aria-hidden>
-        <PartyPopper className="h-8 w-8" />
+        {milestone ? <PartyPopper className="h-8 w-8" /> : <CircleCheck className="h-8 w-8" />}
       </span>
       <h2 id="celebrate-title" className="font-display text-2xl font-extrabold tracking-tight">
-        Ride complete. Thank you!
+        {milestone ? milestoneTitle(count) : 'Ride complete. Thank you!'}
       </h2>
       <p className="mt-2 text-slate-600">
         You got your client to {ride.destinationName}. The front desk has been told.

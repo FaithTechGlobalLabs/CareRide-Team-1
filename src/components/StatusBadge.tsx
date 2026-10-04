@@ -1,4 +1,5 @@
 import { BellRing, Bus, CarFront, Check, CircleCheck, CircleX, Clock, TriangleAlert, UserX, type LucideIcon } from 'lucide-react'
+import { useState } from 'react'
 import type { RideStatus } from '../types'
 import { SENT_ON_TRANSIT_LABEL } from '../logic/rideText'
 
@@ -33,10 +34,30 @@ export function StatusBadge({ status, label }: { status: RideStatus; label?: str
   const { text, className } = transit ? TRANSIT : styles[status]
   const Icon = transit ? Bus : STATUS_ICON[status]
   const live = status === 'SEARCHING' || status === 'OFFERED'
+
+  // When the status changes on screen, the badge settles in with a soft ring and screen readers hear the new status.
+  // Nothing moves on first load.
+  const [shown, setShown] = useState(status)
+  const [changes, setChanges] = useState(0)
+  if (shown !== status) {
+    setShown(status)
+    setChanges(changes + 1)
+  }
+
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-3 text-sm font-semibold ${className}`}>
-      <Icon className={`h-4 w-4 shrink-0 ${live ? 'animate-pulse' : ''}`} strokeWidth={2.5} aria-hidden />
-      {label ?? text}
-    </span>
+    <>
+      {/* A new key replays the animation on each change */}
+      <span
+        key={changes}
+        className={`inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-3 text-sm font-semibold ${className} ${changes ? 'animate-status-in' : ''}`}
+      >
+        <Icon className={`h-4 w-4 shrink-0 ${live ? 'animate-pulse' : ''}`} strokeWidth={2.5} aria-hidden />
+        {label ?? text}
+      </span>
+      {/* Kept outside the keyed badge so the live region stays mounted and the change is read out */}
+      <span className="sr-only" aria-live="polite">
+        {changes ? `Status changed: ${label ?? text}` : ''}
+      </span>
+    </>
   )
 }
