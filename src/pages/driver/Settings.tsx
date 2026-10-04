@@ -1,8 +1,8 @@
-import { CalendarClock, Car, Check, Hourglass, Loader2 } from 'lucide-react'
+import { CalendarClock, Car, Check, Loader2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { DriverVehicleFields } from '../../components/DriverFields'
 import type { DriverDraft, FieldErrors } from '../../components/driverDraft'
-import { NoticePicker, RequestHoursEditor } from '../../components/RequestHoursEditor'
+import { RequestHoursEditor } from '../../components/RequestHoursEditor'
 import { RequestStatusCard } from '../../components/RequestStatusCard'
 import { card, ghostButton, pageTitle, primaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
@@ -53,7 +53,6 @@ export function Settings() {
 
   const current: Editable = {
     requestHours: driver.requestHours,
-    minNoticeHours: driver.minNoticeHours,
     vehicle: driver.vehicle,
     seats: driver.seats,
     wheelchairAccessible: driver.wheelchairAccessible,
@@ -111,21 +110,13 @@ export function Settings() {
       <Section
         icon={<CalendarClock className="h-6 w-6" />}
         title="When to send you requests"
-        description="We'll only notify you during these times. Outside them, requests go to other drivers."
+        description="We'll only notify you during these times. Outside them, requests go to other drivers. You can always decline a request."
       >
         <RequestHoursEditor
           value={current.requestHours}
           onChange={(requestHours) => change({ requestHours })}
           error={shownErrors.requestHours}
         />
-      </Section>
-
-      <Section
-        icon={<Hourglass className="h-6 w-6" />}
-        title="Notice"
-        description="Skip last-minute rides if you need time to plan."
-      >
-        <NoticePicker value={current.minNoticeHours} onChange={(minNoticeHours) => change({ minNoticeHours })} />
       </Section>
 
       <Section

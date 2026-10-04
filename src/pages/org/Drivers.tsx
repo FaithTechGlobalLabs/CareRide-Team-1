@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { DriverFields } from '../../components/DriverFields'
 import { emptyDriverDraft, splitDriverDraft, validateDriverDraft, type DriverDraft } from '../../components/driverDraft'
 import { card, pageTitle, primaryButton } from '../../components/ui'
-import { describeRequestHours, formatNotice } from '../../logic/requestHours'
+import { describeRequestHours } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { dataService } from '../../services'
@@ -50,7 +50,7 @@ export function Drivers() {
               {d.vehicle} · {d.seats} spaces{d.wheelchairAccessible && ' · Wheelchair accessible'}
             </p>
             <p className="text-slate-600">
-              Requests: {describeRequestHours(d.requestHours)} · {formatNotice(d.minNoticeHours)} notice
+              Requests: {describeRequestHours(d.requestHours)}
             </p>
           </div>
         ))}

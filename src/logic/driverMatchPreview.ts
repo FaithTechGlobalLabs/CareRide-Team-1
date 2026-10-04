@@ -1,11 +1,11 @@
 import type { Driver, House, Ride } from '../types'
-import { isWithinRequestHours, meetsNotice } from './requestHours'
+import { isWithinRequestHours } from './requestHours'
 import { matchDrivers } from './matchDrivers'
 
 // The parts of a ride that decide who can take it.
 export type RideNeeds = Pick<Ride, 'type' | 'pickupTime' | 'passengers' | 'needsWheelchair'> & { preferredDriverId?: string }
 
-export type MatchCheck = 'city' | 'seats' | 'wheelchair' | 'schedule' | 'notice'
+export type MatchCheck = 'city' | 'seats' | 'wheelchair' | 'schedule'
 
 export interface MatchPreview {
   count: number
@@ -22,12 +22,11 @@ export function previewDriverMatch(needs: RideNeeds, house: House, drivers: Driv
 }
 
 type Check = MatchCheck
-const CHECKS: Check[] = ['city', 'seats', 'wheelchair', 'schedule', 'notice']
+const CHECKS: Check[] = ['city', 'seats', 'wheelchair', 'schedule']
 
 // Find the one check that filters everyone out: drop it and someone fits.
 function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Date): { reason: string; check?: Check } {
   const found = (check: Check, reason: string) => ({ check, reason })
-  const pickup = new Date(needs.pickupTime)
   const active = drivers.filter((d) => d.status === 'APPROVED')
   if (active.length === 0) return { reason: 'no drivers are approved yet.' }
 
@@ -41,8 +40,6 @@ function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Dat
         return !needs.needsWheelchair || d.wheelchairAccessible
       case 'schedule':
         return needs.type !== 'ON_DEMAND' || isWithinRequestHours(d.requestHours, now)
-      case 'notice':
-        return needs.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)
     }
   }
   const fitsAllBut = (skip: Check) => active.filter((d) => CHECKS.every((c) => c === skip || passes(d, c)))
@@ -59,11 +56,6 @@ function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Dat
         return found(check, 'no wheelchair-accessible driver is free at this time.')
       case 'schedule':
         return found(check, 'no driver is taking requests right now. Try again later, or book it as a scheduled ride.')
-      case 'notice': {
-        const hours = Math.min(...almost.map((d) => d.minNoticeHours))
-        const who = needs.needsWheelchair ? 'wheelchair rides need' : 'drivers need'
-        return found(check, `${who} ${hours} ${hours === 1 ? "hour's" : "hours'"} notice. Try a later time.`)
-      }
     }
   }
   return { reason: 'try a different time, or fewer passengers per ride.' }

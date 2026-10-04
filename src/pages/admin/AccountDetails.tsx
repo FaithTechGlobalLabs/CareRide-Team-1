@@ -6,7 +6,7 @@ import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
 import { formatDollars } from '../../logic/estimateFare'
 import { ROLE_LABELS } from '../../logic/homeFor'
-import { describeRequestHours, formatNotice } from '../../logic/requestHours'
+import { describeRequestHours } from '../../logic/requestHours'
 import { dataService } from '../../services'
 import type { Driver, House, Organization, Ride, User, VerificationStatus } from '../../types'
 import { ExternalLink } from '../../native/ExternalLink'
@@ -193,7 +193,6 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                   </Row>
                   <Row label="Cities">{driver.serviceCities.join(', ') || 'None'}</Row>
                   <Row label="Request hours">{describeRequestHours(driver.requestHours)}</Row>
-                  <Row label="Notice">{formatNotice(driver.minNoticeHours)}</Row>
                   <Row label="Licence">{driver.licenceFile ?? 'Missing'}</Row>
                   {driver.proofFile && <Row label="Professional proof">{driver.proofFile}</Row>}
                 </Section>

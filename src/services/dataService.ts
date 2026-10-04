@@ -27,7 +27,7 @@ export type NewLocation = Pick<House, 'address' | 'city' | 'phone'>
 // What drivers can change themselves from their settings page
 export type DriverSettings = Pick<
   Driver,
-  'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
+  'requestHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
 >
 export type NewRide = Omit<
   Ride,
@@ -98,7 +98,7 @@ export interface DataService {
   registerDriver(user: NewDriverUser, driver: NewDriver, login: Pick<NewAccount, 'email' | 'password'>): Promise<Registration>
   addOrgDriver(user: NewDriverUser, driver: NewDriver): Promise<Driver> // the backend decides which org
   listDrivers(orgId?: string): Promise<Driver[]>
-  // Approved drivers' eligibility (seats, cities, hours, notice) for booking previews, without saying who they are
+  // Approved drivers' eligibility (seats, cities, hours) for booking previews, without saying who they are
   listDriverPool(): Promise<Driver[]>
   updateDriver(driverId: string, changes: Partial<DriverSettings>): Promise<Driver>
 

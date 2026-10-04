@@ -94,9 +94,9 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 
 **Partner organization:** register with basic info → CareRide admin approves → add houses (each gets one shared account) → add destinations (point B) → optionally add its own drivers and vehicles → houses start booking.
 
-**Transport provider:** register with basic info and where to send booking notifications → CareRide admin approves → add drivers with availability, notice needed, and spaces → receive and accept bookings.
+**Transport provider:** register with basic info and where to send booking notifications → CareRide admin approves → add drivers with availability and spaces → receive and accept bookings.
 
-**Independent driver** (e.g. Frank, a rideshare driver who is also a CareRide driver): sign up with vehicle, availability, notice, licence, and proof of professional driving → CareRide admin approves → receive requests.
+**Independent driver** (e.g. Frank, a rideshare driver who is also a CareRide driver): sign up with vehicle, availability, licence, and proof of professional driving → CareRide admin approves → receive requests.
 
 ## 7. Drivers and verification
 
@@ -104,7 +104,6 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 - Drivers can be **independent** (like Frank) or belong to an **organization**.
 - Each driver sets:
   - **Availability**: days and hours they can drive.
-  - **Notice**: how many hours ahead a ride must be booked.
   - **Spaces**: how many passengers fit.
   - **Wheelchair access** and **cities** they serve.
 - Drivers upload a licence and proof they drive professionally. A CareRide admin approves them. Only approved drivers get requests.
@@ -133,7 +132,7 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 
 ### 8.4 Matching and fallback
 - CareRide sends the request to **one driver at a time**, best match first.
-- A driver is eligible when they are approved, taking requests, serve the house's city, have enough spaces, fit wheelchair needs, are available at pickup time, and got enough notice.
+- A driver is eligible when they are approved, taking requests, serve the house's city, have enough spaces, fit wheelchair needs, and are available at pickup time.
 - Wheelchair-accessible and larger vehicles are asked last unless needed, so they stay free for rides that need them.
 - If a driver declines or doesn't answer in time (5 minutes for essential, 60 for scheduled), it goes to the next driver.
 - If nobody is left, or the pickup time passes without a driver, the ride turns red as **No driver available**, with the free fallback options.
@@ -273,7 +272,7 @@ src/
 │   └── seed.ts               # Demo data: houses, destinations, drivers, past rides
 ├── logic/
 │   ├── matchDrivers.ts       # Who can take this ride, best first
-│   ├── availability.ts       # Is the driver scheduled then, and was there enough notice?
+│   ├── requestHours.ts       # When the driver wants to hear about requests
 │   ├── dispatch.ts           # Offer timeouts, next driver to ask
 │   ├── popularDestinations.ts # Most-visited destinations per house
 │   ├── groupRides.ts         # Rides that could share a car
@@ -342,7 +341,6 @@ interface Driver {
   seats: number;              // spaces for passengers
   serviceCities: string[];
   availability: { days: number[]; from: string; to: string };
-  minNoticeHours: number;
   status: "PENDING" | "APPROVED" | "REJECTED";
   available: boolean;         // false = paused
 }
@@ -459,7 +457,7 @@ Demo data is fictional except public place names. Use **Reset demo data** in the
 5. **Maya accepts.** Belkin House prints the reminder slip: when, where to wait, driver, car.
 6. **The ride completes.** Maya taps Picked up, then Dropped off, and Belkin House sees the client arrived.
 7. **The return trip.** Belkin House books the return; it goes to Maya first.
-8. **A ride nobody can take.** A same-day wheelchair ride: the accessible van needs 24 hours' notice, so it turns red with the free fallbacks.
+8. **A ride nobody can take.** A wheelchair ride in a city no accessible driver serves, so it turns red with the free fallbacks.
 9. **A transport provider.** The Community Van Share admin sees bookings for its drivers.
 10. **Impact counter:** rides done, dollars saved, organizations and drivers on the platform.
 

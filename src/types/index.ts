@@ -65,7 +65,6 @@ export interface Driver {
   seats: number // spaces for passengers
   serviceCities: string[]
   requestHours: RequestHours
-  minNoticeHours: number // how far ahead a ride must be booked
   licenceFile?: string // demo: file name only
   proofFile?: string // demo: proof of professional driving, file name only
   status: VerificationStatus

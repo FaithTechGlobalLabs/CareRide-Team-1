@@ -4,7 +4,6 @@ import {
   ALL_DAY,
   DAY_NAMES,
   formatTime,
-  NOTICE_OPTIONS,
   REQUEST_PRESETS,
   invalidDay,
   sameHours,
@@ -185,37 +184,5 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
         />
       </fieldset>
     </div>
-  )
-}
-
-interface NoticeProps {
-  value: number
-  onChange: (hours: number) => void
-}
-
-// How far ahead a pickup must be booked before we ask this driver.
-export function NoticePicker({ value, onChange }: NoticeProps) {
-  return (
-    <fieldset>
-      <legend className="mb-1 text-sm font-semibold text-ink">Notice you need before a pickup</legend>
-      <p className="mb-3 text-sm text-slate-500">We'll only ask you about rides booked at least this far ahead.</p>
-      <div className="flex flex-wrap gap-2" role="radiogroup">
-        {NOTICE_OPTIONS.map((o) => {
-          const checked = value === o.hours
-          return (
-            <label
-              key={o.hours}
-              className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
-                checked ? 'border-teal-600 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
-              }`}
-            >
-              <input type="radio" name="notice" className="sr-only" checked={checked} onChange={() => onChange(o.hours)} />
-              {checked && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
-              {o.text}
-            </label>
-          )
-        })}
-      </div>
-    </fieldset>
   )
 }

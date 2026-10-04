@@ -7,7 +7,7 @@ import { FieldMessage } from './form/FieldMessage'
 import { SelectField } from './form/SelectField'
 import { TextField } from './form/TextField'
 import { ToggleChip } from './form/ToggleChip'
-import { NoticePicker, RequestHoursEditor } from './RequestHoursEditor'
+import { RequestHoursEditor } from './RequestHoursEditor'
 import { label as labelClass } from './ui'
 
 interface SectionProps {
@@ -136,17 +136,14 @@ export function DriverVehicleFields({ value, onChange, errors = {} }: SectionPro
   )
 }
 
-// When to send this driver ride requests, and how much notice they need.
+// When to send this driver ride requests. They still choose which ones to accept.
 export function DriverRequestFields({ value, onChange, errors = {} }: SectionProps) {
   return (
-    <div className="space-y-8">
-      <RequestHoursEditor
-        value={value.requestHours}
-        onChange={(requestHours) => onChange({ ...value, requestHours })}
-        error={errors.requestHours}
-      />
-      <NoticePicker value={value.minNoticeHours} onChange={(minNoticeHours) => onChange({ ...value, minNoticeHours })} />
-    </div>
+    <RequestHoursEditor
+      value={value.requestHours}
+      onChange={(requestHours) => onChange({ ...value, requestHours })}
+      error={errors.requestHours}
+    />
   )
 }
 

@@ -128,7 +128,7 @@ const DRAFT = { type: 'SCHEDULED', customAddress: '', passengers: 1, riderNames:
 
 export const frameSrc = (path: string, as: 'partner' | 'driver') => `${path}?as=${as === 'partner' ? PARTNER : DRIVER}`
 
-// Next quarter hour, at least 75 minutes away: past both drivers' one-hour notice.
+// Next quarter hour, a bit over an hour from now, so the scheduled pickup looks upcoming.
 function pickupSoon(): Date {
   const at = new Date(Date.now() + 75 * 60_000)
   at.setMinutes(Math.ceil(at.getMinutes() / 15) * 15, 0, 0)

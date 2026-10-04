@@ -15,7 +15,7 @@ import { SelectField } from '../../../components/form/SelectField'
 import { TextField } from '../../../components/form/TextField'
 import { secondaryButton, type Tone } from '../../../components/ui'
 import { BACKGROUND_LABELS, CITIES } from '../../../constants'
-import { describeRequestHours, formatNotice } from '../../../logic/requestHours'
+import { describeRequestHours } from '../../../logic/requestHours'
 import { MAX_NAME, tooLong } from '../../../logic/validate'
 import { SUGGESTED_DESTINATIONS, type RegisterDraft, type RegisterRole } from './draft'
 
@@ -378,10 +378,7 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             title="Ride requests"
             stepId="requests"
             goTo={goTo}
-            rows={[
-              ['Send requests', describeRequestHours(d.requestHours)],
-              ['Notice', formatNotice(d.minNoticeHours)],
-            ]}
+            rows={[['Send requests', describeRequestHours(d.requestHours)]]}
           />
           <ReviewSection
             title="Documents"

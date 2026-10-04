@@ -58,13 +58,13 @@ Draft. **[open]** = undecided or unclear.
 - Add point B locations
 - Has transport options (e.g. a dedicated vehicle)
   - Specify driver
-  - Specify availability, notice ahead of time, and number of spaces
+  - Specify availability and number of spaces
 
 **Transport provider** (e.g. Hope Mission)
 - Basic info
 - Notifications for bookings
 - Specify driver
-- Specify availability, notice ahead of time, and number of spaces
+- Specify availability and number of spaces
 
 ### Drivers
 - Driver can be unaffiliated, e.g. Frank, an Uber driver who is also a CareRide driver.
@@ -85,8 +85,8 @@ Draft. **[open]** = undecided or unclear.
 
 ## 3. What a new org or provider goes through
 
-**Partner org:** register, enter basic info, add point B locations, optionally add transport options (driver, availability, notice, spaces), then book from the single location account.
+**Partner org:** register, enter basic info, add point B locations, optionally add transport options (driver, availability, spaces), then book from the single location account.
 
-**Transport provider:** register, enter basic info, set booking notifications, specify driver, set availability, notice and spaces, then receive and accept bookings.
+**Transport provider:** register, enter basic info, set booking notifications, specify driver, set availability and spaces, then receive and accept bookings.
 
 Verification of orgs and providers is **[open]**.
