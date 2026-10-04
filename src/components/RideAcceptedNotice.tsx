@@ -5,6 +5,7 @@ import { useApp } from '../hooks/useApp'
 import { useData } from '../hooks/useData'
 import { acceptedMessage } from '../logic/acceptedMessage'
 import { ridePath } from '../logic/homeFor'
+import { riderLabel } from '../logic/rideText'
 import { dataService } from '../services'
 import type { Ride } from '../types'
 import { markSeen, readSeen } from './seenNotices'
@@ -17,26 +18,20 @@ function noticeId(ride: Ride): string {
   return `${ride.id}:${ride.acceptedAt}`
 }
 
-// Tells the house (or its organization) the moment a driver accepts one of their rides.
+// Tells the partner organization the moment a driver accepts one of their rides.
 export function RideAcceptedNotice() {
   const { currentUser, users } = useApp()
   const userId = currentUser?.id ?? ''
-  const houseId = currentUser?.role === 'HOUSE' ? currentUser.houseId : undefined
-  const orgId = currentUser?.role === 'ORG_ADMIN' ? currentUser.orgId : undefined
+  const houseId = currentUser?.role === 'PARTNER' ? currentUser.houseId : undefined
   const [seen, setSeen] = useState(() => readSeen(userId, 'accepted'))
 
   const recent =
     useData(async () => {
-      const rides = houseId
-        ? await dataService.listRidesForHouse(houseId)
-        : orgId
-          ? await dataService.listRidesRequestedByOrg(orgId)
-          : []
+      const rides = houseId ? await dataService.listRidesForHouse(houseId) : []
       const since = Date.now() - RECENT_MS
       return rides.filter((r) => r.status === 'ACCEPTED' && r.acceptedAt && new Date(r.acceptedAt).getTime() > since)
     }, userId) ?? []
   const drivers = useData(() => dataService.listDrivers()) ?? []
-  const houses = useData(() => dataService.listHouses()) ?? []
 
   const fresh = recent
     .filter((r) => !seen.includes(noticeId(r)))
@@ -51,7 +46,6 @@ export function RideAcceptedNotice() {
       {fresh.map((ride) => {
         const driver = drivers.find((d) => d.id === ride.driverId)
         const name = users.find((u) => u.id === driver?.userId)?.name
-        const house = orgId ? houses.find((h) => h.id === ride.houseId) : undefined
         return (
           <div
             key={ride.id}
@@ -66,16 +60,15 @@ export function RideAcceptedNotice() {
                 <p className="font-bold">{acceptedMessage(ride, name)}</p>
                 <p className="text-sm text-slate-600">
                   {[
-                    house?.name,
                     `To ${ride.destinationName}`,
-                    ride.clientName,
+                    riderLabel(ride),
                     driver?.vehicle,
                   ]
                     .filter(Boolean)
                     .join(' · ')}
                 </p>
                 <Link
-                  to={ridePath(currentUser?.role, ride.id)}
+                  to={ridePath(ride.id)}
                   className="mt-1 inline-block text-sm font-semibold text-brand-700 underline underline-offset-2"
                   onClick={() => dismiss(ride)}
                 >

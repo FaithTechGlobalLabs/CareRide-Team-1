@@ -25,7 +25,7 @@ export function recentCountsByHouse(rides: Ride[], houses: House[]): string[] {
   ]
   const houseIds = [...new Set(rides.map((r) => r.houseId))]
   return houseIds.map((houseId) => {
-    const name = houses.find((h) => h.id === houseId)?.name ?? 'Unknown house'
+    const name = houses.find((h) => h.id === houseId)?.name ?? 'Unknown partner'
     const counts = parts
       .map(([status, word]) => {
         const n = rides.filter((r) => r.houseId === houseId && r.status === status).length

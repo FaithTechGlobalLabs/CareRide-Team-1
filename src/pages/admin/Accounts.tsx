@@ -1,4 +1,4 @@
-import { Building2, Car, CheckCircle2, Eye, Home, KeyRound, Search, ShieldCheck, Trash2, X } from 'lucide-react'
+import { Building2, Bus, Car, CheckCircle2, Eye, KeyRound, Search, ShieldCheck, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { CopyButton } from '../../components/CopyButton'
@@ -17,12 +17,12 @@ import { AccountDetails } from './AccountDetails'
 
 const ROLE_ICONS: Record<UserRole, ReactNode> = {
   PLATFORM_ADMIN: <ShieldCheck className="h-5 w-5" />,
-  ORG_ADMIN: <Building2 className="h-5 w-5" />,
-  HOUSE: <Home className="h-5 w-5" />,
+  ORG_ADMIN: <Bus className="h-5 w-5" />,
+  PARTNER: <Building2 className="h-5 w-5" />,
   DRIVER: <Car className="h-5 w-5" />,
 }
 
-const ROLE_ORDER: UserRole[] = ['HOUSE', 'DRIVER', 'ORG_ADMIN', 'PLATFORM_ADMIN']
+const ROLE_ORDER: UserRole[] = ['PARTNER', 'DRIVER', 'ORG_ADMIN', 'PLATFORM_ADMIN']
 
 // Lets a platform admin set a new password for someone who is locked out.
 function ResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean; onClose: () => void }) {
@@ -145,8 +145,8 @@ function ResetPanel({ user, isSelf, onClose }: { user: User; isSelf: boolean; on
 const DELETE_EFFECTS: Record<UserRole, string> = {
   DRIVER:
     "Their driver profile is removed. Requests waiting on them go to the next driver, and upcoming rides they accepted go back out to other drivers.",
-  HOUSE: "Staff can no longer sign in for this house. The house and its rides stay with the organization.",
-  ORG_ADMIN: "They can no longer manage their organization. The organization, its houses, and its rides stay.",
+  PARTNER: "Staff can no longer sign in for this organization. The organization and its rides stay.",
+  ORG_ADMIN: "They can no longer manage their transport provider. The provider, its drivers, and its rides stay.",
   PLATFORM_ADMIN: "They lose access to approvals and accounts.",
 }
 

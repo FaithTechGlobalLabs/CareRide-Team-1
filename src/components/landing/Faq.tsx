@@ -8,7 +8,7 @@ const QUESTIONS: { q: string; a: string }[] = [
   },
   {
     q: 'Does the rider need a phone or an app?',
-    a: 'No. Staff at the house book the ride, and the driver meets the client in the lobby. No phone, app, or money needed.',
+    a: 'No. Staff at the partner organization book the ride, and the driver meets the client in the lobby. No phone, app, or money needed.',
   },
   {
     q: 'Who can book a ride?',
@@ -16,7 +16,7 @@ const QUESTIONS: { q: string; a: string }[] = [
   },
   {
     q: "What if no driver can take the ride?",
-    a: 'We ask suitable drivers one at a time. If nobody can go, the house knows right away and sees other options.',
+    a: 'Every suitable driver is asked at once. If nobody can go, staff see it while booking and get other options. A ride nobody accepts by its pickup time is cancelled automatically, so nobody waits for a driver who isn’t coming.',
   },
   {
     q: 'How are drivers checked?',

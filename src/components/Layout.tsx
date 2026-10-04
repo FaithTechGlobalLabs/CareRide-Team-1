@@ -1,7 +1,10 @@
-import { Clock } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { CalendarPlus, Clock } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 import { useCurrentDriver, useCurrentOrg } from '../hooks/useCurrent'
+import { useData } from '../hooks/useData'
+import { HOME_FOR } from '../logic/homeFor'
+import { dataService } from '../services'
 import { resetDemoData } from '../services/mockService'
 import type { UserRole } from '../types'
 import { AccountMenu } from './AccountMenu'
@@ -10,7 +13,7 @@ import { IncomingRequests } from './IncomingRequests'
 import { Logo } from './Logo'
 import { RideAcceptedNotice } from './RideAcceptedNotice'
 import { RideCancelledNotice } from './RideCancelledNotice'
-import { dangerButton, ROLE_TONE, type Tone } from './ui'
+import { dangerButton, primaryButton, ROLE_TONE, type Tone } from './ui'
 
 type NavLinkItem = { to: string; label: string }
 
@@ -22,33 +25,63 @@ const ACTIVE_NAV: Record<Tone, { soft: string; solid: string }> = {
   amber: { soft: 'bg-amber-50 text-amber-800', solid: 'bg-amber-600 text-white' },
 }
 
-const partnerOrgNav: NavLinkItem[] = [
-  { to: '/org/rides', label: 'Rides' },
-  { to: '/org/houses', label: 'Houses' },
-  { to: '/org/destinations', label: 'Destinations' },
+type NavItem = NavLinkItem & { badge?: number }
+
+const PROVIDER_NAV: NavItem[] = [
   { to: '/org/drivers', label: 'Our drivers' },
   { to: '/org/bookings', label: 'Bookings' },
 ]
 
-const providerNav: NavLinkItem[] = [
-  { to: '/org/drivers', label: 'Our drivers' },
-  { to: '/org/bookings', label: 'Bookings' },
+const ADMIN_NAV: NavItem[] = [
+  { to: '/admin', label: 'Approvals' },
+  { to: '/admin/accounts', label: 'Accounts' },
 ]
 
-const navFor: Record<Exclude<UserRole, 'ORG_ADMIN'>, NavLinkItem[]> = {
-  PLATFORM_ADMIN: [
-    { to: '/admin', label: 'Approvals' },
-    { to: '/admin/accounts', label: 'Accounts' },
-  ],
-  HOUSE: [
-    { to: '/house', label: 'Rides' },
-    { to: '/house/request', label: 'Request a ride' },
-  ],
-  DRIVER: [
-    { to: '/driver', label: 'Requests' },
-    { to: '/driver/my-rides', label: 'My rides' },
-    { to: '/driver/settings', label: 'Settings' },
-  ],
+// Main links for whoever is signed in. Partners only see Bookings once they have drivers of their own.
+function useNavLinks(role: UserRole | undefined): NavItem[] {
+  const { currentUser } = useApp()
+  const driver = useCurrentDriver()
+  const orgId = role === 'PARTNER' ? currentUser?.orgId : undefined
+  const ownDrivers = useData(() => (orgId ? dataService.listDrivers(orgId) : Promise.resolve([])), orgId) ?? []
+  const offers = useData(
+    () => (role === 'DRIVER' && driver?.status === 'APPROVED' ? dataService.listMyOffers(driver.id) : Promise.resolve([])),
+    driver?.id,
+  )
+
+  switch (role) {
+    case 'PARTNER':
+      return [
+        { to: '/partner', label: 'Rides' },
+        { to: '/partner/destinations', label: 'Destinations' },
+        { to: '/partner/drivers', label: 'Our drivers' },
+        ...(ownDrivers.length > 0 ? [{ to: '/partner/bookings', label: 'Bookings' }] : []),
+      ]
+    case 'DRIVER':
+      return [
+        { to: '/driver', label: 'Rides', badge: offers?.length },
+        { to: '/driver/settings', label: 'Settings' },
+      ]
+    case 'ORG_ADMIN':
+      return PROVIDER_NAV
+    case 'PLATFORM_ADMIN':
+      return ADMIN_NAV
+    default:
+      return []
+  }
+}
+
+function Badge({ count, active }: { count?: number; active: boolean }) {
+  if (!count) return null
+  return (
+    <span
+      className={`ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
+        active ? 'bg-white text-teal-700' : 'bg-teal-600 text-white'
+      }`}
+    >
+      {count}
+      <span className="sr-only"> new {count === 1 ? 'request' : 'requests'}</span>
+    </span>
+  )
 }
 
 // The signed-in app: header with navigation and account menu.
@@ -56,21 +89,22 @@ export function Layout() {
   const { currentUser, refresh } = useApp()
   const org = useCurrentOrg()
   const driver = useCurrentDriver()
+  const { pathname } = useLocation()
   const role = currentUser?.role
-  const links =
-    role === 'ORG_ADMIN' ? (org?.type === 'TRANSPORT_PROVIDER' ? providerNav : partnerOrgNav) : role ? navFor[role] : []
+  const links = useNavLinks(role)
 
   const activeNav = ACTIVE_NAV[role ? ROLE_TONE[role] : 'brand']
 
-  const pending =
-    (role === 'ORG_ADMIN' && org?.status === 'PENDING') || (role === 'DRIVER' && driver?.status === 'PENDING')
+  const pending = (role === 'DRIVER' ? driver?.status : org?.status) === 'PENDING'
+  // Booking is what partners come for, so it's one tap away on every page
+  const showRequest = role === 'PARTNER' && pathname !== '/partner/request'
 
   return (
     <div className="min-h-screen">
       <header className="no-print sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg">
         <div className="h-1 bg-spectrum" aria-hidden />
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Logo size="sm" to="/" />
+          <Logo size="sm" to={role ? HOME_FOR[role] : '/'} />
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
             {links.map((l) => (
               <NavLink
@@ -83,11 +117,24 @@ export function Layout() {
                   }`
                 }
               >
-                {l.label}
+                {({ isActive }) => (
+                  <>
+                    {l.label}
+                    <Badge count={l.badge} active={isActive} />
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>
-          <AccountMenu />
+          <div className="flex items-center gap-2">
+            {showRequest && (
+              <Link to="/partner/request" className={`${primaryButton} hidden min-h-10 px-4 text-sm sm:inline-flex`}>
+                <CalendarPlus className="h-4 w-4" aria-hidden />
+                Request a ride
+              </Link>
+            )}
+            <AccountMenu />
+          </div>
         </div>
         <nav className="mx-auto flex max-w-5xl flex-wrap gap-2 px-4 pb-3 sm:px-6 lg:hidden" aria-label="Main">
           {links.map((l) => (
@@ -101,7 +148,12 @@ export function Layout() {
                 }`
               }
             >
-              {l.label}
+              {({ isActive }) => (
+                <>
+                  {l.label}
+                  <Badge count={l.badge} active={isActive} />
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -112,16 +164,27 @@ export function Layout() {
           <p className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3 text-sm font-medium text-amber-900 sm:px-6">
             <Clock className="h-4 w-4 shrink-0" aria-hidden />
             Your account is waiting for approval from the CareRide team.
-            {role === 'ORG_ADMIN' && ' You can set things up in the meantime.'}
+            {role !== 'DRIVER' && ' You can set things up in the meantime.'}
           </p>
         </div>
       )}
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <main className={`mx-auto max-w-5xl px-4 py-8 sm:px-6 ${showRequest ? 'pb-24 sm:pb-8' : ''}`}>
         <Outlet />
       </main>
 
-      {/* Pop-ups: new and cancelled requests for drivers, accepted rides for whoever booked them */}
+      {/* On phones, booking stays in thumb reach at the bottom of every partner page */}
+      {showRequest && (
+        <Link
+          to="/partner/request"
+          className={`${primaryButton} no-print fixed bottom-4 left-1/2 z-30 -translate-x-1/2 shadow-xl sm:hidden`}
+        >
+          <CalendarPlus className="h-5 w-5" aria-hidden />
+          Request a ride
+        </Link>
+      )}
+
+      {/* Pop-ups: cancelled rides for drivers, accepted rides for the partner who booked, requests for providers */}
       <div className="no-print fixed inset-x-4 bottom-4 z-40 flex max-h-[80vh] flex-col gap-3 overflow-y-auto sm:left-auto sm:right-6 sm:w-96">
         <RideCancelledNotice />
         <IncomingRequests />

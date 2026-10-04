@@ -13,12 +13,12 @@ const FINISHED: Ride['status'][] = ['COMPLETED', 'NO_SHOW', 'CANCELLED']
 
 interface Props {
   rides: Ride[]
-  houses?: House[] // pass to show which house each ride is from
+  houses?: House[] // pass to show which partner each ride is from
 }
 
-// A house's or organization's rides: needing attention, upcoming, and past.
+// A partner's rides: needing attention, upcoming, and past.
 export function RideBoard({ rides, houses }: Props) {
-  const { currentUser, users } = useApp()
+  const { users } = useApp()
   const drivers = useData(() => dataService.listDrivers()) ?? []
 
   const byPickup = (a: Ride, b: Ride) => a.pickupTime.localeCompare(b.pickupTime)
@@ -27,7 +27,9 @@ export function RideBoard({ rides, houses }: Props) {
   const needsAction = (r: Ride) => r.status === 'NEEDS_ATTENTION' || wasDropped(r) || isDriverLate(r)
   const needsAttention = rides.filter(needsAction).sort(byPickup)
   const active = rides.filter((r) => !needsAction(r) && !FINISHED.includes(r.status)).sort(byPickup)
-  const finished = rides.filter((r) => FINISHED.includes(r.status)).sort((a, b) => byPickup(b, a))
+  // Most recent first
+  const finishedAt = (r: Ride) => r.completedAt ?? r.cancelledAt ?? r.pickupTime
+  const finished = rides.filter((r) => FINISHED.includes(r.status)).sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
 
   const card = (r: Ride) => {
     const driver = drivers.find((d) => d.id === r.driverId)
@@ -37,8 +39,9 @@ export function RideBoard({ rides, houses }: Props) {
         key={r.id}
         ride={r}
         from={houses?.find((h) => h.id === r.houseId)?.name}
-        to={ridePath(currentUser?.role, r.id)}
-        alert={isDriverLate(r) ? "The driver hasn't picked up the client yet" : undefined}
+        to={ridePath(r.id)}
+        statusLabel={r.expired ? 'No driver found' : undefined}
+        alert={isDriverLate(r) ? "The driver hasn't arrived yet" : undefined}
       >
         {driver && (r.status === 'ACCEPTED' || r.status === 'PICKED_UP') && (
           <p className="flex w-full items-start gap-2 rounded-xl bg-brand-50 px-4 py-3 font-semibold text-brand-900">

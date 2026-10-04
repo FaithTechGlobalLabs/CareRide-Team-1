@@ -1,27 +1,20 @@
-import { Phone } from 'lucide-react'
-import { useState } from 'react'
+import { Check, Clock, MapPin, Navigation, Phone, Route, TriangleAlert, Undo2, UserCheck, Flag } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { formatTime } from '../logic/formatTime'
+import { directionsBetween, directionsTo, isRealAddress } from '../logic/maps'
 import { dataService } from '../services'
 import type { House, Ride } from '../types'
 import { ConfirmButton } from './ConfirmButton'
-import { dangerButton, primaryButton, secondaryButton } from './ui'
+import { dangerButton, ghostButton, primaryButton, secondaryButton } from './ui'
 
-const STEPS = [
-  { id: 'arrive', label: 'Arrive' },
-  { id: 'pickup', label: 'Pick up' },
-  { id: 'dropoff', label: 'Drop off' },
-] as const
+const ETA_CHOICES = [5, 10, 15, 20, 30]
 
+// 0 head to pickup, 1 arrive, 2 client gets in, 3 drop off
 function stepIndex(ride: Ride): number {
-  if (ride.status === 'PICKED_UP') return 2
-  if (ride.driverArrivedAt) return 1
+  if (ride.status === 'PICKED_UP') return 3
+  if (ride.driverArrivedAt) return 2
+  if (ride.driverOnTheWayAt) return 1
   return 0
-}
-
-export function driverRideStatusLabel(ride: Ride): string | undefined {
-  if (ride.status === 'PICKED_UP') return 'On the way'
-  if (ride.status === 'ACCEPTED') return ride.driverArrivedAt ? "You're here" : 'Go to pickup'
-  return undefined
 }
 
 interface Props {
@@ -29,19 +22,43 @@ interface Props {
   house?: House
   driverId: string
   onDone: () => void
+  onCompleted?: (ride: Ride) => void
 }
 
-export function DriverTripActions({ ride, house, driverId, onDone }: Props) {
-  const [busy, setBusy] = useState(false)
-  const current = stepIndex(ride)
-  const arriving = ride.status === 'ACCEPTED' && !ride.driverArrivedAt
-  const atPickup = ride.status === 'ACCEPTED' && Boolean(ride.driverArrivedAt)
-  const enRoute = ride.status === 'PICKED_UP'
+// A small "done" marker. Deliberately flat and borderless, so it never looks like something to press.
+function DoneChip({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700">
+      <Check className="h-4 w-4" aria-hidden />
+      {children}
+    </span>
+  )
+}
 
-  async function run(action: () => Promise<unknown>) {
+function DirectionsLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={`${secondaryButton} w-full sm:w-auto`}>
+      <Navigation className="h-5 w-5 text-brand-600" aria-hidden />
+      {children}
+      <span className="sr-only">(opens Google Maps)</span>
+    </a>
+  )
+}
+
+// The trip, one step at a time. Finished steps show a tick and when they happened;
+// the most recent one can be taken back. Only the current step has a big button.
+export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }: Props) {
+  const [busy, setBusy] = useState(false)
+  const [eta, setEta] = useState<number | undefined>(undefined)
+  const current = stepIndex(ride)
+  const pickupKnown = isRealAddress(ride.pickupAddress)
+  const dropoffKnown = isRealAddress(ride.destinationAddress)
+
+  async function run(action: () => Promise<Ride | unknown>, after?: (ride: Ride) => void) {
     setBusy(true)
     try {
-      await action()
+      const result = await action()
+      if (after && result) after(result as Ride)
     } catch (err) {
       alert((err as Error).message)
     } finally {
@@ -50,135 +67,244 @@ export function DriverTripActions({ ride, house, driverId, onDone }: Props) {
     }
   }
 
-  return (
-    <div className="w-full space-y-5">
-      <ol className="flex items-center gap-2 text-sm" aria-label="Trip progress">
-        {STEPS.map((step, i) => {
-          const done = i < current
-          const now = i === current
-          return (
-            <li key={step.id} aria-current={now ? 'step' : undefined} className="flex min-w-0 flex-1 items-center gap-2">
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                  now ? 'bg-brand-600 text-white' : done ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'
-                }`}
-                aria-hidden
-              >
-                {done ? '✓' : i + 1}
-              </span>
-              <span className={`truncate font-semibold ${now ? 'text-ink' : done ? 'text-emerald-800' : 'text-slate-400'}`}>
-                {step.label}
-              </span>
-              {i < STEPS.length - 1 && (
-                <span className={`h-px min-w-4 flex-1 ${done ? 'bg-emerald-300' : 'bg-slate-200'}`} aria-hidden />
-              )}
-            </li>
-          )
-        })}
-      </ol>
+  const undo = () => run(() => dataService.undoDriverStep(ride.id, driverId))
+  const undoButton = (
+    <button
+      type="button"
+      onClick={undo}
+      disabled={busy}
+      className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-50"
+    >
+      <Undo2 className="h-4 w-4" aria-hidden />
+      Undo
+    </button>
+  )
 
-      <dl className="space-y-3 text-base">
-        <div>
-          <dt className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            {enRoute ? 'Picked up at' : 'Now: pick up'}
-          </dt>
-          <dd className="font-medium text-ink">{ride.pickupAddress}</dd>
-          {ride.pickupInstructions && <dd className="text-slate-600">{ride.pickupInstructions}</dd>}
-        </div>
-        <div>
-          <dt className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            {enRoute ? 'Now: drop off' : 'Then drop off'}
-          </dt>
-          <dd className="font-medium text-ink">{ride.destinationName}</dd>
-          <dd className="text-slate-600">{ride.destinationAddress}</dd>
-        </div>
-        {ride.notes && (
-          <div>
-            <dt className="text-sm font-semibold uppercase tracking-wide text-slate-500">Notes</dt>
-            <dd>{ride.notes}</dd>
-          </div>
-        )}
-      </dl>
-
-      {arriving && (
-        <button
-          type="button"
-          className={`${primaryButton} w-full`}
-          disabled={busy}
-          onClick={() => run(() => dataService.markDriverArrived(ride.id))}
-        >
-          I'm here
-        </button>
+  const pickupBlock = (
+    <div className="rounded-xl bg-slate-50 p-3">
+      <p className="flex items-start gap-2 font-semibold text-ink">
+        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-coral-500" aria-hidden />
+        <span>
+          {house?.name && <span className="block">{house.name}</span>}
+          <span className={house?.name ? 'block font-normal text-slate-700' : ''}>{ride.pickupAddress}</span>
+        </span>
+      </p>
+      {ride.pickupInstructions && <p className="mt-1 pl-7 text-sm text-slate-600">{ride.pickupInstructions}</p>}
+      {!pickupKnown && (
+        <p className="mt-2 flex items-start gap-1.5 pl-7 text-sm font-medium text-amber-800">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          The exact address isn't on file yet. Call the front desk for directions.
+        </p>
       )}
+    </div>
+  )
 
-      {atPickup && (
-        <>
-          <p role="status" className="rounded-xl bg-brand-50 p-3 font-semibold text-brand-900">
-            You told the house you're here at {formatTime(ride.driverArrivedAt!)}.
-          </p>
+  const dropoffBlock = (
+    <div className="rounded-xl bg-slate-50 p-3">
+      <p className="flex items-start gap-2 font-semibold text-ink">
+        <Flag className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
+        <span>
+          <span className="block">{ride.destinationName}</span>
+          {ride.destinationAddress !== ride.destinationName && (
+            <span className="block font-normal text-slate-700">{ride.destinationAddress}</span>
+          )}
+        </span>
+      </p>
+    </div>
+  )
+
+  const steps: { title: string; done?: ReactNode; body: ReactNode }[] = [
+    {
+      title: 'Head to pickup',
+      done: ride.driverOnTheWayAt && (
+        <DoneChip>
+          Left at {formatTime(ride.driverOnTheWayAt)}
+          {ride.driverEta ? ` · expected at pickup by ${formatTime(ride.driverEta)}` : ''}
+        </DoneChip>
+      ),
+      body: (
+        <div className="space-y-4">
+          {pickupBlock}
+          {pickupKnown && <DirectionsLink href={directionsTo(ride.pickupAddress)}>Directions to pickup</DirectionsLink>}
+          <fieldset>
+            <legend className="text-sm font-semibold text-ink">
+              How far away are you? <span className="font-normal text-slate-500">(optional, the front desk sees it)</span>
+            </legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ETA_CHOICES.map((m) => {
+                const on = eta === m
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setEta(on ? undefined : m)}
+                    className={`min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-95 ${
+                      on ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
+                    }`}
+                  >
+                    {m} min
+                  </button>
+                )
+              })}
+            </div>
+          </fieldset>
+          <button
+            type="button"
+            className={`${primaryButton} w-full`}
+            disabled={busy}
+            onClick={() => run(() => dataService.markOnTheWay(ride.id, eta))}
+          >
+            <Route className="h-5 w-5" aria-hidden />
+            I'm on my way{eta ? ` · ${eta} min` : ''}
+          </button>
+        </div>
+      ),
+    },
+    {
+      title: 'Arrive at pickup',
+      done: ride.driverArrivedAt && <DoneChip>Arrived at {formatTime(ride.driverArrivedAt)}</DoneChip>,
+      body: (
+        <div className="space-y-4">
+          {pickupBlock}
+          <button
+            type="button"
+            className={`${primaryButton} w-full`}
+            disabled={busy}
+            onClick={() => run(() => dataService.markDriverArrived(ride.id))}
+          >
+            <MapPin className="h-5 w-5" aria-hidden />
+            I'm here
+          </button>
+          <p className="text-sm text-slate-500">We'll let the front desk know you're outside.</p>
+        </div>
+      ),
+    },
+    {
+      title: 'Client gets in',
+      done: ride.pickedUpAt && <DoneChip>Picked up at {formatTime(ride.pickedUpAt)}</DoneChip>,
+      body: (
+        <div className="space-y-4">
           <button
             type="button"
             className={`${primaryButton} w-full`}
             disabled={busy}
             onClick={() => run(() => dataService.markPickedUp(ride.id))}
           >
+            <UserCheck className="h-5 w-5" aria-hidden />
             Client is in the car
           </button>
-        </>
-      )}
+          <ConfirmButton
+            className={`${ghostButton} w-full`}
+            disabled={busy}
+            title="Client didn't show?"
+            body="The ride ends and the front desk is told. You can undo this for 15 minutes."
+            confirmLabel="Yes, client didn't show"
+            confirmClassName={dangerButton}
+            onConfirm={() => run(() => dataService.markNoShow(ride.id))}
+          >
+            Client didn't show
+          </ConfirmButton>
+        </div>
+      ),
+    },
+    {
+      title: 'Drop off',
+      body: (
+        <div className="space-y-4">
+          {dropoffBlock}
+          {dropoffKnown && <DirectionsLink href={directionsTo(ride.destinationAddress)}>Directions to drop-off</DirectionsLink>}
+          <button
+            type="button"
+            className={`${primaryButton} w-full`}
+            disabled={busy}
+            onClick={() => run(() => dataService.markCompleted(ride.id), onCompleted)}
+          >
+            <Flag className="h-5 w-5" aria-hidden />
+            Client dropped off
+          </button>
+        </div>
+      ),
+    },
+  ]
 
-      {enRoute && (
-        <button
-          type="button"
-          className={`${primaryButton} w-full`}
-          disabled={busy}
-          onClick={() => run(() => dataService.markCompleted(ride.id))}
+  return (
+    <div className="w-full space-y-5">
+      {current === 0 && pickupKnown && dropoffKnown && (
+        <a
+          href={directionsBetween(ride.pickupAddress, ride.destinationAddress)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 underline underline-offset-2"
         >
-          Client arrived — tell the house
-        </button>
+          <Route className="h-4 w-4" aria-hidden />
+          Preview the whole route
+          <span className="sr-only">(opens Google Maps)</span>
+        </a>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <ol className="relative" aria-label="Trip steps">
+        {steps.map((step, i) => {
+          const done = i < current
+          const now = i === current
+          const last = i === steps.length - 1
+          return (
+            <li key={step.title} aria-current={now ? 'step' : undefined} className="relative flex gap-3 pb-5 last:pb-0">
+              {!last && (
+                <span className={`absolute left-[15px] top-8 bottom-0 w-0.5 ${done ? 'bg-emerald-300' : 'bg-slate-200'}`} aria-hidden />
+              )}
+              <span
+                className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                  done ? 'bg-emerald-600 text-white' : now ? 'bg-brand-600 text-white ring-4 ring-brand-100' : 'bg-slate-100 text-slate-400'
+                }`}
+                aria-hidden
+              >
+                {done ? <Check className="h-4 w-4" /> : i + 1}
+              </span>
+              <div className="min-w-0 flex-1 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-x-3">
+                  <h3 className={`font-semibold ${now ? 'text-lg text-ink' : done ? 'text-ink' : 'text-slate-400'}`}>
+                    {step.title}
+                    <span className="sr-only">{done ? ' (done)' : now ? ' (current step)' : ' (later)'}</span>
+                  </h3>
+                  {done && i === current - 1 && undoButton}
+                </div>
+                {done && step.done}
+                {now && <div className="mt-3 animate-fade-up">{step.body}</div>}
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+
+      {ride.notes && (
+        <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+          <span className="font-semibold">Note from the front desk:</span> {ride.notes}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
         {house?.phone && (
           <a href={`tel:${house.phone}`} className={secondaryButton}>
             <Phone className="h-5 w-5" aria-hidden />
             <span className="whitespace-normal">
-              Call {house.name}: <span className="whitespace-nowrap">{house.phone}</span>
+              Call the front desk: <span className="whitespace-nowrap">{house.phone}</span>
             </span>
           </a>
         )}
         {ride.status === 'ACCEPTED' && (
-          <details className="w-full">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 marker:content-none [&::-webkit-details-marker]:hidden">
-              Pickup didn't happen
-            </summary>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              {atPickup && (
-                <ConfirmButton
-                  className={secondaryButton}
-                  disabled={busy}
-                  title="Client didn't show?"
-                  body="The client loses this ride. It won't be rebooked."
-                  confirmLabel="Yes, client didn't show"
-                  confirmClassName={dangerButton}
-                  onConfirm={() => run(() => dataService.markNoShow(ride.id))}
-                >
-                  Client didn't show
-                </ConfirmButton>
-              )}
-              <ConfirmButton
-                className={secondaryButton}
-                disabled={busy}
-                title="Can't make this ride?"
-                body="The house will see it, and we'll ask another driver."
-                confirmLabel="Yes, I can't make it"
-                confirmClassName={dangerButton}
-                onConfirm={() => run(() => dataService.dropRide(ride.id, driverId))}
-              >
-                I can't make it
-              </ConfirmButton>
-            </div>
-          </details>
+          <ConfirmButton
+            className={ghostButton}
+            disabled={busy}
+            title="Can't make this ride?"
+            body="The front desk will see it, and we'll ask another driver."
+            confirmLabel="Yes, I can't make it"
+            confirmClassName={dangerButton}
+            onConfirm={() => run(() => dataService.dropRide(ride.id, driverId))}
+          >
+            <Clock className="h-5 w-5" aria-hidden />
+            I can't make it
+          </ConfirmButton>
         )}
       </div>
     </div>

@@ -1,8 +1,10 @@
 import { emptyDriverDraft, needsProfessionalProof, type DriverDraft, type FieldErrors } from '../../../components/driverDraft'
-import { CITIES, MIN_PASSWORD_LENGTH } from '../../../constants'
+import { MIN_PASSWORD_LENGTH } from '../../../constants'
 import { requestHoursError } from '../../../logic/requestHours'
+import { EMAIL, MAX_NAME, isPhone, tooLong } from '../../../logic/validate'
 
-export type RegisterRole = 'PARTNER' | 'PROVIDER' | 'DRIVER'
+// Transport providers will come back later; for now it's partner organizations and drivers.
+export type RegisterRole = 'PARTNER' | 'DRIVER'
 
 export interface DestinationDraft {
   key: string
@@ -18,9 +20,10 @@ export interface RegisterDraft {
   password: string
   orgName: string
   orgPhone: string
-  notifications: string
-  addHouse: boolean
-  house: { name: string; address: string; city: string; phone: string; email: string; placeId?: string }
+  // Where rides start
+  address: string
+  city: string
+  placeId?: string
   destinations: DestinationDraft[]
   driver: DriverDraft
 }
@@ -31,9 +34,8 @@ export const emptyRegisterDraft: RegisterDraft = {
   password: '',
   orgName: '',
   orgPhone: '',
-  notifications: '',
-  addHouse: true,
-  house: { name: '', address: '', city: CITIES[0], phone: '', email: '' },
+  address: '',
+  city: '',
   destinations: [],
   driver: { ...emptyDriverDraft, background: 'TAXI' },
 }
@@ -47,12 +49,6 @@ export const SUGGESTED_DESTINATIONS: DestinationDraft[] = [
 
 // ---- Validation, one function per step. Returns field id -> message.
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function isPhone(value: string): boolean {
-  return value.replace(/\D/g, '').length >= 10
-}
-
 function compact(errors: FieldErrors): FieldErrors {
   return Object.fromEntries(Object.entries(errors).filter(([, v]) => v))
 }
@@ -63,7 +59,7 @@ export function validateRole(d: RegisterDraft): FieldErrors {
 
 export function validateAccount(d: RegisterDraft): FieldErrors {
   return compact({
-    name: d.name.trim() ? undefined : 'Please enter your name.',
+    name: d.name.trim() ? tooLong(d.name, MAX_NAME) : 'Please enter your name.',
     email: !d.email.trim()
       ? 'Please enter your email.'
       : EMAIL.test(d.email.trim())
@@ -75,27 +71,13 @@ export function validateAccount(d: RegisterDraft): FieldErrors {
 
 export function validateOrganization(d: RegisterDraft): FieldErrors {
   return compact({
-    orgName: d.orgName.trim() ? undefined : 'Please enter your organization’s name.',
-    orgPhone: isPhone(d.orgPhone) ? undefined : 'Please enter a 10-digit phone number.',
-    notifications:
-      d.role === 'PROVIDER' && !d.notifications.trim()
-        ? 'Tell us where to send new bookings.'
-        : undefined,
-  })
-}
-
-export function validateHouse(d: RegisterDraft): FieldErrors {
-  if (!d.addHouse) return {}
-  const h = d.house
-  return compact({
-    houseName: h.name.trim() ? undefined : 'Please enter the house name.',
-    houseAddress: h.placeId
+    orgName: d.orgName.trim() ? tooLong(d.orgName, MAX_NAME) : 'Please enter your organization’s name.',
+    address: d.placeId
       ? undefined
-      : h.address.trim()
+      : d.address.trim()
         ? 'Pick a matching address from the list.'
         : 'Search for the address and pick it from the list.',
-    housePhone: isPhone(h.phone) ? undefined : 'Please enter a 10-digit phone number.',
-    houseEmail: h.email.trim() && !EMAIL.test(h.email.trim()) ? 'That email doesn’t look right.' : undefined,
+    orgPhone: isPhone(d.orgPhone) ? undefined : 'Please enter a 10-digit phone number.',
   })
 }
 
@@ -105,7 +87,7 @@ export function validateDriverAbout(d: RegisterDraft): FieldErrors {
 
 export function validateVehicle(d: RegisterDraft): FieldErrors {
   return compact({
-    vehicle: d.driver.vehicle.trim() ? undefined : 'Describe your vehicle so clients can find it.',
+    vehicle: d.driver.vehicle.trim() ? tooLong(d.driver.vehicle, MAX_NAME) : 'Describe your vehicle so clients can find it.',
     serviceCities: d.driver.serviceCities.length ? undefined : 'Pick at least one city.',
   })
 }

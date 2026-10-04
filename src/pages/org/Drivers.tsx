@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { DriverFields } from '../../components/DriverFields'
-import { emptyDriverDraft, splitDriverDraft, type DriverDraft } from '../../components/driverDraft'
+import { emptyDriverDraft, splitDriverDraft, validateDriverDraft, type DriverDraft } from '../../components/driverDraft'
 import { card, pageTitle, primaryButton } from '../../components/ui'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { useApp } from '../../hooks/useApp'
@@ -15,13 +15,22 @@ export function Drivers() {
   const orgId = currentUser?.orgId
   const drivers = useData(() => dataService.listDrivers(orgId), orgId) ?? []
   const [draft, setDraft] = useState<DriverDraft>({ ...emptyDriverDraft, background: 'ORG_DRIVER' })
+  const [showErrors, setShowErrors] = useState(false)
+  const errors = showErrors ? validateDriverDraft(draft) : {}
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!orgId) return
+    const problems = validateDriverDraft(draft)
+    if (Object.keys(problems).length > 0) {
+      setShowErrors(true)
+      document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      return
+    }
     const [user, driver] = splitDriverDraft(draft)
     await dataService.registerDriver(user, { ...driver, orgId })
     setDraft({ ...emptyDriverDraft, background: 'ORG_DRIVER' })
+    setShowErrors(false)
     refresh()
   }
 
@@ -47,9 +56,14 @@ export function Drivers() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className={`${card} max-w-lg space-y-4`}>
+      <form onSubmit={handleSubmit} noValidate className={`${card} max-w-lg space-y-4`}>
         <h2 className="text-xl font-bold">Add a driver</h2>
-        <DriverFields value={draft} onChange={setDraft} showBackground={false} />
+        <DriverFields value={draft} onChange={setDraft} errors={errors} showBackground={false} />
+        {showErrors && Object.keys(errors).length > 0 && (
+          <p role="alert" className="text-sm font-medium text-red-700">
+            Some fields need a look. They're marked in red.
+          </p>
+        )}
         <button type="submit" className={`${primaryButton} w-full sm:w-auto`}>
           Add driver
         </button>

@@ -3,8 +3,8 @@
 
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
-// A partner org requests rides (and may also have its own vehicles).
-// A transport provider only gives rides.
+// A partner org requests rides (and may also have its own vehicles). It has one location and one shared account.
+// A transport provider only gives rides. Hidden from sign-up for now.
 export type OrgType = 'PARTNER_ORG' | 'TRANSPORT_PROVIDER'
 
 export interface Organization {
@@ -17,8 +17,8 @@ export interface Organization {
   status: VerificationStatus
 }
 
-// Point A: a housing location where clients live, e.g. Belkin House.
-// Each house has exactly one shared account.
+// Point A: where a partner organization's clients live and rides start, e.g. Belkin House.
+// Each partner organization has exactly one, shared with its single account.
 export interface House {
   id: string
   orgId: string
@@ -28,7 +28,9 @@ export interface House {
   phone: string
 }
 
-export type UserRole = 'PLATFORM_ADMIN' | 'ORG_ADMIN' | 'HOUSE' | 'DRIVER'
+// PARTNER: a partner organization's shared account. Books rides from its location and manages its places and drivers.
+// ORG_ADMIN: a transport provider's admin.
+export type UserRole = 'PLATFORM_ADMIN' | 'ORG_ADMIN' | 'PARTNER' | 'DRIVER'
 
 export interface User {
   id: string
@@ -37,7 +39,7 @@ export interface User {
   phone: string
   role: UserRole
   orgId?: string
-  houseId?: string // set on a house account
+  houseId?: string // set on a partner organization account: its pickup location
 }
 
 export type DriverBackground = 'TAXI' | 'RIDESHARE' | 'ORG_DRIVER' | 'INDEPENDENT'
@@ -67,7 +69,6 @@ export interface Driver {
   licenceFile?: string // demo: file name only
   proofFile?: string // demo: proof of professional driving, file name only
   status: VerificationStatus
-  available: boolean // false = paused, gets no requests
 }
 
 // Point B: a place clients go, e.g. St. Paul's Hospital. Added by the partner org.
@@ -95,16 +96,16 @@ export type RideStatus =
   | 'CANCELLED'
 
 // A one-way trip. A return trip is a separate ride linked by returnOfRideId.
-// No client information is stored: no name, phone, or history.
+// Rider names are optional and only there so the driver knows who to pick up.
 export interface Ride {
   id: string
   type: RideType
   orgId: string
   houseId: string
   requestedBy: string // User id of the house account or org admin who booked it
-  clientName?: string
+  riderNames?: string[] // optional, one per passenger
   passengers: number
-  purpose: TripPurpose
+  purpose?: TripPurpose // no longer asked for; kept on older rides
   pickupAddress: string
   pickupInstructions?: string // e.g. "Meet in the front lobby"
   destinationId?: string // if a saved destination was used
@@ -123,10 +124,16 @@ export interface Ride {
   estimatedFareSaved: number
   createdAt: string
   acceptedAt?: string // when a driver said yes
+  driverOnTheWayAt?: string // driver set off for the pickup
+  driverEta?: string // optional: when the driver expects to reach the pickup
   driverArrivedAt?: string // driver tapped "I'm here" at pickup
+  pickedUpAt?: string
   completedAt?: string
   cancelledAt?: string
   droppedBy?: { driverId: string; at: string } // last driver who accepted, then said they can't make it
+  expired?: boolean // cancelled automatically: no driver accepted in time
+  changedAt?: string // the partner edited the ride after booking
+  reconfirmDriverId?: string // the driver who had accepted before a change, asked to confirm again
 }
 
 // WITHDRAWN: the driver accepted, then said they can't make it.

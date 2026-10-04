@@ -14,7 +14,6 @@ import {
   validateRequestHours,
   validateDocuments,
   validateDriverAbout,
-  validateHouse,
   validateOrganization,
   validateRole,
   validateVehicle,
@@ -27,7 +26,6 @@ import {
   DestinationsStep,
   DocumentsStep,
   DriverAboutStep,
-  HouseStep,
   OrganizationStep,
   ReviewStep,
   RoleStep,
@@ -39,7 +37,6 @@ type StepId =
   | 'role'
   | 'account'
   | 'organization'
-  | 'house'
   | 'destinations'
   | 'about'
   | 'vehicle'
@@ -66,24 +63,19 @@ const STEPS: Record<StepId, StepDef> = {
   account: {
     title: 'Your account',
     heading: () => 'Create your account',
-    subtitle: (d) => (d.role === 'DRIVER' ? 'This is how you’ll sign in to see ride requests.' : 'You’ll be the admin for your organization.'),
+    subtitle: (d) =>
+      d.role === 'DRIVER'
+        ? 'This is how you’ll sign in to see ride requests.'
+        : 'Your team shares this one sign-in, so use an email everyone who books rides can reach.',
     Component: AccountStep,
     validate: validateAccount,
   },
   organization: {
     title: 'Organization',
     heading: () => 'Tell us about your organization',
-    subtitle: (d) =>
-      d.role === 'PROVIDER' ? 'Houses will see this name when your drivers accept a ride.' : 'This helps drivers know who they’re helping.',
+    subtitle: () => 'Rides start from this address, and drivers see your name when they accept.',
     Component: OrganizationStep,
     validate: validateOrganization,
-  },
-  house: {
-    title: 'First house',
-    heading: () => 'Add your first house',
-    subtitle: () => 'A house is where your residents live and where rides start. Each house gets one shared account.',
-    Component: HouseStep,
-    validate: validateHouse,
   },
   destinations: {
     title: 'Destinations',
@@ -129,24 +121,23 @@ const STEPS: Record<StepId, StepDef> = {
 }
 
 const FLOWS: Record<RegisterRole, StepId[]> = {
-  PARTNER: ['role', 'account', 'organization', 'house', 'destinations', 'review'],
-  PROVIDER: ['role', 'account', 'organization', 'review'],
+  PARTNER: ['role', 'account', 'organization', 'destinations', 'review'],
   DRIVER: ['role', 'account', 'about', 'vehicle', 'requests', 'documents', 'review'],
 }
 
-const ROLE_PARAM: Record<string, RegisterRole> = { partner: 'PARTNER', provider: 'PROVIDER', driver: 'DRIVER' }
+const ROLE_PARAM: Record<string, RegisterRole> = { partner: 'PARTNER', driver: 'DRIVER' }
 
-// The draft survives a refresh (but never the password).
-const DRAFT_KEY = 'careride-register-draft-v2'
+// The draft survives a refresh, the back button, and closing the tab (but never keeps the password).
+const DRAFT_KEY = 'careride-register-draft-v3'
 
 function loadDraft(roleParam: string | null): { draft: RegisterDraft; stepId: StepId } {
   const fromParam = roleParam ? ROLE_PARAM[roleParam] : undefined
   try {
-    const raw = sessionStorage.getItem(DRAFT_KEY)
+    const raw = localStorage.getItem(DRAFT_KEY)
     if (raw) {
       const saved = JSON.parse(raw) as { draft: RegisterDraft; stepId: StepId }
       const draft = { ...emptyRegisterDraft, ...saved.draft, password: '' }
-      if (!fromParam || fromParam === draft.role) {
+      if ((!fromParam || fromParam === draft.role) && (!draft.role || draft.role in FLOWS)) {
         const flow = FLOWS[draft.role ?? 'PARTNER']
         // Without the password, send them back to the account step at most
         const stepId = flow.indexOf(saved.stepId) > flow.indexOf('account') ? 'account' : saved.stepId
@@ -161,7 +152,7 @@ function loadDraft(roleParam: string | null): { draft: RegisterDraft; stepId: St
 
 function saveDraft(draft: RegisterDraft, stepId: StepId): void {
   try {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ draft: { ...draft, password: '' }, stepId }))
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ draft: { ...draft, password: '' }, stepId }))
   } catch {
     // Ignore: the draft just won't survive a refresh
   }
@@ -169,7 +160,7 @@ function saveDraft(draft: RegisterDraft, stepId: StepId): void {
 
 function clearDraft(): void {
   try {
-    sessionStorage.removeItem(DRAFT_KEY)
+    localStorage.removeItem(DRAFT_KEY)
   } catch {
     // Ignore
   }
@@ -183,30 +174,14 @@ async function createAccount(d: RegisterDraft): Promise<RegisterResult> {
   }
 
   const { org, user } = await dataService.registerOrganization(
-    {
-      name: d.orgName.trim(),
-      type: d.role === 'PROVIDER' ? 'TRANSPORT_PROVIDER' : 'PARTNER_ORG',
-      contactName: d.name.trim(),
-      contactPhone: d.orgPhone.trim(),
-      bookingNotifications: d.notifications.trim() || undefined,
-    },
+    { name: d.orgName.trim(), type: 'PARTNER_ORG', contactName: d.name.trim(), contactPhone: d.orgPhone.trim() },
     { name: d.name.trim(), email: d.email, password: d.password },
+    { address: d.address.trim(), city: d.city, phone: d.orgPhone.trim() },
   )
-
-  if (d.role !== 'PARTNER') return { user }
-
-  let houseLogin: RegisterResult['houseLogin']
-  if (d.addHouse) {
-    const { house, tempPassword } = await dataService.addHouse(
-      { orgId: org.id, name: d.house.name.trim(), address: d.house.address.trim(), city: d.house.city, phone: d.house.phone.trim() },
-      d.house.email.trim() || undefined,
-    )
-    if (tempPassword) houseLogin = { house: house.name, email: d.house.email.trim().toLowerCase(), password: tempPassword }
-  }
   for (const dest of d.destinations) {
     await dataService.saveDestination({ orgId: org.id, name: dest.name, address: dest.address, city: dest.city })
   }
-  return { user, houseLogin }
+  return { user }
 }
 
 export function Register() {
@@ -265,12 +240,6 @@ export function Register() {
     if (stepId === 'account' && !(await dataService.isEmailAvailable(draft.email))) {
       return { email: 'An account with this email already exists. Try signing in instead.' }
     }
-    if (stepId === 'house' && draft.addHouse && draft.house.email.trim()) {
-      const same = draft.house.email.trim().toLowerCase() === draft.email.trim().toLowerCase()
-      if (same || !(await dataService.isEmailAvailable(draft.house.email))) {
-        return { houseEmail: 'This email is already used. Pick a different one for the house.' }
-      }
-    }
     return {}
   }
 
@@ -286,7 +255,7 @@ export function Register() {
     }
 
     // Only show a loading state when we actually need to wait
-    if (stepId === 'account' || stepId === 'house' || isLast) setBusy(true)
+    if (stepId === 'account' || isLast) setBusy(true)
     try {
       const asyncFound = await asyncChecks()
       if (Object.keys(asyncFound).length) {

@@ -17,13 +17,45 @@ export interface NewAccount {
   password: string
 }
 export type NewDriverUser = Pick<User, 'name' | 'phone'>
-export type NewDriver = Omit<Driver, 'id' | 'userId' | 'status' | 'available'>
+export type NewDriver = Omit<Driver, 'id' | 'userId' | 'status'>
+// A partner organization's one location: where its rides start
+export type NewLocation = Pick<House, 'address' | 'city' | 'phone'>
 // What drivers can change themselves from their settings page
 export type DriverSettings = Pick<
   Driver,
-  'available' | 'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
+  'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
 >
-export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'driverArrivedAt' | 'completedAt' | 'droppedBy' | 'cancelledAt'>
+export type NewRide = Omit<
+  Ride,
+  | 'id'
+  | 'status'
+  | 'createdAt'
+  | 'driverOnTheWayAt'
+  | 'driverEta'
+  | 'driverArrivedAt'
+  | 'pickedUpAt'
+  | 'completedAt'
+  | 'droppedBy'
+  | 'cancelledAt'
+  | 'expired'
+  | 'changedAt'
+  | 'reconfirmDriverId'
+>
+// What the partner can change after booking. Changing when, where, or who sends the ride out to drivers again.
+export type RideChanges = Pick<
+  Ride,
+  | 'type'
+  | 'pickupTime'
+  | 'passengers'
+  | 'riderNames'
+  | 'needsWheelchair'
+  | 'needsAssistance'
+  | 'pickupInstructions'
+  | 'notes'
+  | 'destinationId'
+  | 'destinationName'
+  | 'destinationAddress'
+>
 
 // The contract every backend must follow (mock now, real backend later).
 // Screens only talk to this interface, never to storage directly.
@@ -33,13 +65,16 @@ export interface DataService {
   signIn(email: string, password: string): Promise<User> // throws if they don't match
   isEmailAvailable(email: string): Promise<boolean>
 
-  // Organizations. Registering also creates the org admin account.
-  registerOrganization(org: NewOrganization, admin: NewAccount): Promise<{ org: Organization; user: User }>
+  // Organizations. Registering also creates the sign-in account.
+  // A partner organization gives its location too: it gets one shared account that books from there.
+  registerOrganization(
+    org: NewOrganization,
+    account: NewAccount,
+    location?: NewLocation,
+  ): Promise<{ org: Organization; user: User }>
   listOrganizations(): Promise<Organization[]>
 
-  // Houses (point A). Adding a house also creates its single shared account.
-  // With a login email, that account can sign in using the returned temporary password.
-  addHouse(house: Omit<House, 'id'>, loginEmail?: string): Promise<{ house: House; tempPassword?: string }>
+  // Locations (point A): one per partner organization
   listHouses(orgId?: string): Promise<House[]>
 
   // Drivers: self sign-up (with a login), or added by an organization (set driver.orgId)
@@ -67,11 +102,11 @@ export interface DataService {
   listDestinations(orgId?: string): Promise<Destination[]>
   saveDestination(dest: Omit<Destination, 'id'>): Promise<Destination>
 
-  // Rides: house account
-  requestRide(ride: NewRide): Promise<Ride> // throws if a scheduled pickup time is in the past
+  // Rides: partner organization
+  requestRide(ride: NewRide): Promise<Ride> // throws if a scheduled pickup time is in the past or the ride is too big
+  updateRide(rideId: string, changes: RideChanges): Promise<Ride> // only before pickup
   getRide(rideId: string): Promise<Ride | undefined>
   listRidesForHouse(houseId: string): Promise<Ride[]>
-  listRidesRequestedByOrg(orgId: string): Promise<Ride[]> // rides booked by a partner org's houses
   listOffersForRide(rideId: string): Promise<RideOffer[]>
   retryRide(rideId: string): Promise<Ride>
   cancelRide(rideId: string, reason: string): Promise<Ride>
@@ -83,10 +118,12 @@ export interface DataService {
   listRidesForOrg(orgId: string): Promise<Ride[]> // rides taken by the org's drivers
   respondToOffer(offerId: string, accept: boolean): Promise<Ride>
   dropRide(rideId: string, driverId: string): Promise<Ride>
+  markOnTheWay(rideId: string, etaMinutes?: number): Promise<Ride> // driver set off, with an optional ETA
   markDriverArrived(rideId: string): Promise<Ride> // driver is at the pickup ("I'm here")
   markPickedUp(rideId: string): Promise<Ride>
   markCompleted(rideId: string): Promise<Ride>
   markNoShow(rideId: string): Promise<Ride> // client passed up the ride and loses it
+  undoDriverStep(rideId: string, driverId: string): Promise<Ride> // takes back the driver's last step
 
   // Impact
   getImpact(): Promise<Impact>

@@ -42,3 +42,21 @@ export function driversToAsk(
   const preferred = matches.find((d) => d.id === ride.preferredDriverId)
   return preferred ? [preferred] : matches
 }
+
+// An on-demand ride nobody has accepted after this long is called off, so the partner can make other plans.
+export const ON_DEMAND_GIVE_UP_MINUTES = 30
+
+// When a ride still without a driver is cancelled automatically:
+// at the pickup time for a scheduled ride, or a while after booking for an on-demand one.
+export function noDriverDeadline(ride: Pick<Ride, 'type' | 'pickupTime'>): Date {
+  const pickup = new Date(ride.pickupTime).getTime()
+  return new Date(ride.type === 'ON_DEMAND' ? pickup + ON_DEMAND_GIVE_UP_MINUTES * 60_000 : pickup)
+}
+
+// How long a driver can take back "dropped off" or "client didn't show", in case they tapped it by mistake
+export const UNDO_FINISH_MINUTES = 15
+
+export function canUndoFinish(ride: Pick<Ride, 'status' | 'completedAt' | 'cancelledAt'>, now = Date.now()): boolean {
+  const at = ride.status === 'COMPLETED' ? ride.completedAt : ride.status === 'NO_SHOW' ? ride.cancelledAt : undefined
+  return !!at && now - new Date(at).getTime() < UNDO_FINISH_MINUTES * 60_000
+}
