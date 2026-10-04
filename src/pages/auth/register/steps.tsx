@@ -451,7 +451,7 @@ export function ReviewStep({ draft, goTo }: StepProps) {
             goTo={goTo}
             rows={[
               ['Send requests', describeRequestHours(d.requestHours)],
-              ['Notice', formatNotice(d.minNoticeHours)],
+              ['Notice', formatNotice(d.minNoticeMinutes)],
             ]}
           />
         </>

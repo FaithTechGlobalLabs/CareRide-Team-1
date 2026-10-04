@@ -52,7 +52,7 @@ export function Settings() {
 
   const current: Editable = {
     requestHours: driver.requestHours,
-    minNoticeHours: driver.minNoticeHours,
+    minNoticeMinutes: driver.minNoticeMinutes,
     vehicle: driver.vehicle,
     seats: driver.seats,
     wheelchairAccessible: driver.wheelchairAccessible,
@@ -127,7 +127,7 @@ export function Settings() {
         title="Notice"
         description="Skip last-minute rides if you need time to plan."
       >
-        <NoticePicker value={current.minNoticeHours} onChange={(minNoticeHours) => change({ minNoticeHours })} />
+        <NoticePicker value={current.minNoticeMinutes} onChange={(minNoticeMinutes) => change({ minNoticeMinutes })} />
       </Section>
 
       <Section

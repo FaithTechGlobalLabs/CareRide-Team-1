@@ -114,23 +114,50 @@ export function nextRequestStart(hours: RequestHours, now = new Date()): Date | 
 }
 
 // Was the ride booked far enough ahead for this driver?
-export function meetsNotice(minNoticeHours: number, when: Date, now = new Date()): boolean {
-  return when.getTime() - now.getTime() >= minNoticeHours * 3_600_000
+export function meetsNotice(minNoticeMinutes: number, when: Date, now = new Date()): boolean {
+  return when.getTime() - now.getTime() >= minNoticeMinutes * 60_000
 }
 
-export const NOTICE_OPTIONS = [
-  { hours: 0, text: "I don't need notice" },
-  { hours: 1, text: '1 hour' },
-  { hours: 2, text: '2 hours' },
-  { hours: 4, text: '4 hours' },
-  { hours: 24, text: '1 day' },
-  { hours: 48, text: '2 days' },
-]
+export const NOTICE_PRESETS = [
+  { minutes: 10, text: '10 min' },
+  { minutes: 30, text: '30 min' },
+  { minutes: 60, text: '1 hr' },
+  { minutes: 120, text: '2 hr' },
+  { minutes: 240, text: '4 hr' },
+] as const
 
-export function formatNotice(hours: number): string {
-  return NOTICE_OPTIONS.find((o) => o.hours === hours)?.text ?? (hours < 24 ? `${hours} hours` : `${hours / 24} days`)
+export type NoticeUnit = 'min' | 'hr'
+
+export function isNoticePreset(minutes: number): boolean {
+  return NOTICE_PRESETS.some((o) => o.minutes === minutes)
 }
 
-export function noticeLabel(hours: number): string {
-  return hours === 0 ? formatNotice(hours) : `${formatNotice(hours)} notice`
+export function noticeToAmount(minutes: number): { amount: string; unit: NoticeUnit } {
+  if (minutes > 0 && minutes % 60 === 0) return { amount: String(minutes / 60), unit: 'hr' }
+  return { amount: String(minutes), unit: 'min' }
+}
+
+export function amountToMinutes(amount: string, unit: NoticeUnit): number | undefined {
+  if (!/^\d+$/.test(amount.trim())) return undefined
+  const n = Number(amount)
+  if (!Number.isInteger(n) || n <= 0) return undefined
+  return unit === 'hr' ? n * 60 : n
+}
+
+export function formatNotice(minutes: number): string {
+  const preset = NOTICE_PRESETS.find((o) => o.minutes === minutes)
+  if (preset) return preset.text
+  if (minutes <= 0) return 'No notice'
+  if (minutes < 60) return `${minutes} min`
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60
+    return hours === 1 ? '1 hr' : `${hours} hr`
+  }
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return `${hours} hr ${rest} min`
+}
+
+export function noticeLabel(minutes: number): string {
+  return minutes <= 0 ? formatNotice(minutes) : `${formatNotice(minutes)} notice`
 }

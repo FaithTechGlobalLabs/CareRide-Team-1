@@ -19,6 +19,13 @@ function migrate(db: Database): Database {
     const old = (driver as Driver & { availability?: { days: number[]; from: string; to: string } }).availability
     if (!driver.requestHours) driver.requestHours = old ? hoursOn(old.days, { from: old.from, to: old.to }) : DEFAULT_REQUEST_HOURS
     delete (driver as { availability?: unknown }).availability
+
+    const row = driver as Driver & { minNoticeHours?: number }
+    if (row.minNoticeMinutes == null && row.minNoticeHours != null) {
+      row.minNoticeMinutes = Math.round(row.minNoticeHours * 60)
+    }
+    delete row.minNoticeHours
+    if (row.minNoticeMinutes == null) row.minNoticeMinutes = 60
   }
   return db
 }
