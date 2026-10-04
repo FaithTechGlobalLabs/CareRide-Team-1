@@ -805,7 +805,6 @@ export const supabaseService: DataService = {
         p_ride_id: rideId,
         p_step: 'ON_THE_WAY',
         p_eta_minutes: eta?.minutes ?? null,
-        p_eta_from_pickup: eta?.relativeTo === 'pickup',
       },
       "We couldn't update this ride.",
     ),
