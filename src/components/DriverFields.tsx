@@ -1,8 +1,7 @@
-import { Car, Check, HeartHandshake, MapPin, Smartphone } from 'lucide-react'
+import { Check, MapPin } from 'lucide-react'
 import { CITIES } from '../constants'
 import { KNOWN_PLACES } from '../logic/places'
 import { needsProfessionalProof, type DriverDraft, type FieldErrors } from './driverDraft'
-import { ChoiceCard } from './form/ChoiceCard'
 import { FileField } from './form/FileField'
 import { FieldMessage } from './form/FieldMessage'
 import { SelectField } from './form/SelectField'
@@ -17,12 +16,6 @@ interface SectionProps {
   errors?: FieldErrors
 }
 
-const BACKGROUNDS = [
-  { value: 'TAXI', title: 'Taxi driver', description: 'I drive a taxi and want to give free rides in my own time.', icon: <Car className="h-6 w-6" /> },
-  { value: 'RIDESHARE', title: 'Rideshare driver', description: 'I drive for a rideshare app and want to give free rides.', icon: <Smartphone className="h-6 w-6" /> },
-  { value: 'INDEPENDENT', title: 'Independent volunteer', description: "I don't drive professionally, but I'd like to help.", icon: <HeartHandshake className="h-6 w-6" /> },
-] as const
-
 // What a typical trip looks like in each city, from the places partners send clients
 const CITY_TRIPS: Record<string, string> = Object.fromEntries(
   CITIES.map((city) => {
@@ -35,26 +28,18 @@ function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((i) => i !== item) : [...list, item]
 }
 
-export function DriverAboutFields({
-  value,
-  onChange,
-  errors = {},
-  showName = true,
-  showBackground = true,
-}: SectionProps & { showName?: boolean; showBackground?: boolean }) {
+export function DriverAboutFields({ value, onChange, errors = {} }: SectionProps) {
   return (
     <div className="space-y-5">
-      {showName && (
-        <TextField
-          id="driver-name"
-          label="Full name"
-          autoComplete="name"
-          value={value.name}
-          error={errors.name}
-          onChange={(e) => onChange({ ...value, name: e.target.value })}
-          data-autofocus
-        />
-      )}
+      <TextField
+        id="driver-name"
+        label="Full name"
+        autoComplete="name"
+        value={value.name}
+        error={errors.name}
+        onChange={(e) => onChange({ ...value, name: e.target.value })}
+        data-autofocus
+      />
       <TextField
         id="driver-phone"
         label="Mobile phone"
@@ -66,27 +51,7 @@ export function DriverAboutFields({
         value={value.phone}
         error={errors.phone}
         onChange={(e) => onChange({ ...value, phone: e.target.value })}
-        data-autofocus={showName ? undefined : ''}
       />
-      {showBackground && (
-        <fieldset>
-          <legend className={labelClass}>How do you drive?</legend>
-          <div className="space-y-3" role="radiogroup">
-            {BACKGROUNDS.map((b) => (
-              <ChoiceCard
-                key={b.value}
-                name="background"
-                value={b.value}
-                checked={value.background === b.value}
-                onChange={() => onChange({ ...value, background: b.value })}
-                title={b.title}
-                description={b.description}
-                icon={b.icon}
-              />
-            ))}
-          </div>
-        </fieldset>
-      )}
     </div>
   )
 }
@@ -218,10 +183,10 @@ export function DriverDocumentFields({ value, onChange, errors = {} }: SectionPr
 }
 
 // Everything in one form, used when a transport provider adds one of its drivers.
-export function DriverFields({ value, onChange, errors, showBackground = true }: SectionProps & { showBackground?: boolean }) {
+export function DriverFields({ value, onChange, errors }: SectionProps) {
   return (
     <div className="space-y-8">
-      <DriverAboutFields value={value} onChange={onChange} errors={errors} showBackground={showBackground} />
+      <DriverAboutFields value={value} onChange={onChange} errors={errors} />
       <section className="space-y-4">
         <h3 className="text-lg font-extrabold">Vehicle</h3>
         <DriverVehicleFields value={value} onChange={onChange} errors={errors} />

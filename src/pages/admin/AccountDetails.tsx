@@ -194,7 +194,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                   </Row>
                   <Row label="Cities">{driver.serviceCities.join(', ') || 'None'}</Row>
                   <Row label="Request hours">{describeRequestHours(driver.requestHours)}</Row>
-                  <Row label="Licence">{driver.licenceFile ?? 'Missing'}</Row>
+                  {driver.licenceFile && <Row label="Licence">{driver.licenceFile}</Row>}
                   {driver.proofFile && <Row label="Professional proof">{driver.proofFile}</Row>}
                 </Section>
               )}

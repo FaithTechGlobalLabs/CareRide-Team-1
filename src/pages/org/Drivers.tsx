@@ -58,7 +58,7 @@ export function Drivers() {
 
       <form onSubmit={handleSubmit} noValidate className={`${card} max-w-lg space-y-4`}>
         <h2 className="text-xl font-bold">Add a driver</h2>
-        <DriverFields value={draft} onChange={setDraft} errors={errors} showBackground={false} />
+        <DriverFields value={draft} onChange={setDraft} errors={errors} />
         {showErrors && Object.keys(errors).length > 0 && (
           <p role="alert" className="text-sm font-medium text-red-700">
             Some fields need a look. They're marked in red.
