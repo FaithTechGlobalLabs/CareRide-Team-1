@@ -2,10 +2,13 @@ import { Check, Clock, MapPin, Navigation, Phone, Route, TriangleAlert, Undo2, U
 import { useState, type ReactNode } from 'react'
 import { formatTime } from '../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../logic/maps'
+import { useDriverLocation } from '../hooks/useMaps'
 import { ExternalLink } from '../native/ExternalLink'
 import { dataService } from '../services'
 import type { House, Ride } from '../types'
 import { ConfirmButton } from './ConfirmButton'
+import { DriveTimes } from './maps/DriveTimes'
+import { RouteMap } from './maps/RouteMap'
 import { dangerButton, ghostButton, primaryButton, secondaryButton } from './ui'
 
 const ETA_CHOICES = [5, 10, 15, 20, 30]
@@ -24,6 +27,7 @@ interface Props {
   driverId: string
   onDone: () => void
   onCompleted?: (ride: Ride) => void
+  showMap?: boolean // the ride the driver is on or doing next; one map per screen keeps Google Maps costs down
 }
 
 // A small "done" marker. Deliberately flat and borderless, so it never looks like something to press.
@@ -48,12 +52,14 @@ function DirectionsLink({ href, children }: { href: string; children: ReactNode 
 
 // The trip, one step at a time. Finished steps show a tick and when they happened;
 // the most recent one can be taken back. Only the current step has a big button.
-export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }: Props) {
+export function DriverTripActions({ ride, house, driverId, onDone, onCompleted, showMap = false }: Props) {
   const [busy, setBusy] = useState(false)
   const [eta, setEta] = useState<number | undefined>(undefined)
   const current = stepIndex(ride)
   const pickupKnown = isRealAddress(ride.pickupAddress)
   const dropoffKnown = isRealAddress(ride.destinationAddress)
+  const location = useDriverLocation(showMap)
+  const beforePickup = current < 2
 
   async function run(action: () => Promise<Ride | unknown>, after?: (ride: Ride) => void) {
     setBusy(true)
@@ -231,6 +237,16 @@ export function DriverTripActions({ ride, house, driverId, onDone, onCompleted }
 
   return (
     <div className="w-full space-y-5">
+      {showMap && pickupKnown && dropoffKnown && (
+        <div className="space-y-3">
+          <RouteMap
+            pickup={ride.pickupAddress}
+            dropoff={ride.destinationAddress}
+            driver={beforePickup ? location.coords : undefined}
+          />
+          <DriveTimes pickup={ride.pickupAddress} dropoff={ride.destinationAddress} fromMe={beforePickup} />
+        </div>
+      )}
       {current === 0 && pickupKnown && dropoffKnown && (
         <ExternalLink
           href={directionsBetween(ride.pickupAddress, ride.destinationAddress)}

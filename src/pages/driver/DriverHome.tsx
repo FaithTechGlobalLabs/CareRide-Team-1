@@ -97,8 +97,15 @@ export function DriverHome() {
     .filter((r) => r.status === 'COMPLETED' || r.status === 'NO_SHOW')
     .sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
 
-  const tripActions = (r: Ride) => (
-    <DriverTripActions ride={r} house={houseOf(r)} driverId={driverId} onDone={refresh} onCompleted={setCelebrate} />
+  const tripActions = (r: Ride, showMap = false) => (
+    <DriverTripActions
+      ride={r}
+      house={houseOf(r)}
+      driverId={driverId}
+      onDone={refresh}
+      onCompleted={setCelebrate}
+      showMap={showMap}
+    />
   )
 
   const completed = past.filter((r) => r.status === 'COMPLETED')
@@ -174,6 +181,7 @@ export function DriverHome() {
               ride={ride}
               from={ride.returnOfRideId ? undefined : pickupArea(ride)}
               changed={ride.reconfirmDriverId === driverId}
+              fromMe
               onRespond={(accept) => respond(offer.id, accept)}
             />
           ))}
@@ -188,7 +196,7 @@ export function DriverHome() {
         {!current && <p className="text-slate-600">No accepted rides. When you accept a request, it shows up here.</p>}
         {current && (
           <RideCard ride={current} from={houseOf(current)?.name} statusLabel={driverRideStatusLabel(current)}>
-            {tripActions(current)}
+            {tripActions(current, true)}
           </RideCard>
         )}
       </section>
