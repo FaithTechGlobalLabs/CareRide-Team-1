@@ -1,5 +1,5 @@
 import type { Driver, House, Ride } from '../types'
-import { isWithinRequestHours, meetsNotice } from './requestHours'
+import { formatNotice, isWithinRequestHours, meetsNotice } from './requestHours'
 import { matchDrivers } from './matchDrivers'
 
 // The parts of a ride that decide who can take it.
@@ -38,7 +38,7 @@ function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Dat
       case 'schedule':
         return needs.type !== 'ON_DEMAND' || isWithinRequestHours(d.requestHours, now)
       case 'notice':
-        return needs.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)
+        return needs.type === 'ON_DEMAND' || meetsNotice(d.minNoticeMinutes, pickup, now)
     }
   }
   const fitsAllBut = (skip: Check) => active.filter((d) => CHECKS.every((c) => c === skip || passes(d, c)))
@@ -56,9 +56,9 @@ function guessReason(needs: RideNeeds, house: House, drivers: Driver[], now: Dat
       case 'schedule':
         return "no driver is taking requests right now. Try again later, or book it as a scheduled ride."
       case 'notice': {
-        const hours = Math.min(...almost.map((d) => d.minNoticeHours))
+        const minutes = Math.min(...almost.map((d) => d.minNoticeMinutes))
         const who = needs.needsWheelchair ? 'wheelchair rides need' : 'drivers need'
-        return `${who} ${hours} ${hours === 1 ? "hour's" : "hours'"} notice. Try a later time.`
+        return `${who} ${formatNotice(minutes)} notice. Try a later time.`
       }
     }
   }

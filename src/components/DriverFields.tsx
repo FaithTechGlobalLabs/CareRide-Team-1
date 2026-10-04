@@ -116,7 +116,7 @@ export function DriverRequestFields({ value, onChange, errors = {} }: SectionPro
         onChange={(requestHours) => onChange({ ...value, requestHours })}
         error={errors.requestHours}
       />
-      <NoticePicker value={value.minNoticeHours} onChange={(minNoticeHours) => onChange({ ...value, minNoticeHours })} />
+      <NoticePicker value={value.minNoticeMinutes} onChange={(minNoticeMinutes) => onChange({ ...value, minNoticeMinutes })} />
     </div>
   )
 }

@@ -21,7 +21,7 @@ export type NewDriver = Omit<Driver, 'id' | 'userId' | 'status' | 'available'>
 // What drivers can change themselves from their settings page
 export type DriverSettings = Pick<
   Driver,
-  'available' | 'requestHours' | 'minNoticeHours' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
+  'available' | 'requestHours' | 'minNoticeMinutes' | 'vehicle' | 'seats' | 'wheelchairAccessible' | 'serviceCities'
 >
 export type NewRide = Omit<Ride, 'id' | 'status' | 'createdAt' | 'driverArrivedAt' | 'completedAt' | 'droppedBy' | 'cancelledAt'>
 

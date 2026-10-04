@@ -195,7 +195,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                   <Row label="Cities">{driver.serviceCities.join(', ') || 'None'}</Row>
                   <Row label="Requests">{driver.available ? 'On' : 'Paused by driver'}</Row>
                   <Row label="Request hours">{describeRequestHours(driver.requestHours)}</Row>
-                  <Row label="Notice">{formatNotice(driver.minNoticeHours)}</Row>
+                  <Row label="Notice">{formatNotice(driver.minNoticeMinutes)}</Row>
                 </Section>
               )}
 

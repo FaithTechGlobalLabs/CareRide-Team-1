@@ -81,7 +81,7 @@ export function Approvals() {
                 {driver.wheelchairAccessible && ' · Wheelchair accessible'} · {driver.serviceCities.join(', ')}
               </p>
               <p className="text-slate-600">
-                Requests: {describeRequestHours(driver.requestHours)} · {noticeLabel(driver.minNoticeHours)}
+                Requests: {describeRequestHours(driver.requestHours)} · {noticeLabel(driver.minNoticeMinutes)}
               </p>
               <div className="mt-3 grid grid-cols-2 gap-3 sm:flex">
                 <button type="button" className={primaryButton} onClick={() => setDriver(driver.id, 'APPROVED')}>

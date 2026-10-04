@@ -41,7 +41,7 @@ export function Drivers() {
               {d.vehicle} · {d.seats} spaces{d.wheelchairAccessible && ' · Wheelchair accessible'}
             </p>
             <p className="text-slate-600">
-              Requests: {describeRequestHours(d.requestHours)} · {noticeLabel(d.minNoticeHours)}
+              Requests: {describeRequestHours(d.requestHours)} · {noticeLabel(d.minNoticeMinutes)}
             </p>
           </div>
         ))}

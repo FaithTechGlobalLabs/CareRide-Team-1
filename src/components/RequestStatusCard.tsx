@@ -115,7 +115,7 @@ export function RequestStatusCard({ driver, onPause, showSettingsLink = false }:
           <span className="font-semibold">Hours:</span> {describeRequestHours(driver.requestHours)}
         </span>
         <span>
-          <span className="font-semibold">Notice:</span> {formatNotice(driver.minNoticeHours)}
+          <span className="font-semibold">Notice:</span> {formatNotice(driver.minNoticeMinutes)}
         </span>
         {showSettingsLink && (
           <Link

@@ -1,18 +1,25 @@
 import { Check, ChevronDown, Copy } from 'lucide-react'
+import { useId, useState } from 'react'
 import { WEEKDAYS } from '../constants'
 import {
   ALL_DAY,
   DAY_NAMES,
+  NOTICE_PRESETS,
+  amountToMinutes,
   formatTime,
-  NOTICE_OPTIONS,
+  isNoticePreset,
+  noticeToAmount,
   REQUEST_PRESETS,
   invalidDay,
   sameHours,
   weeklyHours,
   windowSpan,
+  type NoticeUnit,
 } from '../logic/requestHours'
 import type { RequestHours, TimeWindow } from '../types'
 import { FieldMessage } from './form/FieldMessage'
+import { SelectField } from './form/SelectField'
+import { TextField } from './form/TextField'
 
 // Monday first, the way most people picture a week
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
@@ -190,32 +197,94 @@ export function RequestHoursEditor({ value, onChange, error }: Props) {
 
 interface NoticeProps {
   value: number
-  onChange: (hours: number) => void
+  onChange: (minutes: number) => void
 }
+
+const chipClass = (checked: boolean) =>
+  `inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-teal-100 ${
+    checked ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
+  }`
 
 // How far ahead a pickup must be booked before we ask this driver.
 export function NoticePicker({ value, onChange }: NoticeProps) {
+  const group = useId()
+  const [custom, setCustom] = useState(() => !isNoticePreset(value))
+  const initial = noticeToAmount(value)
+  const [amount, setAmount] = useState(initial.amount)
+  const [unit, setUnit] = useState<NoticeUnit>(initial.unit)
+
+  const presetSelected = !custom && isNoticePreset(value)
+  const customMinutes = amountToMinutes(amount, unit)
+  const customError = custom && customMinutes === undefined ? 'Enter a whole number greater than zero.' : undefined
+
+  function pickPreset(minutes: number) {
+    setCustom(false)
+    const next = noticeToAmount(minutes)
+    setAmount(next.amount)
+    setUnit(next.unit)
+    onChange(minutes)
+  }
+
+  function pickCustom() {
+    setCustom(true)
+    const next = noticeToAmount(value)
+    setAmount(next.amount)
+    setUnit(next.unit)
+  }
+
+  function updateCustom(nextAmount: string, nextUnit: NoticeUnit) {
+    setAmount(nextAmount)
+    setUnit(nextUnit)
+    const minutes = amountToMinutes(nextAmount, nextUnit)
+    if (minutes !== undefined) onChange(minutes)
+  }
+
   return (
     <fieldset>
       <legend className="mb-1 text-sm font-semibold text-ink">Notice you need before a pickup</legend>
       <p className="mb-3 text-sm text-slate-500">We'll only ask you about rides booked at least this far ahead.</p>
       <div className="flex flex-wrap gap-2" role="radiogroup">
-        {NOTICE_OPTIONS.map((o) => {
-          const checked = value === o.hours
+        {NOTICE_PRESETS.map((o) => {
+          const checked = presetSelected && value === o.minutes
           return (
-            <label
-              key={o.hours}
-              className={`inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border-2 px-4 font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-teal-100 ${
-                checked ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'
-              }`}
-            >
-              <input type="radio" name="notice" className="sr-only" checked={checked} onChange={() => onChange(o.hours)} />
+            <label key={o.minutes} className={chipClass(checked)}>
+              <input
+                type="radio"
+                name={group}
+                className="sr-only"
+                checked={checked}
+                onChange={() => pickPreset(o.minutes)}
+              />
               {checked && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
               {o.text}
             </label>
           )
         })}
+        <label className={chipClass(custom)}>
+          <input type="radio" name={group} className="sr-only" checked={custom} onChange={pickCustom} />
+          {custom && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
+          Custom
+        </label>
       </div>
+      {custom && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_10rem]">
+          <TextField
+            id={`${group}-amount`}
+            label="Custom amount"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            value={amount}
+            error={customError}
+            onChange={(e) => updateCustom(e.target.value, unit)}
+          />
+          <SelectField id={`${group}-unit`} label="Unit" value={unit} onChange={(e) => updateCustom(amount, e.target.value as NoticeUnit)}>
+            <option value="min">minutes</option>
+            <option value="hr">hours</option>
+          </SelectField>
+        </div>
+      )}
     </fieldset>
   )
 }

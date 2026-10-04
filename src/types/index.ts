@@ -60,7 +60,7 @@ export interface Driver {
   seats: number // spaces for passengers
   serviceCities: string[]
   requestHours: RequestHours
-  minNoticeHours: number // how far ahead a ride must be booked; 0 means no notice needed
+  minNoticeMinutes: number // how far ahead a ride must be booked
   status: VerificationStatus
   available: boolean // false = paused, gets no requests
 }

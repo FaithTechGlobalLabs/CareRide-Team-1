@@ -24,7 +24,7 @@ export function matchDrivers(
       d.seats >= ride.passengers &&
       (!ride.needsWheelchair || d.wheelchairAccessible) &&
       (!checkRequestHours || isWithinRequestHours(d.requestHours, now)) &&
-      (ride.type === 'ON_DEMAND' || meetsNotice(d.minNoticeHours, pickup, now)),
+      (ride.type === 'ON_DEMAND' || meetsNotice(d.minNoticeMinutes, pickup, now)),
   )
 
   // Ask the preferred driver first (e.g. the outbound driver for a return trip).
