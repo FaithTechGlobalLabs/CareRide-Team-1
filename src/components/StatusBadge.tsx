@@ -19,7 +19,7 @@ const styles: Record<RideStatus, { text: string; className: string }> = {
   SEARCHING: { text: 'Finding a driver', className: 'bg-brand-50 text-brand-800' },
   OFFERED: { text: 'Waiting for driver', className: 'bg-sun-400 text-ink' },
   ACCEPTED: { text: 'Driver confirmed', className: 'bg-emerald-100 text-emerald-900' },
-  NEEDS_ATTENTION: { text: 'Needs attention', className: 'bg-care-red text-white' },
+  NEEDS_ATTENTION: { text: 'No driver available', className: 'bg-care-red text-white' },
   PICKED_UP: { text: 'Picked up', className: 'bg-cyan-100 text-cyan-900' },
   COMPLETED: { text: 'Completed', className: 'bg-slate-100 text-slate-700' },
   NO_SHOW: { text: "Client didn't show", className: 'bg-coral-50 text-coral-700' },

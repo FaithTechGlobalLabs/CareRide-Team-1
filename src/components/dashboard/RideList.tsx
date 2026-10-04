@@ -16,8 +16,8 @@ export interface DriverInfo {
 }
 
 interface Props {
-  attention: Ride[]
-  upcoming: Ride[]
+  attention: Ride[] // upcoming rides staff need to act on, listed first
+  upcoming: Ride[] // the rest
   past: Ride[] // most recent first
   driverOf: (ride: Ride) => DriverInfo | undefined
   now: number
@@ -25,24 +25,21 @@ interface Props {
   onTab: (tab: RideTab) => void
 }
 
-export type RideTab = 'attention' | 'upcoming' | 'past'
+export type RideTab = 'upcoming' | 'past'
 type Tab = RideTab
 
 const PAST_PAGE = 8
 
-// A partner's rides in three tabs. Opens on whatever needs a look first.
-export function RideList({ attention, upcoming, past, driverOf, now, tab: picked, onTab: setPicked }: Props) {
+// A partner's rides in two tabs. Rides that need staff stay with the upcoming ones, at the top.
+export function RideList({ attention, upcoming, past, driverOf, now, tab = 'upcoming', onTab: setPicked }: Props) {
   const [query, setQuery] = useState('')
   const [pastShown, setPastShown] = useState(PAST_PAGE)
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({})
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    ...(attention.length > 0 ? [{ id: 'attention' as Tab, label: 'Needs attention', count: attention.length }] : []),
-    { id: 'upcoming', label: 'Upcoming', count: upcoming.length },
+    { id: 'upcoming', label: 'Upcoming', count: attention.length + upcoming.length },
     { id: 'past', label: 'Past', count: past.length },
   ]
-  // Fall back if the picked tab disappears, e.g. the last ride needing attention got a driver
-  const tab = picked && tabs.some((t) => t.id === picked) ? picked : tabs[0].id
 
   // Arrow keys move between tabs, like any tab list
   function onTabKey(e: KeyboardEvent, index: number) {
@@ -65,7 +62,6 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
         <div role="tablist" aria-label="Rides" className="-mb-px flex gap-1 overflow-x-auto">
           {tabs.map((t, i) => {
             const on = tab === t.id
-            const red = t.id === 'attention'
             return (
               <button
                 key={t.id}
@@ -81,15 +77,12 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
                 onClick={() => setPicked(t.id)}
                 onKeyDown={(e) => onTabKey(e, i)}
                 className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
-                  on ? (red ? 'border-red-600 text-red-700' : 'border-brand-600 text-ink') : 'border-transparent text-slate-500 hover:text-ink'
+                  on ? 'border-brand-600 text-ink' : 'border-transparent text-slate-500 hover:text-ink'
                 }`}
               >
-                {red && <AlertTriangle className="h-4 w-4" aria-hidden />}
                 {t.label}
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
-                    red ? 'bg-red-600 text-white' : on ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${on ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600'}`}
                 >
                   {t.count}
                 </span>
@@ -100,26 +93,31 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
       </div>
 
       <div id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="p-3 sm:p-4">
-        {tab === 'attention' && (
-          <ul className="space-y-1">
-            {attention.map((r) => (
-              <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} alert={actionReason(r, new Date(now))} />
-            ))}
-          </ul>
+        {tab === 'upcoming' && attention.length > 0 && (
+          <div className="mb-4">
+            <h3 className="px-3 pb-1 font-sans text-sm font-bold text-red-700">Needs action</h3>
+            <ul className="space-y-1">
+              {attention.map((r) => (
+                <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} alert={actionReason(r, new Date(now))} />
+              ))}
+            </ul>
+          </div>
         )}
 
         {tab === 'upcoming' &&
           (upcoming.length === 0 ? (
-            <Empty
-              icon={<CalendarPlus className="h-6 w-6" />}
-              title="No upcoming rides"
-              text="Book a ride and it shows up here, grouped by day."
-              action={
-                <Link to="/partner/request" className={primaryButton}>
-                  Request a ride
-                </Link>
-              }
-            />
+            attention.length === 0 && (
+              <Empty
+                icon={<CalendarPlus className="h-6 w-6" />}
+                title="No upcoming rides"
+                text="Book a ride and it shows up here, grouped by day."
+                action={
+                  <Link to="/partner/request" className={primaryButton}>
+                    Request a ride
+                  </Link>
+                }
+              />
+            )
           ) : (
             <DayGroups rides={upcoming} now={now} render={(r) => <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} />} />
           ))}
@@ -212,7 +210,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
         ) : (
           <>
             <span className="block whitespace-nowrap font-display text-sm font-extrabold tabular-nums text-ink sm:text-base">{formatTime(ride.pickupTime)}</span>
-            {past && <span className="block text-xs text-slate-500">{dayLabel(pickupMs, now)}</span>}
+            {(past || alert) && <span className="block text-xs text-slate-500">{dayLabel(pickupMs, now)}</span>}
           </>
         )}
       </div>
@@ -273,7 +271,7 @@ const SHORT_STATUS: Record<Ride['status'], { text: string; color: string }> = {
   SEARCHING: { text: 'Finding', color: 'text-brand-700' },
   OFFERED: { text: 'Waiting', color: 'text-amber-800' },
   ACCEPTED: { text: 'Confirmed', color: 'text-emerald-700' },
-  NEEDS_ATTENTION: { text: 'Attention', color: 'text-red-700' },
+  NEEDS_ATTENTION: { text: 'No driver', color: 'text-red-700' },
   PICKED_UP: { text: 'Riding', color: 'text-cyan-700' },
   COMPLETED: { text: 'Done', color: 'text-slate-600' },
   NO_SHOW: { text: 'No show', color: 'text-coral-700' },
