@@ -82,3 +82,33 @@ export async function listenToNativeApp(options: {
     void back.remove()
   }
 }
+
+export async function hideSplash(): Promise<void> {
+  if (!isNative) return
+  const { SplashScreen } = await import('@capacitor/splash-screen')
+  await SplashScreen.hide()
+}
+
+export async function listenToKeyboard(): Promise<() => void> {
+  if (!isNative) return () => {}
+  const { Keyboard } = await import('@capacitor/keyboard')
+  const show = await Keyboard.addListener('keyboardWillShow', () => {
+    document.documentElement.classList.add('native-keyboard-open')
+  })
+  const hide = await Keyboard.addListener('keyboardDidShow', () => {
+    document.documentElement.classList.add('native-keyboard-open')
+  })
+  const gone = await Keyboard.addListener('keyboardWillHide', () => {
+    document.documentElement.classList.remove('native-keyboard-open')
+  })
+  const goneDid = await Keyboard.addListener('keyboardDidHide', () => {
+    document.documentElement.classList.remove('native-keyboard-open')
+  })
+  return () => {
+    document.documentElement.classList.remove('native-keyboard-open')
+    void show.remove()
+    void hide.remove()
+    void gone.remove()
+    void goneDid.remove()
+  }
+}
