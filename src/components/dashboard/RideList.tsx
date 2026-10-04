@@ -1,13 +1,13 @@
-import { AlertTriangle, CalendarPlus, CarFront, History, RotateCcw, Search } from 'lucide-react'
+import { AlertTriangle, Bus, CalendarPlus, CarFront, History, RotateCcw, Search } from 'lucide-react'
 import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { acceptedMessage } from '../../logic/acceptedMessage'
 import { formatTime } from '../../logic/formatTime'
 import { ridePath } from '../../logic/homeFor'
 import { actionReason, dayLabel } from '../../logic/rideInsights'
-import { passengersLabel, riderLabel } from '../../logic/rideText'
+import { passengersLabel, rideBadgeLabel, riderLabel, SENT_ON_TRANSIT_LABEL } from '../../logic/rideText'
 import type { Ride } from '../../types'
-import { StatusBadge } from '../StatusBadge'
+import { STATUS_ICON, StatusBadge } from '../StatusBadge'
 import { card, input, primaryButton, secondaryButton } from '../ui'
 
 export interface DriverInfo {
@@ -16,8 +16,8 @@ export interface DriverInfo {
 }
 
 interface Props {
-  attention: Ride[]
-  upcoming: Ride[]
+  attention: Ride[] // upcoming rides staff need to act on, listed first
+  upcoming: Ride[] // the rest
   past: Ride[] // most recent first
   driverOf: (ride: Ride) => DriverInfo | undefined
   now: number
@@ -25,24 +25,21 @@ interface Props {
   onTab: (tab: RideTab) => void
 }
 
-export type RideTab = 'attention' | 'upcoming' | 'past'
+export type RideTab = 'upcoming' | 'past'
 type Tab = RideTab
 
 const PAST_PAGE = 8
 
-// A partner's rides in three tabs. Opens on whatever needs a look first.
-export function RideList({ attention, upcoming, past, driverOf, now, tab: picked, onTab: setPicked }: Props) {
+// A partner's rides in two tabs. Rides that need staff stay with the upcoming ones, at the top.
+export function RideList({ attention, upcoming, past, driverOf, now, tab = 'upcoming', onTab: setPicked }: Props) {
   const [query, setQuery] = useState('')
   const [pastShown, setPastShown] = useState(PAST_PAGE)
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({})
 
   const tabs: { id: Tab; label: string; count: number }[] = [
-    ...(attention.length > 0 ? [{ id: 'attention' as Tab, label: 'Needs attention', count: attention.length }] : []),
-    { id: 'upcoming', label: 'Upcoming', count: upcoming.length },
+    { id: 'upcoming', label: 'Upcoming', count: attention.length + upcoming.length },
     { id: 'past', label: 'Past', count: past.length },
   ]
-  // Fall back if the picked tab disappears, e.g. the last ride needing attention got a driver
-  const tab = picked && tabs.some((t) => t.id === picked) ? picked : tabs[0].id
 
   // Arrow keys move between tabs, like any tab list
   function onTabKey(e: KeyboardEvent, index: number) {
@@ -65,7 +62,6 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
         <div role="tablist" aria-label="Rides" className="-mb-px flex gap-1 overflow-x-auto">
           {tabs.map((t, i) => {
             const on = tab === t.id
-            const red = t.id === 'attention'
             return (
               <button
                 key={t.id}
@@ -80,16 +76,13 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
                 tabIndex={on ? 0 : -1}
                 onClick={() => setPicked(t.id)}
                 onKeyDown={(e) => onTabKey(e, i)}
-                className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
-                  on ? (red ? 'border-red-600 text-red-700' : 'border-brand-600 text-ink') : 'border-transparent text-slate-500 hover:text-ink'
+                className={`flex min-h-12 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                  on ? 'border-brand-600 text-ink' : 'border-transparent text-slate-500 hover:text-ink'
                 }`}
               >
-                {red && <AlertTriangle className="h-4 w-4" aria-hidden />}
                 {t.label}
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
-                    red ? 'bg-red-600 text-white' : on ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${on ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600'}`}
                 >
                   {t.count}
                 </span>
@@ -100,26 +93,31 @@ export function RideList({ attention, upcoming, past, driverOf, now, tab: picked
       </div>
 
       <div id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="p-3 sm:p-4">
-        {tab === 'attention' && (
-          <ul className="space-y-1">
-            {attention.map((r) => (
-              <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} alert={actionReason(r, new Date(now))} />
-            ))}
-          </ul>
+        {tab === 'upcoming' && attention.length > 0 && (
+          <div className="mb-4">
+            <h3 className="px-3 pb-1 font-sans text-sm font-bold text-red-700">Needs action</h3>
+            <ul className="space-y-1">
+              {attention.map((r) => (
+                <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} alert={actionReason(r, new Date(now))} />
+              ))}
+            </ul>
+          </div>
         )}
 
         {tab === 'upcoming' &&
           (upcoming.length === 0 ? (
-            <Empty
-              icon={<CalendarPlus className="h-6 w-6" />}
-              title="No upcoming rides"
-              text="Book a ride and it shows up here, grouped by day."
-              action={
-                <Link to="/partner/request" className={primaryButton}>
-                  Request a ride
-                </Link>
-              }
-            />
+            attention.length === 0 && (
+              <Empty
+                icon={<CalendarPlus className="h-6 w-6" />}
+                title="No upcoming rides"
+                text="Book a ride and it shows up here, grouped by day."
+                action={
+                  <Link to="/partner/request" className={primaryButton}>
+                    Request a ride
+                  </Link>
+                }
+              />
+            )
           ) : (
             <DayGroups rides={upcoming} now={now} render={(r) => <RideRow key={r.id} ride={r} driver={driverOf(r)} now={now} />} />
           ))}
@@ -178,7 +176,7 @@ function DayGroups({ rides, now, render }: { rides: Ride[]; now: number; render:
     <div className="space-y-4">
       {groups.map((g) => (
         <div key={g.label}>
-          <h3 className="px-3 pb-1 font-sans text-xs font-bold uppercase tracking-widest text-slate-400">{g.label}</h3>
+          <h3 className="px-3 pb-1 font-sans text-sm font-bold text-slate-400">{g.label}</h3>
           <ul className="space-y-1">{g.rides.map(render)}</ul>
         </div>
       ))}
@@ -204,7 +202,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
 
   return (
     <li
-      className={`group relative flex gap-3 rounded-2xl p-3 transition hover:bg-slate-50 sm:gap-4 ${alert ? 'bg-red-50/60 hover:bg-red-50' : ''}`}
+      className={`group relative flex gap-3 rounded-xl p-3 transition hover:bg-slate-50 sm:gap-4 ${alert ? 'bg-red-50/60 hover:bg-red-50' : ''}`}
     >
       <div className="w-[4.5rem] shrink-0 pt-0.5 text-center sm:w-20">
         {ride.type === 'ON_DEMAND' && !past ? (
@@ -212,7 +210,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
         ) : (
           <>
             <span className="block whitespace-nowrap font-display text-sm font-extrabold tabular-nums text-ink sm:text-base">{formatTime(ride.pickupTime)}</span>
-            {past && <span className="block text-xs text-slate-500">{dayLabel(pickupMs, now)}</span>}
+            {(past || alert) && <span className="block text-xs text-slate-500">{dayLabel(pickupMs, now)}</span>}
           </>
         )}
       </div>
@@ -226,7 +224,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
         )}
         <Link
           to={ridePath(ride.id)}
-          className="block break-words font-semibold text-ink after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-4 focus-visible:after:ring-brand-100"
+          className="block break-words font-semibold text-ink after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-[3px] focus-visible:after:ring-brand-500 focus-visible:after:ring-offset-2"
         >
           {ride.returnOfRideId && <span className="text-slate-500">Return · </span>}
           {ride.destinationName}
@@ -248,7 +246,7 @@ function RideRow({ ride, driver, now, alert, past }: RowProps) {
       </div>
 
       <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
-        <StatusBadge status={ride.status} label={ride.expired ? 'No driver found' : undefined} />
+        <StatusBadge status={ride.status} label={rideBadgeLabel(ride)} />
         {past && !ride.returnOfRideId && <BookAgain rideId={ride.id} />}
       </div>
     </li>
@@ -260,7 +258,7 @@ function BookAgain({ rideId }: { rideId: string }) {
   return (
     <Link
       to={`/partner/request?again=${rideId}`}
-      className="relative z-10 -mx-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 sm:mx-0"
+      className="relative z-10 -mx-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 sm:mx-0"
     >
       <RotateCcw className="h-4 w-4" aria-hidden />
       Book again
@@ -268,24 +266,26 @@ function BookAgain({ rideId }: { rideId: string }) {
   )
 }
 
-// On phones the full badge crowds the row, so show a short version: still words, not colour alone.
-const SHORT_STATUS: Record<Ride['status'], { text: string; dot: string }> = {
-  SEARCHING: { text: 'Finding', dot: 'bg-sky-500' },
-  OFFERED: { text: 'Waiting', dot: 'bg-amber-500' },
-  ACCEPTED: { text: 'Confirmed', dot: 'bg-brand-500' },
-  NEEDS_ATTENTION: { text: 'Attention', dot: 'bg-red-500' },
-  PICKED_UP: { text: 'Riding', dot: 'bg-violet-500' },
-  COMPLETED: { text: 'Done', dot: 'bg-emerald-500' },
-  NO_SHOW: { text: 'No show', dot: 'bg-orange-500' },
-  CANCELLED: { text: 'Cancelled', dot: 'bg-slate-400' },
+// On phones the full badge crowds the row, so show a short version: still words and an icon, not colour alone.
+const SHORT_STATUS: Record<Ride['status'], { text: string; color: string }> = {
+  SEARCHING: { text: 'Finding', color: 'text-brand-700' },
+  OFFERED: { text: 'Waiting', color: 'text-amber-800' },
+  ACCEPTED: { text: 'Confirmed', color: 'text-emerald-700' },
+  NEEDS_ATTENTION: { text: 'No driver', color: 'text-red-700' },
+  PICKED_UP: { text: 'Riding', color: 'text-cyan-700' },
+  COMPLETED: { text: 'Done', color: 'text-slate-600' },
+  NO_SHOW: { text: 'No show', color: 'text-coral-700' },
+  CANCELLED: { text: 'Cancelled', color: 'text-slate-500' },
 }
 
 function StatusDot({ ride }: { ride: Ride }) {
-  const s = SHORT_STATUS[ride.status]
+  const transit = rideBadgeLabel(ride) === SENT_ON_TRANSIT_LABEL
+  const s = transit ? { text: 'Transit', color: 'text-teal-700' } : SHORT_STATUS[ride.status]
+  const Icon = transit ? Bus : STATUS_ICON[ride.status]
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-      <span className={`h-2 w-2 rounded-full ${s.dot}`} aria-hidden />
-      {ride.expired ? 'No driver' : s.text}
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.color}`}>
+      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
+      {!transit && ride.expired ? 'No driver' : s.text}
     </span>
   )
 }
@@ -293,7 +293,7 @@ function StatusDot({ ride }: { ride: Ride }) {
 function Empty({ icon, title, text, action }: { icon: ReactNode; title: string; text: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-10 text-center">
-      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500" aria-hidden>
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500" aria-hidden>
         {icon}
       </span>
       <p className="font-bold text-ink">{title}</p>

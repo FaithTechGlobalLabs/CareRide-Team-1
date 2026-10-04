@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toLocalInput } from '../../logic/pickupTime'
+import { parseLocalInput, toLocalInput } from '../../logic/pickupTime'
 import { FieldMessage } from '../form/FieldMessage'
 import { RequiredMark } from '../form/RequiredMark'
 import { label } from '../ui'
@@ -42,10 +42,19 @@ function slotsFor(day: number, now: number): number[] {
 
 const time = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 
-// A calendar and a list of times in the app's own style. Past days and times can't be picked,
-// and today shows where "now" is, so staff don't have to work it out.
+function dayClass(on: boolean, isTodayCell: boolean, past: boolean): string {
+  const base =
+    'relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none'
+  if (past) return `${base} text-slate-300`
+  if (on) return `${base} bg-brand-600 text-white`
+  if (isTodayCell) return `${base} text-brand-700 ring-1 ring-inset ring-brand-600 hover:bg-brand-50`
+  return `${base} text-ink hover:bg-slate-100`
+}
+
+// A calendar and a list of times in the app's own style. Past days and times can't be picked.
+// Today is outlined and the current time is shown above the list so staff can see "now" while they choose a pickup.
 export function PickupTimePicker({ id, value, onChange, now, error, hint }: Props) {
-  const parsed = Date.parse(value)
+  const parsed = parseLocalInput(value)
   const selected = Number.isNaN(parsed) ? undefined : parsed
   const today = startOfDay(now)
   const lastDay = today + BOOK_AHEAD_DAYS * DAY
@@ -60,7 +69,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
   // Keep the chosen time in view whenever the day changes
   useEffect(() => {
     const list = listRef.current
-    const target = list?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? list?.querySelector<HTMLElement>('[data-now]')
+    const target = list?.querySelector<HTMLElement>('[aria-pressed="true"]')
     // The list is the offset parent (it has `relative`), so offsetTop is already measured from its top
     if (list && target) list.scrollTop = target.offsetTop - 8
   }, [selectedDay])
@@ -103,7 +112,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
         <RequiredMark />
       </span>
       <div
-        className={`grid overflow-hidden rounded-2xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
+        className={`grid overflow-hidden rounded-xl border bg-white sm:grid-cols-[minmax(0,1fr)_13rem] ${
           error ? 'border-red-500' : 'border-slate-200'
         }`}
       >
@@ -114,7 +123,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(-1)}
               disabled={!canGoBack}
               aria-label="Previous month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -126,7 +135,7 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
               onClick={() => shiftMonth(1)}
               disabled={!canGoForward}
               aria-label="Next month"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:opacity-30"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-30"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -148,15 +157,13 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   type="button"
                   disabled={past}
                   aria-pressed={on}
-                  aria-label={new Date(day).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + (isTodayCell ? ', today' : '')}
+                  aria-current={isTodayCell ? 'date' : undefined}
+                  aria-label={
+                    new Date(day).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) +
+                    (isTodayCell ? ', today' : '')
+                  }
                   onClick={() => pickDay(day)}
-                  className={`relative flex aspect-square min-h-10 items-center justify-center rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 disabled:pointer-events-none disabled:text-slate-300 ${
-                    on
-                      ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25'
-                      : isTodayCell
-                        ? 'bg-brand-50 text-brand-700 ring-2 ring-brand-300'
-                        : 'text-ink hover:bg-slate-100'
-                  }`}
+                  className={dayClass(on, isTodayCell, past)}
                 >
                   {new Date(day).getDate()}
                 </button>
@@ -165,16 +172,16 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
           </div>
         </div>
 
-        <div className="border-t border-slate-200 bg-slate-50/70 sm:border-l sm:border-t-0">
-          <p className="border-b border-slate-200 px-4 py-3 text-sm font-semibold text-ink">{dayName}</p>
-          <div ref={listRef} className="relative max-h-72 space-y-1.5 overflow-y-auto p-3" role="group" aria-label={`Times on ${dayName}`}>
+        <div className="flex min-h-0 flex-col border-t border-slate-200 bg-slate-50/70 sm:border-l sm:border-t-0">
+          <div className="border-b border-slate-200 px-4 py-3">
+            <p className="text-sm font-semibold text-ink">{isToday ? 'Today' : dayName}</p>
             {isToday && (
-              <p data-now className="flex items-center gap-2 px-1 py-1 text-xs font-bold uppercase tracking-wide text-coral-600">
-                <span className="h-2 w-2 rounded-full bg-coral-500" aria-hidden />
-                Now · {time(now)}
-                <span className="h-px flex-1 bg-coral-200" aria-hidden />
+              <p className="mt-0.5 text-xs font-medium text-slate-500">
+                {dayName} · Now {time(now)}
               </p>
             )}
+          </div>
+          <div ref={listRef} className="relative max-h-72 space-y-1.5 overflow-y-auto p-3" role="group" aria-label={`Times on ${dayName}`}>
             {slots.length === 0 && <p className="px-1 py-2 text-sm text-slate-500">No times left today. Pick another day.</p>}
             {slots.map((slot, i) => {
               const on = slot === selected
@@ -184,13 +191,13 @@ export function PickupTimePicker({ id, value, onChange, now, error, hint }: Prop
                   type="button"
                   aria-pressed={on}
                   onClick={() => onChange(toLocalInput(slot))}
-                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 ${
-                    on ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
+                  className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                    on ? 'bg-brand-600 text-white' : 'bg-white text-ink ring-1 ring-slate-200 hover:ring-brand-300'
                   }`}
                 >
                   {time(slot)}
                   {isToday && i === 0 && (
-                    <span className={`text-xs font-bold ${on ? 'text-white/80' : 'text-coral-600'}`}>Soonest</span>
+                    <span className={`text-xs font-bold ${on ? 'text-white/80' : 'text-slate-500'}`}>Soonest</span>
                   )}
                 </button>
               )

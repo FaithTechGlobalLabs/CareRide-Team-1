@@ -4,6 +4,7 @@ import { CopyButton } from '../../components/CopyButton'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
+import { formatDollars } from '../../logic/estimateFare'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours, formatNotice } from '../../logic/requestHours'
 import { dataService } from '../../services'
@@ -53,8 +54,8 @@ function StatusPill({ status }: { status: VerificationStatus }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">{title}</h3>
-      <dl className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">{children}</dl>
+      <h3 className="mb-2 text-sm font-bold text-slate-500">{title}</h3>
+      <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">{children}</dl>
     </section>
   )
 }
@@ -75,7 +76,7 @@ function Row({ label, children, copy }: { label: string; children: ReactNode; co
 
 function Stat({ value, label }: { value: ReactNode; label: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
       <p className="font-display text-2xl font-extrabold text-ink">{value}</p>
       <p className="text-sm text-slate-500">{label}</p>
     </div>
@@ -114,11 +115,11 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
       onClose={onClose}
       // A click on the dimmed area outside the panel lands on the dialog itself
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-3xl bg-slate-50 p-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-pop"
+      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-xl bg-slate-50 p-0 shadow-xl backdrop:bg-slate-900/50 open:animate-pop"
     >
       <div className="flex max-h-[90vh] flex-col">
         <header className="flex items-start gap-4 border-b border-slate-200 bg-white p-5 sm:p-6">
-          <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold ${tone.tile}`} aria-hidden>
+          <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-lg font-extrabold ${tone.tile}`} aria-hidden>
             {user.name.trim().charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1">
@@ -135,7 +136,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+            className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label="Close"
           >
             <X className="h-5 w-5" aria-hidden />
@@ -153,7 +154,7 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                 <div className="grid grid-cols-3 gap-3">
                   <Stat value={completed.length} label="Rides completed" />
                   <Stat value={upcoming.length} label="Open or upcoming" />
-                  <Stat value={`$${Math.round(saved)}`} label="Fares saved" />
+                  <Stat value={formatDollars(saved)} label="Bus fares saved" />
                 </div>
               )}
 

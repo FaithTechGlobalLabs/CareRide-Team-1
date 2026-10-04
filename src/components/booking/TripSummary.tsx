@@ -27,7 +27,7 @@ function Row({ icon, label, children }: { icon: ReactNode; label: string; childr
         {icon}
       </span>
       <div className="min-w-0">
-        <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+        <dt className="text-sm font-semibold text-slate-500">{label}</dt>
         <dd className="text-sm text-ink">{children}</dd>
       </div>
     </div>
@@ -57,17 +57,17 @@ export function TripSummary({ from, to, when, rider, passengers, needs, done, to
           aria-valuenow={done}
         >
           <div
-            className={`h-full rounded-full transition-[width] duration-500 ease-out ${done === total ? 'bg-emerald-500' : 'bg-brand-gradient'}`}
+            className={`h-full rounded-full transition-[width] duration-500 ease-out ${done === total ? 'bg-emerald-600' : 'bg-brand-600'}`}
             style={{ width: `${percent}%` }}
           />
         </div>
       </div>
 
       <ol className="relative space-y-4 pl-6" aria-label="Route">
-        <span className="absolute bottom-3 left-[5px] top-3 w-0.5 rounded bg-gradient-to-b from-brand-300 to-coral-300" aria-hidden />
+        <span className="absolute bottom-3 left-[5px] top-3 w-0.5 rounded bg-slate-300" aria-hidden />
         <li className="relative">
           <span className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-white bg-brand-500 ring-2 ring-brand-200" aria-hidden />
-          <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Pickup</span>
+          <span className="block text-sm font-semibold text-slate-500">Pickup</span>
           <span className="block text-sm font-semibold text-ink">{from.name}</span>
           {from.detail && <span className="block truncate text-xs text-slate-500">{from.detail}</span>}
         </li>
@@ -76,7 +76,7 @@ export function TripSummary({ from, to, when, rider, passengers, needs, done, to
             className={`absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-white ring-2 ${to ? 'bg-coral-500 ring-coral-200' : 'bg-slate-300 ring-slate-200'}`}
             aria-hidden
           />
-          <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Drop-off</span>
+          <span className="block text-sm font-semibold text-slate-500">Drop-off</span>
           {to ? (
             <>
               <span className="block text-sm font-semibold text-ink">{to.name}</span>

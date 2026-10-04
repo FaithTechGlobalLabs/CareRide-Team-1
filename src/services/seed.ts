@@ -50,7 +50,7 @@ function pastRide(id: string, destinationId: string, name: string, address: stri
     needsAssistance: false,
     status: 'COMPLETED',
     driverId: 'd-olive',
-    estimatedFareSaved: 25,
+    estimatedFareSaved: 2.58,
     createdAt: date,
     acceptedAt: date,
     pickedUpAt: date,

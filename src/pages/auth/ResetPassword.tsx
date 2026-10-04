@@ -10,7 +10,7 @@ import { useApp } from '../../hooks/useApp'
 import { HOME_FOR } from '../../logic/homeFor'
 import { dataService } from '../../services'
 
-const panel = 'animate-fade-up rounded-3xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5 sm:p-10'
+const panel = 'animate-fade-up rounded-xl border border-slate-200/80 bg-white p-8 sm:p-10'
 
 // Where a reset email's link lands. Opening the link signs the person in for long enough to choose a new password.
 export function ResetPassword() {

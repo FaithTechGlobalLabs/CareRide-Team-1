@@ -32,7 +32,7 @@ const ROLES: { value: RegisterRole; title: string; description: string; icon: Re
     title: 'Partner organization',
     description: 'Book rides for the people you serve. For shelters, housing, and social service organizations.',
     icon: <Building2 className="h-6 w-6" />,
-    tone: 'violet',
+    tone: 'brand',
   },
   {
     value: 'DRIVER',
@@ -173,6 +173,14 @@ export function DestinationsStep({ draft, update }: StepProps) {
       setFormError(long)
       return
     }
+    if (address.trim().length < 5) {
+      setFormError('Add the full street address, so drivers can find it.')
+      return
+    }
+    if (!CITIES.includes(city)) {
+      setFormError('Choose Vancouver or Richmond.')
+      return
+    }
     if (draft.destinations.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
       setFormError('You already added a place with this name.')
       return
@@ -195,7 +203,7 @@ export function DestinationsStep({ draft, update }: StepProps) {
             return (
               <label
                 key={s.key}
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 ${
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
                   on ? 'border-brand-500 bg-brand-50/60' : 'border-slate-200 bg-white hover:border-brand-300'
                 }`}
               >
@@ -238,11 +246,18 @@ export function DestinationsStep({ draft, update }: StepProps) {
         </ul>
       )}
 
-      <div className="space-y-4 rounded-2xl border border-dashed border-slate-300 p-5">
+      <div className="space-y-4 rounded-xl border border-dashed border-slate-300 p-5">
         <p className="font-semibold text-ink">Add another place</p>
         <TextField id="destName" label="Name" placeholder="e.g. Downtown Community Health Centre" value={name} onChange={(e) => setName(e.target.value)} />
         <TextField id="destAddress" label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <SelectField id="destCity" label="City" value={city} onChange={(e) => setCity(e.target.value)}>
+        <SelectField
+          id="destCity"
+          label="City"
+          value={city}
+          onChange={(e) => {
+            if (CITIES.includes(e.target.value)) setCity(e.target.value)
+          }}
+        >
           {CITIES.map((c) => (
             <option key={c}>{c}</option>
           ))}
@@ -278,7 +293,7 @@ export function DocumentsStep({ draft, update, errors }: StepProps) {
 
 function ReviewSection({ title, stepId, goTo, rows }: { title: string; stepId: string; goTo: (id: string) => void; rows: [string, string][] }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
+    <section className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="text-lg font-extrabold">{title}</h3>
         <button

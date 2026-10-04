@@ -31,13 +31,13 @@ const QUESTIONS: { q: string; a: string }[] = [
 // Native <details>, so it opens with a tap, Enter, or Space and works with screen readers.
 export function Faq() {
   return (
-    <div className="mx-auto max-w-3xl space-y-3">
+    <div className="space-y-3">
       {QUESTIONS.map(({ q, a }) => (
         <details
           key={q}
-          className="group rounded-2xl border border-slate-200 bg-white shadow-sm transition open:shadow-md open:ring-1 open:ring-brand-100"
+          className="group rounded-xl border border-slate-200 bg-white transition open:border-brand-300"
         >
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 font-display text-lg font-bold text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 py-4 font-display text-lg font-bold text-ink sm:px-6 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
             {q}
             <span
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-open:rotate-45 group-open:bg-brand-600 group-open:text-white"
@@ -46,7 +46,8 @@ export function Faq() {
               <Plus className="h-4 w-4" />
             </span>
           </summary>
-          <p className="px-5 pb-5 text-slate-600">{a}</p>
+          {/* The row spans the page, but the answer keeps a readable line length */}
+          <p className="max-w-3xl px-5 pb-5 text-slate-600 sm:px-6">{a}</p>
         </details>
       ))}
     </div>

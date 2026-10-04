@@ -10,11 +10,21 @@ export const isFinished = (r: Ride) => FINISHED.includes(r.status)
 // A ride staff should look at now: nobody took it, its driver dropped it, or its driver is late.
 export const needsAction = (r: Ride, now?: Date) => r.status === 'NEEDS_ATTENTION' || wasDropped(r) || isDriverLate(r, now)
 
-// One line on why a ride needs a look, or undefined if it doesn't.
+const NO_DRIVER_OPTIONS = 'Ask drivers again, change the time, or send on transit'
+
+// What happened, in a few words, or undefined if the ride doesn't need staff.
+export function actionTitle(r: Ride, now?: Date): string | undefined {
+  if (isDriverLate(r, now)) return 'Driver is late'
+  if (r.status === 'NEEDS_ATTENTION') return 'No driver available'
+  if (wasDropped(r)) return "Driver can't make it"
+  return undefined
+}
+
+// One line on what happened and what's next, or undefined if the ride doesn't need staff.
 export function actionReason(r: Ride, now?: Date): string | undefined {
-  if (isDriverLate(r, now)) return "The driver hasn't arrived yet"
+  if (isDriverLate(r, now)) return "The driver hasn't arrived yet. Give them a call"
+  if (r.status === 'NEEDS_ATTENTION') return wasDropped(r) ? `The driver can't make it. ${NO_DRIVER_OPTIONS}` : NO_DRIVER_OPTIONS
   if (wasDropped(r)) return "The driver can't make it. We're asking others"
-  if (r.status === 'NEEDS_ATTENTION') return 'No driver has accepted yet'
   return undefined
 }
 

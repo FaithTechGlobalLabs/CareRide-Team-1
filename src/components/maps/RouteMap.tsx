@@ -10,11 +10,12 @@ interface Props {
   pickup: string
   dropoff: string
   driver?: LatLng // shown with a dashed line to the pickup, before the client is in the car
+  className?: string // replaces the default height so a request card can keep the map compact
 }
 
 // The ride on a map: pickup (A) to drop-off (B), plus where the driver is now if they shared it.
 // The drive times beside it say the same thing in words, for anyone who can't use the map.
-export function RouteMap({ pickup, dropoff, driver }: Props) {
+export function RouteMap({ pickup, dropoff, driver, className }: Props) {
   const available = useMapsAvailable()
   const ride = useRoute(pickup, dropoff, true)
   const approach = useRoute(driver, driver ? pickup : undefined, true)
@@ -29,6 +30,7 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
   useEffect(() => {
     if (!ridePath?.length || !box.current) return
     let live = true
+    let framed: { remove: () => void } | undefined
 
     ;(async () => {
       try {
@@ -47,9 +49,14 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
             zoomControl: true,
             gestureHandling: 'cooperative',
             clickableIcons: false,
+            heading: 0,
+            tilt: 0,
+            headingInteractionEnabled: false,
+            tiltInteractionEnabled: false,
           })
         }
         const m = map.current
+        m.setOptions({ heading: 0, tilt: 0, headingInteractionEnabled: false, tiltInteractionEnabled: false })
 
         drawn.current.forEach((d) => d.setMap(null))
         drawn.current = []
@@ -81,6 +88,21 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
         pin(ridePath[ridePath.length - 1], 'B', RIDE_COLOR, 'Drop-off')
         if (approachPath?.length) pin(approachPath[0], '•', APPROACH_COLOR, 'You')
 
+        // fitBounds frames the route. After that settles, step out one zoom level and keep north up.
+        let fitting = false
+        const listeners = [
+          m.addListener('bounds_changed', () => {
+            fitting = true
+          }),
+          m.addListener('idle', () => {
+            if (!fitting) return
+            listeners.forEach((l) => l.remove())
+            if (!live) return
+            const zoom = m.getZoom()
+            m.moveCamera({ heading: 0, tilt: 0, zoom: zoom == null ? undefined : Math.max(0, zoom - 1) })
+          }),
+        ]
+        framed = { remove: () => listeners.forEach((l) => l.remove()) }
         m.fitBounds(bounds, 32)
       } catch (err) {
         console.warn('Google Maps failed to draw', err)
@@ -90,6 +112,7 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
 
     return () => {
       live = false
+      framed?.remove()
     }
   }, [ridePath, approachPath])
 
@@ -100,7 +123,7 @@ export function RouteMap({ pickup, dropoff, driver }: Props) {
       ref={box}
       role="region"
       aria-label="Route map"
-      className={`h-56 w-full overflow-hidden rounded-xl bg-slate-100 sm:h-64 ${ride.status === 'loading' ? 'animate-pulse' : ''}`}
+      className={`overflow-hidden rounded-xl bg-slate-100 ${className ?? 'h-56 w-full sm:h-64'} ${ride.status === 'loading' ? 'animate-pulse' : ''}`}
     />
   )
 }

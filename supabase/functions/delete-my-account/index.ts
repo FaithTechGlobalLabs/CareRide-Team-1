@@ -1,12 +1,12 @@
-// Removes a CareRide account (guide Step 14).
+// Closes the signed-in driver or partner organization's own account.
 //
-// 1. Calls admin_deactivate_account() AS THE CALLER, so the database checks they are an active platform
-//    admin and does the safe part (switch off, protect the last admin, move the driver's rides) in one
-//    transaction. Being signed in is not enough.
+// 1. Calls deactivate_my_account() AS THE CALLER, so the database checks the session and does the
+//    safe part (switch off, move or cancel open rides) in one transaction. Being signed in is not enough.
 // 2. Only then uses the server-only secret key to delete the Supabase login.
-// If step 2 fails, the account stays switched off and deleting it again finishes the job.
+// If step 2 fails, the account stays switched off and closing it again finishes the job.
+// Profiles, drivers, organizations, and past rides stay.
 //
-// Deploy: npx supabase functions deploy admin-delete-account --use-api
+// Deploy: npx supabase functions deploy delete-my-account --use-api
 // The secret key is provided to Edge Functions by Supabase; it never reaches the browser.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -40,14 +40,6 @@ Deno.serve(async (req) => {
   const authorization = req.headers.get('Authorization')
   if (!authorization) return json({ error: 'Please sign in.' }, 401)
 
-  const { profileId } = (await req.json().catch(() => ({}))) as { profileId?: unknown }
-  if (
-    typeof profileId !== 'string' ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId)
-  ) {
-    return json({ error: 'Choose an account to delete.' }, 400)
-  }
-
   const url = Deno.env.get('SUPABASE_URL')
   const publishableKey = key('SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEYS')
   const secretKey = key('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEYS')
@@ -58,10 +50,10 @@ Deno.serve(async (req) => {
     global: { headers: { Authorization: authorization } },
     auth: { persistSession: false, autoRefreshToken: false },
   })
-  const { data: authUserId, error } = await asCaller.rpc('admin_deactivate_account', { p_profile_id: profileId })
+  const { data: authUserId, error } = await asCaller.rpc('deactivate_my_account')
   if (error) {
     const ours = error.code === 'P0001' // messages written for people
-    return json({ error: ours ? error.message : "We couldn't remove this account. Please try again." }, ours ? 400 : 500)
+    return json({ error: ours ? error.message : "We couldn't close this account. Please try again." }, ours ? 400 : 500)
   }
 
   if (authUserId) {
@@ -69,7 +61,7 @@ Deno.serve(async (req) => {
     const { error: deleteError } = await admin.auth.admin.deleteUser(authUserId as string)
     if (deleteError && deleteError.status !== 404) {
       console.error('deleteUser failed', deleteError)
-      return json({ error: 'The account was switched off, but removing its login failed. Delete it again to finish.' }, 502)
+      return json({ error: 'Your account was switched off, but removing its login failed. Close it again to finish.' }, 502)
     }
   }
 

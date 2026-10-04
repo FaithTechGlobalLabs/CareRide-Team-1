@@ -12,7 +12,10 @@ import { card, primaryButton, tones, type Tone } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
+import { formatDollars } from '../../logic/estimateFare'
+import { ridePath } from '../../logic/homeFor'
 import {
+  actionTitle,
   byPickup,
   countdown,
   finishedAt,
@@ -80,13 +83,25 @@ export function Dashboard() {
     scrollToRides()
   }
 
+  // What went wrong, in words: the one problem, or the problems shared by several rides
+  const problems = [...new Set(attention.map((r) => actionTitle(r, nowDate)))].join(' · ')
+  const onlyOne = attention.length === 1 ? attention[0] : undefined
+  const alertText = 'inline-flex items-center gap-1.5 text-left font-semibold text-red-700 hover:underline'
+
   // One sentence on the state of things, most urgent first
   const summary =
     attention.length > 0 ? (
-      <button type="button" onClick={() => openTab('attention')} className="inline-flex items-center gap-1.5 text-left font-semibold text-red-700 hover:underline">
-        <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
-        {plural(attention.length, 'ride needs', 'rides need')} your attention.
-      </button>
+      onlyOne ? (
+        <Link to={ridePath(onlyOne.id)} className={alertText}>
+          <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
+          {problems} for the ride to {onlyOne.destinationName}.
+        </Link>
+      ) : (
+        <button type="button" onClick={() => openTab('upcoming')} className={alertText}>
+          <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
+          {attention.length} rides need action: {problems.toLowerCase()}.
+        </button>
+      )
     ) : rides === undefined ? (
       'Loading your rides…'
     ) : next ? (
@@ -115,7 +130,7 @@ export function Dashboard() {
       title: 'Our drivers',
       detail: ownDrivers.length ? plural(ownDrivers.length, 'volunteer', 'volunteers') : 'Add your own volunteers',
       icon: Users,
-      tone: 'violet',
+      tone: 'brand',
     },
     ...(ownDrivers.length > 0
       ? [{ to: '/partner/bookings', title: 'Bookings', detail: 'Rides your drivers have taken', icon: ClipboardList, tone: 'amber' as Tone }]
@@ -146,21 +161,22 @@ export function Dashboard() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {attention.length > 0 ? (
           <StatTile
-            label="Need attention"
+            label="Needs action"
             value={attention.length}
             icon={<AlertTriangle className="h-5 w-5" />}
             tone="coral"
-            note="Tap to review"
+            note={problems}
             alert
-            onClick={() => openTab('attention')}
-            actionLabel="Show rides that need attention"
+            to={onlyOne && ridePath(onlyOne.id)}
+            onClick={onlyOne ? undefined : () => openTab('upcoming')}
+            actionLabel={onlyOne ? `Open the ride to ${onlyOne.destinationName}` : 'Show rides that need action'}
           />
         ) : (
           <StatTile label="Today" value={stats.today} icon={<CalendarDays className="h-5 w-5" />} tone="coral" note={stats.today ? 'Pickups today' : 'Nothing today'} />
         )}
         <StatTile
           label="Upcoming"
-          value={upcoming.length}
+          value={attention.length + upcoming.length}
           icon={<CalendarCheck className="h-5 w-5" />}
           tone="brand"
           note="Booked and on the way"
@@ -177,11 +193,11 @@ export function Dashboard() {
           actionLabel="Show past rides"
         />
         <StatTile
-          label="Fares saved"
-          value={`$${stats.faresSaved.toLocaleString()}`}
+          label="Bus fares saved"
+          value={formatDollars(stats.faresSaved)}
           icon={<PiggyBank className="h-5 w-5" />}
-          tone="violet"
-          note="Compared with a taxi"
+          tone="ink"
+          note="One-zone bus fare"
         />
       </div>
 
@@ -216,7 +232,7 @@ export function Dashboard() {
               <Link
                 key={to}
                 to={to}
-                className="group flex items-center gap-3 rounded-xl p-3 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                className="group flex items-center gap-3 rounded-xl p-3 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               >
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone].tile}`} aria-hidden>
                   <Icon className="h-5 w-5" />

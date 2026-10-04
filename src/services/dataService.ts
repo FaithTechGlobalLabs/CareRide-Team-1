@@ -112,6 +112,9 @@ export interface DataService {
   // Removes the account and its sign-in. A driver stops getting requests, and their upcoming rides
   // go back out to other drivers. Houses, organizations, and past rides stay.
   deleteAccount(userId: string): Promise<void>
+  // The signed-in driver or partner organization closes their own sign-in. Ride history stays.
+  // A driver with a client in the car has to finish that ride first.
+  deleteMyAccount(): Promise<void>
 
   // Destinations (point B)
   listDestinations(orgId?: string): Promise<Destination[]>

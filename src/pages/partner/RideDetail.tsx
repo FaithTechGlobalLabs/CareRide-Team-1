@@ -13,12 +13,13 @@ import {
   TriangleAlert,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
 import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
-import { card, dangerButton, ghostButton, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
+import { TransitSlip } from '../../components/TransitSlip'
+import { card, dangerButton, ghostButton, input, label, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
 import { useData } from '../../hooks/useData'
 import { acceptedMessage } from '../../logic/acceptedMessage'
@@ -27,6 +28,7 @@ import { previewDriverMatch } from '../../logic/driverMatchPreview'
 import { formatDayTime, formatTime } from '../../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../../logic/maps'
 import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
+import { isSentOnTransit, TRANSIT_PASS_REASON, TRANSIT_TICKET_REASON } from '../../logic/rideText'
 import { dataService } from '../../services'
 import type { OfferStatus, Ride, RideOffer, RideStatus } from '../../types'
 import { ExternalLink } from '../../native/ExternalLink'
@@ -102,7 +104,7 @@ function RideTimeline({ ride }: { ride: Ride }) {
               )}
               <span
                 className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                  done ? 'bg-emerald-600 text-white' : next ? 'bg-white ring-2 ring-brand-500' : 'bg-slate-100'
+                  done ? 'bg-emerald-700 text-white' : next ? 'bg-white ring-2 ring-brand-500' : 'bg-slate-100'
                 }`}
                 aria-hidden
               >
@@ -136,6 +138,9 @@ export function RideDetail() {
   // "booked" or "changed", set by the booking form, so staff know it worked and what to do next
   const [justSaved, setJustSaved] = useState(() => (location.state as { justSaved?: 'booked' | 'changed' } | null)?.justSaved)
   const [retryNote, setRetryNote] = useState('')
+  const [busLine, setBusLine] = useState('')
+  const [getOffAt, setGetOffAt] = useState('')
+  const transitDialog = useRef<HTMLDialogElement>(null)
 
   if (!ride) return <p>Ride not found.</p>
 
@@ -188,13 +193,24 @@ export function RideDetail() {
       ? directionsBetween(ride.pickupAddress, ride.destinationAddress, 'transit')
       : directionsTo(ride.destinationAddress, 'transit')
   const waiting = ride.status === 'SEARCHING' || ride.status === 'OFFERED'
+  const answers = latestPerDriver(offers)
+  const declined = answers.filter((o) => o.status === 'DECLINED').length
+  const unanswered = answers.filter((o) => o.status === 'EXPIRED').length
+  const noMatchReason = house && answers.length === 0 ? previewDriverMatch(ride, house, drivers).reason : undefined
+  const noDriverWhy = [
+    declined > 0 && `${declined === 1 ? '1 driver' : `${declined} drivers`} said no.`,
+    unanswered > 0 && `${unanswered === 1 ? '1 driver' : `${unanswered} drivers`} didn't answer in time.`,
+    answers.length === 0 ? (noMatchReason ? `No driver fits it: ${noMatchReason}` : 'No driver fits it.') : 'Nobody else can be asked.',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div className="space-y-6">
       <div className="no-print">
         <Link
           to="/partner"
-          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+          className="-ml-1 mb-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold text-slate-500 transition hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to your rides
@@ -203,7 +219,7 @@ export function RideDetail() {
       </div>
 
       {justSaved && (
-        <section role="status" className="no-print animate-fade-up rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900">
+        <section role="status" className="no-print animate-fade-up rounded-xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900">
           <div className="flex items-start gap-3">
             <CircleCheckBig className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" aria-hidden />
             <div className="flex-1">
@@ -271,7 +287,7 @@ export function RideDetail() {
       </div>
 
       {ride.status === 'ACCEPTED' && ride.driverArrivedAt && (
-        <section className="no-print rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
+        <section className="no-print rounded-xl border-2 border-emerald-500 bg-emerald-50 p-5 text-emerald-900" role="status">
           <h2 className="text-2xl font-bold">Driver is here ({formatTime(ride.driverArrivedAt)})</h2>
           <p className="mt-1">Send the client down to meet them.</p>
         </section>
@@ -285,8 +301,8 @@ export function RideDetail() {
       )}
 
       {driver && HAS_DRIVER.includes(ride.status) && !ride.driverArrivedAt && (
-        <section className="no-print flex items-start gap-4 rounded-2xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-600" aria-hidden>
+        <section className="no-print flex items-start gap-4 rounded-xl border-2 border-brand-300 bg-brand-50 p-6" role="status">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600" aria-hidden>
             <CarFront className="h-6 w-6" />
           </span>
           <div>
@@ -309,7 +325,7 @@ export function RideDetail() {
       )}
 
       {ride.reconfirmDriverId && waiting && (
-        <p role="status" className="no-print flex items-start gap-2 rounded-2xl bg-amber-50 p-4 text-amber-900 ring-1 ring-amber-200">
+        <p role="status" className="no-print flex items-start gap-2 rounded-xl bg-amber-50 p-4 text-amber-900 ring-1 ring-amber-200">
           <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
           You changed the ride, so we've asked {driverName(ride.reconfirmDriverId)} to confirm the new details first.
         </p>
@@ -325,9 +341,9 @@ export function RideDetail() {
       {ride.status === 'NEEDS_ATTENTION' && (
         <section className={`${card} no-print border-2 border-red-500`} aria-labelledby="no-driver-title">
           <h2 id="no-driver-title" className="mb-1 text-xl font-bold text-red-800">
-            No driver accepted this ride
+            No driver is available for this ride
           </h2>
-          <p className="mb-4 text-slate-700">Here's what you can do:</p>
+          <p className="mb-4 text-slate-700">{noDriverWhy}</p>
           {retryNote && (
             <p role="status" className="mb-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
               <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
@@ -355,33 +371,73 @@ export function RideDetail() {
                 Change the ride
               </Link>
             </li>
-            <li className="flex flex-col gap-2 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center">
-              <div className="flex-1">
-                <p className="font-semibold">Take transit instead</p>
-                <p className="text-sm text-slate-600">
-                  {transitLink ? 'Open bus and train directions to share with the client, then close this request.' : 'Then close this request.'}
+            <li className="flex flex-col gap-3 rounded-xl bg-slate-50 p-4">
+              {ride.needsWheelchair && (
+                <p role="status" className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+                  This trip needs a wheelchair. Transit may not work. Ask drivers again or change the time first.
                 </p>
-              </div>
-              <div className="grid gap-2 sm:flex">
-                {transitLink && (
-                  <ExternalLink href={transitLink} target="_blank" rel="noreferrer" className={secondaryButton}>
-                    <Bus className="h-5 w-5" aria-hidden />
-                    Transit directions
-                    <span className="sr-only">(opens Google Maps)</span>
-                  </ExternalLink>
-                )}
-                <ConfirmButton
-                  className={ghostButton}
-                  title="Close this request?"
-                  body="No more drivers will be asked. You can book it again later."
-                  confirmLabel="Yes, close it"
-                  onConfirm={() => cancel('The client took transit instead.')}
-                >
-                  Close request
-                </ConfirmButton>
+              )}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="flex-1">
+                  <p className="font-semibold">Send on transit</p>
+                  <p className="text-sm text-slate-600">
+                    Look up the trip, print the slip, give a Compass Ticket or check they have a pass, then mark them sent.
+                  </p>
+                </div>
+                <div className="grid gap-2 sm:flex">
+                  {transitLink && (
+                    <ExternalLink href={transitLink} target="_blank" rel="noreferrer" className={secondaryButton}>
+                      <Bus className="h-5 w-5" aria-hidden />
+                      Transit directions
+                      <span className="sr-only">(opens Google Maps)</span>
+                    </ExternalLink>
+                  )}
+                  <button type="button" className={ghostButton} onClick={() => transitDialog.current?.showModal()}>
+                    Mark sent on transit
+                  </button>
+                </div>
               </div>
             </li>
           </ul>
+        </section>
+      )}
+
+      {(ride.status === 'NEEDS_ATTENTION' || isSentOnTransit(ride)) && (
+        <section className="space-y-3">
+          <p className="no-print">
+            Print this slip for the client. Look up the bus in directions first, then fill in the line and stop if you know them.
+          </p>
+          <div className="no-print grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={label} htmlFor="transit-bus">
+                Bus or SkyTrain
+              </label>
+              <input
+                id="transit-bus"
+                className={input}
+                value={busLine}
+                onChange={(e) => setBusLine(e.target.value)}
+                placeholder="e.g. 3 Main"
+              />
+            </div>
+            <div>
+              <label className={label} htmlFor="transit-stop">
+                Get off at
+              </label>
+              <input
+                id="transit-stop"
+                className={input}
+                value={getOffAt}
+                onChange={(e) => setGetOffAt(e.target.value)}
+                placeholder="e.g. Burrard Station"
+              />
+            </div>
+          </div>
+          <TransitSlip ride={ride} house={house} busLine={busLine} getOffAt={getOffAt} />
+          <button type="button" className={`${secondaryButton} no-print w-full sm:w-auto`} onClick={() => void printPage()}>
+            Print slip
+          </button>
         </section>
       )}
 
@@ -398,9 +454,14 @@ export function RideDetail() {
       )}
 
       {ride.status === 'CANCELLED' && (
-        <section className={`${card} no-print ${ride.expired ? 'border-2 border-amber-400' : ''}`}>
-          <h2 className="text-xl font-bold">{ride.expired ? 'This request ran out of time' : 'This ride was cancelled'}</h2>
+        <section className={`${card} no-print ${isSentOnTransit(ride) ? 'border-2 border-teal-400' : ride.expired ? 'border-2 border-amber-400' : ''}`}>
+          <h2 className="text-xl font-bold">
+            {isSentOnTransit(ride) ? 'Sent on transit' : ride.expired ? 'This request ran out of time' : 'This ride was cancelled'}
+          </h2>
           {ride.cancelReason && <p className="mt-1 text-slate-700">{ride.cancelReason}</p>}
+          {isSentOnTransit(ride) && (
+            <p className="mt-1 text-slate-700">No more drivers will be asked. You will not see a drop-off unless the client calls the front desk.</p>
+          )}
           {ride.expired && <p className="mt-1 text-slate-700">Nobody is coming for this ride. Book it again with a new time if the client still needs it.</p>}
         </section>
       )}
@@ -420,12 +481,12 @@ export function RideDetail() {
 
       <div className="no-print grid gap-3 sm:flex sm:flex-wrap">
         {BOOK_AGAIN.includes(ride.status) && (
-          <Link to={againPath} className={ride.status === 'CANCELLED' ? primaryButton : secondaryButton}>
+          <Link to={againPath} className={ride.status === 'CANCELLED' && !isSentOnTransit(ride) ? primaryButton : secondaryButton}>
             <Repeat className="h-5 w-5" aria-hidden />
             Book this ride again
           </Link>
         )}
-        {!ride.returnOfRideId && CAN_BOOK_RETURN.includes(ride.status) && (
+        {!ride.returnOfRideId && (CAN_BOOK_RETURN.includes(ride.status) || isSentOnTransit(ride)) && (
           <Link to={`/partner/request?returnOf=${ride.id}`} className={secondaryButton}>
             Book the return trip
           </Link>
@@ -448,6 +509,41 @@ export function RideDetail() {
           </ConfirmButton>
         )}
       </div>
+
+      <dialog
+        ref={transitDialog}
+        className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl p-6 text-ink shadow-xl backdrop:bg-slate-900/50"
+      >
+        <h2 className="text-xl font-bold">Send them on transit?</h2>
+        <p className="mt-2 text-slate-700">
+          Print the slip and give a Compass Ticket, or confirm they already have a pass. No more drivers will be asked.
+        </p>
+        <div className="mt-6 grid gap-3">
+          <button
+            type="button"
+            className={primaryButton}
+            onClick={() => {
+              transitDialog.current?.close()
+              cancel(TRANSIT_TICKET_REASON)
+            }}
+          >
+            Gave a Compass Ticket
+          </button>
+          <button
+            type="button"
+            className={secondaryButton}
+            onClick={() => {
+              transitDialog.current?.close()
+              cancel(TRANSIT_PASS_REASON)
+            }}
+          >
+            They already have a pass
+          </button>
+          <button type="button" className={ghostButton} onClick={() => transitDialog.current?.close()}>
+            Go back
+          </button>
+        </div>
+      </dialog>
 
       {/* TODO: show group ride suggestions (logic/groupRides.ts) */}
     </div>

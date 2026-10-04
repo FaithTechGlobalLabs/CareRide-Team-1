@@ -12,11 +12,14 @@ import { seed, type Database } from './seed'
 // v5: houses and their organizations became single partner organizations.
 // Older saves can't be mapped onto that, so they start again from the seed.
 // v6: real house addresses and each house's frequent destinations.
-export const STORAGE_KEY = 'careride-db-v6'
-const OLD_STORAGE_KEYS = ['careride-db-v5', 'careride-db-v4', 'careride-db-v3']
+// v7: each completed trip counts as a one-zone Vancouver bus fare.
+export const STORAGE_KEY = 'careride-db-v7'
+const OLD_STORAGE_KEYS = ['careride-db-v6', 'careride-db-v5', 'careride-db-v4', 'careride-db-v3']
 
 // Still waiting for a driver: these expire if nobody accepts in time
 const WAITING: RideStatus[] = ['SEARCHING', 'OFFERED', 'NEEDS_ATTENTION']
+// A partner closing their account cancels these. A ride already under way is left to finish.
+const CLOSABLE: RideStatus[] = ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION']
 
 function load(): Database {
   try {
@@ -182,6 +185,21 @@ function dispatch(db: Database, ride: Ride): void {
     })
   }
   ride.status = 'OFFERED'
+}
+
+// Moves a driver's open work to other drivers. Throws if a client is in the car.
+function releaseDriverWork(db: Database, driverId: string): void {
+  if (db.rides.some((r) => r.driverId === driverId && r.status === 'PICKED_UP')) {
+    throw new Error('You have a client in the car right now. Finish that ride, then close your account.')
+  }
+  for (const offer of db.offers.filter((o) => o.driverId === driverId && o.status === 'PENDING')) {
+    offer.status = 'EXPIRED'
+    dispatchIfUnanswered(db, offer.rideId)
+  }
+  for (const ride of db.rides.filter((r) => r.driverId === driverId && r.status === 'ACCEPTED')) {
+    clearDriverProgress(ride)
+    dispatch(db, ride)
+  }
 }
 
 // Once nobody is left to answer, asks the next drivers (if any).
@@ -405,6 +423,34 @@ export const mockService: DataService = {
 
       db.credentials = db.credentials.filter((c) => c.userId !== userId)
       db.users = db.users.filter((u) => u.id !== userId)
+    }),
+
+  // Keeps the person on past rides. Only the sign-in goes away.
+  deleteMyAccount: () =>
+    transact((db) => {
+      const userId = readSession()
+      const user = db.users.find((u) => u.id === userId)
+      if (!user) throw new Error('Please sign in.')
+      if (user.role !== 'DRIVER' && user.role !== 'PARTNER') {
+        throw new Error("This account can't be closed from here.")
+      }
+
+      if (user.role === 'DRIVER') {
+        const driver = db.drivers.find((d) => d.userId === userId)
+        if (driver) releaseDriverWork(db, driver.id)
+      } else {
+        for (const ride of db.rides) {
+          if (ride.orgId !== user.orgId || !CLOSABLE.includes(ride.status)) continue
+          ride.status = 'CANCELLED'
+          ride.cancelReason = 'The organization closed its CareRide account.'
+          ride.cancelledAt = now()
+          closePendingOffers(db, ride.id)
+        }
+      }
+
+      db.credentials = db.credentials.filter((c) => c.userId !== userId)
+      user.email = undefined
+      writeSession('')
     }),
 
   listPending: () =>

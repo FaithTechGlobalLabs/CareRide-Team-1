@@ -54,7 +54,7 @@ export function DriveTimes({ pickup, dropoff, fromMe = false, showRide = true }:
           <button
             type="button"
             onClick={() => requestDriverLocation(true)}
-            className="inline-flex items-center gap-1 font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+            className="inline-flex items-center gap-1 font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
             Update
@@ -97,7 +97,7 @@ function LocationAsk({ status }: { status: string }) {
     <button
       type="button"
       onClick={() => requestDriverLocation()}
-      className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+      className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-brand-700 underline decoration-brand-200 underline-offset-4 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2"
     >
       <Crosshair className="h-4 w-4" aria-hidden />
       {status === 'unavailable' ? "Couldn't find you. Try again" : 'Use my location to see drive time to the pickup'}

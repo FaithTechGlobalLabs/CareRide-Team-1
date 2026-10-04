@@ -106,7 +106,14 @@ export function Destinations() {
             City
             <RequiredMark />
           </label>
-          <select id="dest-city" className={input} value={city} onChange={(e) => setCity(e.target.value)}>
+          <select
+            id="dest-city"
+            className={input}
+            value={city}
+            onChange={(e) => {
+              if (CITIES.includes(e.target.value)) setCity(e.target.value)
+            }}
+          >
             {CITIES.map((c) => (
               <option key={c}>{c}</option>
             ))}

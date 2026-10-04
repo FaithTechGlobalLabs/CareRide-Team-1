@@ -52,7 +52,7 @@ export function Demo() {
     <div className="mx-auto flex h-dvh max-w-[1500px] flex-col gap-3 px-4 py-3 font-display lg:px-6">
       <header className="no-print grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         <Logo size="sm" to="/demo" />
-        <div key={slide} className="animate-fade-up text-center text-lg font-extrabold uppercase tracking-wider text-brand-600">
+        <div key={slide} className="animate-fade-up text-center text-lg font-extrabold text-brand-600">
           {SLIDES[slide].kicker}
         </div>
         <div className="flex items-center justify-self-end">
@@ -107,9 +107,9 @@ export function Demo() {
       {notes && (
         <aside
           aria-label="Speaker notes"
-          className="fixed inset-x-4 bottom-14 z-10 mx-auto max-w-3xl rounded-2xl bg-ink/95 p-5 font-sans text-white shadow-2xl"
+          className="fixed inset-x-4 bottom-14 z-10 mx-auto max-w-3xl rounded-xl bg-ink/95 p-5 font-sans text-white shadow-xl"
         >
-          <div className="mb-2 text-xs font-bold uppercase tracking-wider text-brand-200">Notes · {SLIDES[slide].label}</div>
+          <div className="mb-2 text-sm font-bold text-brand-200">Notes · {SLIDES[slide].label}</div>
           <ul className="list-disc space-y-1 pl-5 text-[15px] leading-relaxed">
             {SLIDES[slide].notes.map((n) => (
               <li key={n}>{n}</li>

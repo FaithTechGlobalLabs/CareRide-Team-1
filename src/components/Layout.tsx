@@ -19,10 +19,10 @@ type NavLinkItem = { to: string; label: string }
 
 const ACTIVE_NAV: Record<Tone, { soft: string; solid: string }> = {
   brand: { soft: 'bg-brand-50 text-brand-700', solid: 'bg-brand-600 text-white' },
-  violet: { soft: 'bg-violet-50 text-violet-700', solid: 'bg-violet-600 text-white' },
-  coral: { soft: 'bg-coral-50 text-coral-700', solid: 'bg-coral-600 text-white' },
-  teal: { soft: 'bg-teal-50 text-teal-700', solid: 'bg-teal-600 text-white' },
-  amber: { soft: 'bg-amber-50 text-amber-800', solid: 'bg-amber-600 text-white' },
+  ink: { soft: 'bg-slate-100 text-ink', solid: 'bg-ink text-white' },
+  coral: { soft: 'bg-coral-50 text-coral-700', solid: 'bg-coral-700 text-white' },
+  teal: { soft: 'bg-teal-50 text-teal-700', solid: 'bg-teal-700 text-white' },
+  amber: { soft: 'bg-sun-100 text-amber-900', solid: 'bg-sun-400 text-ink' },
 }
 
 type NavItem = NavLinkItem & { badge?: number }
@@ -75,7 +75,7 @@ function Badge({ count, active }: { count?: number; active: boolean }) {
   return (
     <span
       className={`ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
-        active ? 'bg-white text-teal-700' : 'bg-teal-600 text-white'
+        active ? 'bg-white text-teal-700' : 'bg-teal-700 text-white'
       }`}
     >
       {count}
@@ -101,8 +101,8 @@ export function Layout() {
 
   return (
     <div className="min-h-screen">
-      <header className="no-print sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg pt-[var(--safe-top)]">
-        <div className="h-1 bg-spectrum" aria-hidden />
+      <header className="no-print sticky top-0 z-30 border-b border-slate-200 bg-white pt-[var(--safe-top)]">
+        <div className="h-1 bg-brand-600" aria-hidden />
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo size="sm" to={role ? HOME_FOR[role] : '/'} />
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
@@ -163,7 +163,7 @@ export function Layout() {
       </header>
 
       {pending && (
-        <div className="no-print border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+        <div className="no-print border-b border-amber-200 bg-sun-50">
           <p className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3 text-sm font-medium text-amber-900 sm:px-6">
             <Clock className="h-4 w-4 shrink-0" aria-hidden />
             Your account is waiting for approval from the CareRide team.
@@ -174,7 +174,7 @@ export function Layout() {
 
       <main className={`mx-auto max-w-5xl px-4 py-8 sm:px-6 ${showRequest ? 'pb-24 sm:pb-8' : ''}`}>
         {loadError && (
-          <div role="alert" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div role="alert" className="mb-6 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-2 text-sm text-amber-900">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span>

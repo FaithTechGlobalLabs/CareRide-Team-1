@@ -19,9 +19,9 @@ interface Props {
 export function OptionTile({ type = 'radio', name, checked, onChange, title, description, icon, badge, dashed, invalid, autoFocus }: Props) {
   return (
     <label
-      className={`group flex min-h-16 cursor-pointer select-none items-center gap-3 rounded-2xl border-2 px-4 py-3 transition duration-150 active:scale-[0.99] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-100 ${
+      className={`group flex min-h-16 cursor-pointer select-none items-center gap-3 rounded-xl border-2 px-4 py-3 transition duration-150 active:scale-[0.99] has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-brand-500 has-[:focus-visible]:ring-offset-2 ${
         checked
-          ? 'border-brand-500 bg-brand-50/70 shadow-md shadow-brand-500/10'
+          ? 'border-brand-500 bg-brand-50/70'
           : `bg-white hover:border-brand-300 hover:bg-slate-50/60 ${invalid ? 'border-red-300' : 'border-slate-200'} ${dashed ? 'border-dashed' : ''}`
       }`}
     >
@@ -29,7 +29,7 @@ export function OptionTile({ type = 'radio', name, checked, onChange, title, des
       {icon && (
         <span
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-            checked ? 'bg-brand-gradient text-white shadow-md shadow-brand-500/25' : 'bg-brand-50 text-brand-600'
+            checked ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-700'
           }`}
           aria-hidden
         >

@@ -662,6 +662,17 @@ export const supabaseService: DataService = {
     throw new Error(`We couldn't remove this account. ${CONNECTION}`)
   },
 
+  // Server-side: delete-my-account switches this driver or partner off, then removes their login.
+  async deleteMyAccount() {
+    const { error } = await getSupabase().functions.invoke('delete-my-account', { body: {} })
+    if (!error) return
+    if (error instanceof FunctionsHttpError) {
+      const body = (await error.context.json().catch(() => ({}))) as { error?: string }
+      throw new Error(body.error ?? "We couldn't close this account. Please try again.")
+    }
+    throw new Error(`We couldn't close this account. ${CONNECTION}`)
+  },
+
   async listDestinations(orgId) {
     let query = getSupabase().from('destinations').select(DESTINATION_COLUMNS).order('name')
     if (orgId) query = query.eq('org_id', orgId)
@@ -673,11 +684,16 @@ export const supabaseService: DataService = {
   async saveDestination(dest) {
     const { data, error } = await getSupabase()
       .from('destinations')
-      .insert({ org_id: dest.orgId, name: dest.name.trim(), address: dest.address.trim(), city: dest.city, notes: dest.notes?.trim() || null })
+      .insert({ org_id: dest.orgId, name: dest.name.trim(), address: dest.address.trim(), city: dest.city.trim(), notes: dest.notes?.trim() || null })
       .select(DESTINATION_COLUMNS)
       .single<DestinationRow>()
-    // 42501: the access rules refused it (not this org's partner account)
-    if (error) throw new Error(error.code === '42501' ? 'Only your organization can add its destinations.' : `We couldn't save this destination. ${CONNECTION}`)
+    if (error) {
+      // 42501: the access rules refused it (not this org's partner account)
+      // 23514: a table check failed (blank/long name, short address, unknown city, long notes)
+      if (error.code === '42501') throw new Error('Only your organization can add its destinations.')
+      if (error.code === '23514') throw new Error('Please check the name, address, city and notes, then try again.')
+      throw new Error(`We couldn't save this destination. ${CONNECTION}`)
+    }
     return toDestination(data)
   },
 
