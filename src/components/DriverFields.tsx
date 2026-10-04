@@ -171,7 +171,7 @@ export function DriverDocumentFields({ value, onChange, errors = {} }: SectionPr
   )
 }
 
-// Everything in one form, used when an organization adds one of its own drivers.
+// Everything in one form, used when a transport provider adds one of its drivers.
 export function DriverFields({ value, onChange, errors, showBackground = true }: SectionProps & { showBackground?: boolean }) {
   return (
     <div className="space-y-8">

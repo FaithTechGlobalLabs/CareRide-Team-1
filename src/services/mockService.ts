@@ -366,8 +366,15 @@ export const mockService: DataService = {
       return { status: 'SIGNED_IN', user }
     }),
 
-  // The mock trusts driver.orgId; a real backend uses the signed-in organization instead.
-  addOrgDriver: (newUser, driver) => transact((db) => addDriver(db, newUser, driver).driver),
+  // Transport providers can add a driver without a login. Partner organizations cannot.
+  addOrgDriver: (newUser, driver) =>
+    transact((db) => {
+      const user = db.users.find((u) => u.id === readSession())
+      if (user?.role !== 'ORG_ADMIN' || !user.orgId) {
+        throw new Error('Only a transport provider can add drivers.')
+      }
+      return addDriver(db, newUser, { ...driver, orgId: user.orgId }).driver
+    }),
 
   listDrivers: (orgId) => transact((db) => db.drivers.filter((d) => !orgId || d.orgId === orgId)),
 

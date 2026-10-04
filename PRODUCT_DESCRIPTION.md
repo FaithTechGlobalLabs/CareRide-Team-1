@@ -44,7 +44,7 @@ Most organizations on CareRide are nonprofits. Every dollar spent on taxis is a 
 | Who | What they do | Account? |
 | --- | --- | --- |
 | **CareRide admin** (our team) | Approves new organizations and drivers | Yes |
-| **Partner organization** (e.g. the Salvation Army) | Registers, adds houses and destinations, can add its own drivers | One org admin account |
+| **Partner organization** (e.g. the Salvation Army) | Registers, adds houses and destinations | One org admin account |
 | **House** (e.g. Belkin House) | Books rides for residents, reminds them, sees when they arrive | **One shared account per house**, not one per case manager |
 | **Transport provider** (e.g. a community van service) | Registers, adds drivers with availability, gets booking notifications, accepts bookings | One org admin account |
 | **Driver** (taxi, rideshare, or org driver) | Accepts or declines rides, marks pickup and drop-off | Yes, and must be approved |
@@ -60,7 +60,6 @@ flowchart TD
     Org --> H2["Richmond House"]
     Org --> H3["Grace Mansion"]
     Org --> D["Saved destinations (point B)"]
-    Org --> V["Own drivers and vehicles (optional)"]
     H1 --> R["Ride requests"]
     H2 --> R
     H3 --> R
@@ -92,7 +91,7 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 
 ## 6. What a new organization goes through
 
-**Partner organization:** register with basic info → CareRide admin approves → add houses (each gets one shared account) → add destinations (point B) → optionally add its own drivers and vehicles → houses start booking.
+**Partner organization:** register with basic info → CareRide admin approves → add houses (each gets one shared account) → add destinations (point B) → houses start booking.
 
 **Transport provider:** register with basic info and where to send booking notifications → CareRide admin approves → add drivers with availability and spaces → receive and accept bookings.
 
@@ -113,9 +112,8 @@ These come from [FLOWS_AND_NOTES.md](FLOWS_AND_NOTES.md).
 
 ### 8.1 Registration and approval
 - Organizations register as a **partner organization** or a **transport provider**. A CareRide admin approves them.
-- Partner organizations add **houses** and **destinations**.
-- Any organization can add **its own drivers**.
-- Independent drivers sign up themselves.
+- Partner organizations add **houses** and **destinations**. They do not register drivers.
+- Drivers sign up themselves in CareRide. Transport providers can still add **their own drivers**.
 
 ### 8.2 Booking a ride (house account)
 - **Reason for the trip** (medical, social services, housing, legal or ID, other), plus a checkbox confirming it meets the house's travel policy.
