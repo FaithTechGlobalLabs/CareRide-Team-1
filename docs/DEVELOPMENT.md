@@ -219,7 +219,7 @@ This MVP demonstrates the coordination workflow. The following details matter wh
 | **Driver verification** | Administrators can approve profiles; document inputs retain file names only. | Define verification procedures and add secure document storage. |
 | **Updates and notifications** | Browser storage synchronization and polling; no actual SMS or email delivery. | Add shared persistence, live updates, and booking notifications. |
 | **Matching** | Rule-based eligibility and offer handling; no live vehicle location or route optimization. | Validate dispatch rules with operators and add location-aware matching if needed. |
-| **Impact** | Fare savings use a flat estimate of **$25 per completed ride**. | Validate the estimate or replace it with a distance-based calculation. |
+| **Impact** | Fare savings are **completed rides × $2.58** (adult one-zone Vancouver bus fare). | Keep the per-ride fare in line with TransLink. |
 | **Group and recurring trips** | Passenger counts are supported; combining separate requests and recurring bookings are not available in the UI. | Add group ride suggestions and recurring ride workflows. |
 
 CareRide covers essential, non-emergency transportation. Booking screens direct medical emergencies to **911**.

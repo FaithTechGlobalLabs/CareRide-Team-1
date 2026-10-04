@@ -2,6 +2,7 @@ import { MIN_PASSWORD_LENGTH } from '../constants'
 import { DEMO_FRAME_USER } from '../context/demoFrame'
 import { maxPassengers } from '../logic/capacity'
 import { UNDO_FINISH_MINUTES, canWaitForDrivers, driversToAsk, isExpired, noDriverDeadline, offerExpiry } from '../logic/dispatch'
+import { faresSavedFor } from '../logic/estimateFare'
 import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
 import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
 import { seed, type Database } from './seed'
@@ -366,8 +367,15 @@ export const mockService: DataService = {
       return { status: 'SIGNED_IN', user }
     }),
 
-  // The mock trusts driver.orgId; a real backend uses the signed-in organization instead.
-  addOrgDriver: (newUser, driver) => transact((db) => addDriver(db, newUser, driver).driver),
+  // Transport providers can add a driver without a login. Partner organizations cannot.
+  addOrgDriver: (newUser, driver) =>
+    transact((db) => {
+      const user = db.users.find((u) => u.id === readSession())
+      if (user?.role !== 'ORG_ADMIN' || !user.orgId) {
+        throw new Error('Only a transport provider can add drivers.')
+      }
+      return addDriver(db, newUser, { ...driver, orgId: user.orgId }).driver
+    }),
 
   listDrivers: (orgId) => transact((db) => db.drivers.filter((d) => !orgId || d.orgId === orgId)),
 
@@ -708,7 +716,7 @@ export const mockService: DataService = {
       const completed = db.rides.filter((r) => r.status === 'COMPLETED')
       return {
         ridesCompleted: completed.length,
-        moneySaved: completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0),
+        moneySaved: faresSavedFor(completed.length),
         // Deleting an account keeps its organization for history, so only count ones someone can still sign in to
         organizations: db.organizations.filter(
           (o) => o.status === 'APPROVED' && db.users.some((u) => u.orgId === o.id && (u.role === 'PARTNER' || u.role === 'ORG_ADMIN')),

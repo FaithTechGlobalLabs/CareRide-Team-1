@@ -37,12 +37,9 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/accounts', label: 'Accounts' },
 ]
 
-// Main links for whoever is signed in. Partners only see Bookings once they have drivers of their own.
+// Main links for whoever is signed in.
 function useNavLinks(role: UserRole | undefined): NavItem[] {
-  const { currentUser } = useApp()
   const driver = useCurrentDriver()
-  const orgId = role === 'PARTNER' ? currentUser?.orgId : undefined
-  const ownDrivers = useData(() => (orgId ? dataService.listDrivers(orgId) : Promise.resolve([])), orgId) ?? []
   const offers = useData(
     () => (role === 'DRIVER' && driver?.status === 'APPROVED' ? dataService.listMyOffers(driver.id) : Promise.resolve([])),
     driver?.id,
@@ -53,8 +50,6 @@ function useNavLinks(role: UserRole | undefined): NavItem[] {
       return [
         { to: '/partner', label: 'Rides' },
         { to: '/partner/destinations', label: 'Destinations' },
-        { to: '/partner/drivers', label: 'Our drivers' },
-        ...(ownDrivers.length > 0 ? [{ to: '/partner/bookings', label: 'Bookings' }] : []),
       ]
     case 'DRIVER':
       return [

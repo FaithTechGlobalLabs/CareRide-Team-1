@@ -1,5 +1,6 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type User as AuthUser } from '@supabase/supabase-js'
 import { MIN_PASSWORD_LENGTH } from '../constants'
+import { faresSavedFor } from '../logic/estimateFare'
 import { isNative } from '../native/platform'
 import type {
   Destination,
@@ -782,9 +783,10 @@ export const supabaseService: DataService = {
       .rpc('get_impact')
       .single<{ rides_completed: number; money_saved: number | string; organizations: number; verified_drivers: number }>()
     if (error) fail(error, "We couldn't load the impact totals.")
+    const ridesCompleted = Number(data.rides_completed)
     return {
-      ridesCompleted: Number(data.rides_completed),
-      moneySaved: Number(data.money_saved),
+      ridesCompleted,
+      moneySaved: faresSavedFor(ridesCompleted),
       organizations: Number(data.organizations),
       verifiedDrivers: Number(data.verified_drivers),
     }

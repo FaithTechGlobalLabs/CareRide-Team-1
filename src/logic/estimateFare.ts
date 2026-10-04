@@ -1,9 +1,14 @@
 // Adult one-zone Vancouver bus fare (TransLink).
 // Municipal transit is GST/HST-exempt, so nothing is added on top.
-const BUS_FARE = 2.58
+export const BUS_FARE = 2.58
 
 export function estimateFare(): number {
   return BUS_FARE
+}
+
+// Bus fares saved is always completed rides × one-zone fare, never a stored or placeholder amount.
+export function faresSavedFor(completedRides: number): number {
+  return completedRides * BUS_FARE
 }
 
 export function formatDollars(amount: number): string {

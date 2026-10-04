@@ -3,7 +3,7 @@
 
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
-// A partner org requests rides (and may also have its own vehicles). It has one location and one shared account.
+// A partner org requests rides. It has one location and one shared account.
 // A transport provider only gives rides. Hidden from sign-up for now.
 export type OrgType = 'PARTNER_ORG' | 'TRANSPORT_PROVIDER'
 
@@ -28,7 +28,7 @@ export interface House {
   phone: string
 }
 
-// PARTNER: a partner organization's shared account. Books rides from its location and manages its places and drivers.
+// PARTNER: a partner organization's shared account. Books rides from its location and manages its places.
 // ORG_ADMIN: a transport provider's admin.
 export type UserRole = 'PLATFORM_ADMIN' | 'ORG_ADMIN' | 'PARTNER' | 'DRIVER'
 
@@ -58,7 +58,7 @@ export type RequestHours = (TimeWindow | null)[]
 export interface Driver {
   id: string
   userId: string
-  orgId?: string // set if the driver belongs to an organization
+  orgId?: string // set if the driver belongs to a transport provider
   background: DriverBackground
   vehicle: string
   wheelchairAccessible: boolean

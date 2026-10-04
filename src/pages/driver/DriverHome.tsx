@@ -14,7 +14,7 @@ import { useCurrentDriver } from '../../hooks/useCurrent'
 import { useData } from '../../hooks/useData'
 import { useNow } from '../../hooks/useNow'
 import { canUndoFinish } from '../../logic/dispatch'
-import { formatDollars } from '../../logic/estimateFare'
+import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
 import { countdown, startOfWeek } from '../../logic/rideInsights'
 import { driverRideStatusLabel } from '../../logic/rideText'
 import { dataService } from '../../services'
@@ -109,7 +109,7 @@ export function DriverHome() {
   const completed = past.filter((r) => r.status === 'COMPLETED')
   const weekStart = startOfWeek(now)
   const thisWeek = completed.filter((r) => new Date(finishedAt(r)).getTime() >= weekStart).length
-  const faresSaved = completed.reduce((sum, r) => sum + r.estimatedFareSaved, 0)
+  const faresSaved = faresSavedFor(completed.length)
   const offerCount = offers?.length ?? 0
 
   // One sentence on what to do next, most urgent first

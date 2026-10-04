@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarCheck, CalendarDays, CalendarPlus, ChevronRight, ClipboardList, MapPin, PiggyBank, Users, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, CalendarCheck, CalendarDays, CalendarPlus, ChevronRight, MapPin, PiggyBank, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ActivityChart } from '../../components/dashboard/ActivityChart'
@@ -55,7 +55,6 @@ export function Dashboard() {
   const orgId = currentUser?.orgId
   const rides = useData(() => dataService.listRidesForHouse(houseId), houseId)
   const drivers = useData(() => dataService.listDrivers()) ?? []
-  const ownDrivers = useData(() => (orgId ? dataService.listDrivers(orgId) : Promise.resolve([])), orgId) ?? []
   const destinations = useData(() => dataService.listDestinations(orgId), orgId) ?? []
   const house = useData(() => dataService.listHouses(orgId), orgId)?.find((h) => h.id === houseId)
   const [tab, setTab] = useState<RideTab>()
@@ -125,16 +124,6 @@ export function Dashboard() {
       icon: MapPin,
       tone: 'teal',
     },
-    {
-      to: '/partner/drivers',
-      title: 'Our drivers',
-      detail: ownDrivers.length ? plural(ownDrivers.length, 'volunteer', 'volunteers') : 'Add your own volunteers',
-      icon: Users,
-      tone: 'brand',
-    },
-    ...(ownDrivers.length > 0
-      ? [{ to: '/partner/bookings', title: 'Bookings', detail: 'Rides your drivers have taken', icon: ClipboardList, tone: 'amber' as Tone }]
-      : []),
   ]
 
   return (
