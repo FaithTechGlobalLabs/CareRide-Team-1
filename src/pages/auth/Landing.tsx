@@ -401,7 +401,7 @@ export function Landing() {
         aria-label="Back to top"
         tabIndex={showBackToTop ? 0 : -1}
         aria-hidden={!showBackToTop}
-        className={`fixed bottom-5 right-5 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-ink shadow-md transition duration-300 hover:-translate-y-0.5 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+        className={`fixed bottom-20 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-ink shadow-md transition duration-300 hover:-translate-y-0.5 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
           showBackToTop ? 'opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >

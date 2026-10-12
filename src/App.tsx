@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { RequireAuth, RequireRole } from './components/RequireAuth'
+import { VersionBadge } from './components/VersionBadge'
 import { useApp } from './hooks/useApp'
 import { HOME_FOR } from './logic/homeFor'
 import { NativeBridge } from './native/NativeBridge'
@@ -39,9 +40,13 @@ function NativeEntry() {
 }
 
 export default function App() {
+  // The demo is a full-screen walkthrough, so the badge stays out of it.
+  const { pathname } = useLocation()
+
   return (
     <>
       <NativeBridge />
+      {pathname !== '/demo' && <VersionBadge />}
       <Routes>
         <Route path="/" element={isNative ? <NativeEntry /> : <Landing />} />
         <Route path="/signin" element={<SignIn />} />
