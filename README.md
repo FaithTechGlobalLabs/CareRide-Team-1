@@ -80,7 +80,7 @@ cd CareRide-Team-1
 npm ci && npm run dev
 ```
 
-The demo needs no API keys or backend because seed data loads automatically. Open **http://localhost:5173**, choose **Sign in**, and pick a one-tap demo account. All demo accounts use the password `careride`.
+The demo needs no API keys or backend because seed data loads automatically. Open **http://localhost:5173**, choose **Sign in**, and pick a one-tap demo account. All demo accounts use the password `careride`, except CareRide Admin (`admin@careride.com`), which uses `abcd1234`.
 
 <details>
 <summary><b>Walk a full ride from both sides</b></summary>
@@ -89,7 +89,7 @@ The demo needs no API keys or backend because seed data loads automatically. Ope
 1. In one tab, sign in as **Belkin House** (`belkin@careride.demo`) and request a ride to St. Paul's Hospital.
 2. In a second tab, sign in as **Frank** (`frank@careride.demo`) and accept it.
 3. Move Frank through *I'm on my way → I'm here → Client is in the car → Client dropped off*, and watch Belkin House's timeline update live.
-4. Sign in as **CareRide Admin** (`admin@careride.demo`) to review approvals.
+4. Sign in as **CareRide Admin** (`admin@careride.com`, password `abcd1234`) to review approvals.
 
 </details>
 

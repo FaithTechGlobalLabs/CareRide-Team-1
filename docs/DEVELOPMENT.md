@@ -27,13 +27,13 @@ If you use nvm, run `nvm install` and `nvm use` in the repository before install
 
 ## Try the demo
 
-Open **Sign in** and choose a one-tap demo account, or use one of the credentials below. All seeded demo accounts use the password **`careride`**.
+Open **Sign in** and choose a one-tap demo account, or use one of the credentials below. All seeded demo accounts use the password **`careride`**, except CareRide Admin, which uses **`abcd1234`**.
 
 | Account | Email | Explore |
 | --- | --- | --- |
 | Belkin House | `belkin@careride.demo` | Book, change, and track a client's ride. |
 | Frank | `frank@careride.demo` | Accept requests and complete rides. |
-| CareRide Admin | `admin@careride.demo` | Review pending approvals and manage accounts. |
+| CareRide Admin | `admin@careride.com` | Review pending approvals and manage accounts. |
 
 Additional partner and driver accounts appear on the sign-in page. Demo records are fictional except for public place names and addresses. Belkin House, Richmond House, and Grace Mansion use their real addresses, and each starts with saved destinations taken from its case workers' answers in [PARTNER_ORG_NOTES.md](../PARTNER_ORG_NOTES.md).
 
