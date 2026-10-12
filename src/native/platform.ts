@@ -97,7 +97,7 @@ export async function notifyOtaReady(): Promise<void> {
   } catch (error) {
     console.error('OTA ready check failed', error)
   }
-  const { loadLiveBundle } = await import('./buildStamp')
+  const { loadLiveBundle } = await import('./buildInfo')
   await loadLiveBundle()
 }
 
