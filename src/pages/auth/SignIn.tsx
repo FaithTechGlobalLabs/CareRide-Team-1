@@ -12,7 +12,7 @@ import { HOME_FOR } from '../../logic/homeFor'
 import { returnPath } from '../../logic/returnPath'
 import { EMAIL } from '../../logic/validate'
 import { isDemoBackend } from '../../services'
-import { DEMO_EMAIL_DOMAIN, DEMO_PASSWORD } from '../../services/seed'
+import { ADMIN_EMAIL, ADMIN_PASSWORD, DEMO_EMAIL_DOMAIN, DEMO_PASSWORD, demoPasswordFor } from '../../services/seed'
 import type { UserRole } from '../../types'
 
 // The two kinds of people who sign in. Picking one first keeps the page about them.
@@ -99,7 +99,7 @@ export function SignIn() {
   const who = AUDIENCES[audience]
 
   // The chosen kind of account comes first; the admin is always last. Demo accounts exist only on the local mock.
-  const demoUsers = isDemoBackend ? users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN)) : []
+  const demoUsers = isDemoBackend ? users.filter((u) => u.email?.endsWith(DEMO_EMAIL_DOMAIN) || u.email === ADMIN_EMAIL) : []
   const groups = ROLE_GROUPS.map((g) => ({ ...g, users: demoUsers.filter((u) => u.role === g.role) }))
     .filter((g) => g.users.length > 0)
     .sort((a, b) => Number(b.role === audience) - Number(a.role === audience))
@@ -261,7 +261,7 @@ export function SignIn() {
                     key={u.id}
                     type="button"
                     disabled={!!busy}
-                    onClick={() => attempt(u.id, u.email!, DEMO_PASSWORD)}
+                    onClick={() => attempt(u.id, u.email!, demoPasswordFor(u.email!))}
                     aria-label={`Sign in as ${u.name}`}
                     className={`group inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white py-0.5 pl-0.5 pr-3 text-left text-sm font-semibold text-ink transition hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 ${tone.border}`}
                   >
@@ -281,6 +281,7 @@ export function SignIn() {
       <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-sm text-slate-600">
         <span>
           Typing it in instead? Password: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold text-ink">{DEMO_PASSWORD}</code>
+          {' '}(admin: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold text-ink">{ADMIN_PASSWORD}</code>)
         </span>
         <CopyButton text={DEMO_PASSWORD} label="demo password" />
       </div>

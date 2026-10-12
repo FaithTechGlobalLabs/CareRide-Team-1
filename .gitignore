@@ -28,3 +28,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# One-off admin credential script: holds a Supabase secret key
+/update-admin.mjs

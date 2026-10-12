@@ -1,7 +1,7 @@
 import { Check, Loader2, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CopyButton } from '../components/CopyButton'
-import { loadLiveBundle, rememberLiveBundle, receivedLabel, showBuildStamp, type LiveBundle } from './buildStamp'
+import { loadLiveBundle, rememberLiveBundle, receivedLabel, showBuildStamp, type LiveBundle } from './buildInfo'
 import { applyLiveUpdate, isNative } from './platform'
 
 type UpdateStatus = 'idle' | 'working' | 'current' | 'unavailable'

@@ -16,6 +16,14 @@ export interface Credential {
 export const DEMO_PASSWORD = 'careride'
 export const DEMO_EMAIL_DOMAIN = '@careride.demo'
 
+// The CareRide Admin has its own login, separate from the shared demo password.
+export const ADMIN_EMAIL = 'admin@careride.com'
+export const ADMIN_PASSWORD = 'abcd1234'
+
+export function demoPasswordFor(email: string): string {
+  return email === ADMIN_EMAIL ? ADMIN_PASSWORD : DEMO_PASSWORD
+}
+
 export interface Database {
   credentials: Credential[]
   users: User[]
@@ -92,7 +100,7 @@ const FREQUENT_PLACES: Record<string, string[]> = {
 }
 
 const demoUsers: User[] = [
-  { id: 'u-admin', name: 'CareRide Admin', email: 'admin@careride.demo', phone: '604-555-0100', role: 'PLATFORM_ADMIN' },
+  { id: 'u-admin', name: 'CareRide Admin', email: ADMIN_EMAIL, phone: '604-555-0100', role: 'PLATFORM_ADMIN' },
   { id: 'u-belkin', name: 'Belkin House', email: 'belkin@careride.demo', phone: '604-555-0120', role: 'PARTNER', orgId: 'org-belkin', houseId: 'house-belkin' },
   { id: 'u-richmond', name: 'Richmond House', email: 'richmond@careride.demo', phone: '604-555-0121', role: 'PARTNER', orgId: 'org-richmond', houseId: 'house-richmond' },
   { id: 'u-grace', name: 'Grace Mansion', email: 'grace@careride.demo', phone: '604-555-0122', role: 'PARTNER', orgId: 'org-grace', houseId: 'house-grace' },
@@ -104,7 +112,7 @@ const demoUsers: User[] = [
 ]
 
 export const seed: Database = {
-  credentials: demoUsers.map((u) => ({ email: u.email!, userId: u.id, password: DEMO_PASSWORD })),
+  credentials: demoUsers.map((u) => ({ email: u.email!, userId: u.id, password: demoPasswordFor(u.email!) })),
   users: demoUsers,
   organizations: [
     ...partners.map((p) => p.org),
