@@ -1,6 +1,7 @@
 import { ALL_DAY, hoursOn } from '../logic/requestHours'
 import { knownPlace } from '../logic/places'
-import type { Destination, Driver, House, Organization, Ride, RideOffer, User } from '../types'
+import { backfillRideEvents } from '../logic/rideEvents'
+import type { Destination, Driver, House, Organization, Ride, RideEvent, RideFeedback, RideOffer, User } from '../types'
 
 // Demo data. Everything here is fictional except public place names and addresses.
 // House addresses are from https://belkintsa.ca/services/overview.
@@ -33,6 +34,29 @@ export interface Database {
   destinations: Destination[]
   rides: Ride[]
   offers: RideOffer[]
+  events: RideEvent[] // each ride's change history, oldest first
+  feedback: RideFeedback[]
+}
+
+// History for rides that don't have any yet (the seed, or demo data saved before the log existed),
+// worked out from the times stored on each ride.
+export function backfilledEvents(db: Pick<Database, 'rides' | 'users' | 'drivers'>): RideEvent[] {
+  return db.rides.flatMap((ride) =>
+    backfillRideEvents(ride).map((e, i): RideEvent => {
+      const userId =
+        e.actor === 'REQUESTER' ? ride.requestedBy : e.actor === 'DRIVER' ? db.drivers.find((d) => d.id === ride.driverId)?.userId : undefined
+      const actor = db.users.find((u) => u.id === userId)
+      return {
+        id: `event-${ride.id}-${i}`,
+        rideId: ride.id,
+        kind: e.kind,
+        at: e.at,
+        actorRole: actor?.role,
+        actorName: actor?.name,
+        detail: e.detail,
+      }
+    }),
+  )
 }
 
 // Frank takes requests any time so the demo always has someone to ask
@@ -111,7 +135,7 @@ const demoUsers: User[] = [
   { id: 'u-jordan', name: 'Jordan', email: 'jordan@careride.demo', phone: '604-555-0106', role: 'DRIVER' },
 ]
 
-export const seed: Database = {
+const seedBase: Omit<Database, 'events' | 'feedback'> = {
   credentials: demoUsers.map((u) => ({ email: u.email!, userId: u.id, password: demoPasswordFor(u.email!) })),
   users: demoUsers,
   organizations: [
@@ -196,4 +220,22 @@ export const seed: Database = {
     pastRide('ride-past-3', 'dest-vgh-belkin', 'Vancouver General Hospital', '899 W 12th Ave, Vancouver', '2026-10-01T18:15:00.000Z'),
   ],
   offers: [],
+}
+
+export const seed: Database = {
+  ...seedBase,
+  events: backfilledEvents(seedBase),
+  // So the admin's account details show what feedback looks like
+  feedback: [
+    {
+      id: 'feedback-past-1',
+      rideId: 'ride-past-1',
+      authorRole: 'PARTNER',
+      orgId: 'org-belkin',
+      driverId: 'd-olive',
+      rating: 'UP',
+      note: 'Maya waited in the lobby and helped with the walker.',
+      at: '2026-09-28T18:00:00.000Z',
+    },
+  ],
 }

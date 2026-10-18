@@ -2,10 +2,13 @@ import type { DriverEtaHint } from '../logic/driverEta'
 import type {
   Destination,
   Driver,
+  FeedbackRating,
   House,
   Impact,
   Organization,
   Ride,
+  RideEvent,
+  RideFeedback,
   RideOffer,
   User,
   VerificationStatus,
@@ -61,6 +64,11 @@ export type RideChanges = Pick<
   | 'destinationName'
   | 'destinationAddress'
 >
+// Staff send a rating (and an optional note). Drivers send only a note: the issue they're flagging.
+export interface FeedbackInput {
+  rating?: FeedbackRating
+  note?: string
+}
 
 // The contract every backend must follow (mock now, real backend later).
 // Screens only talk to this interface, never to storage directly.
@@ -147,6 +155,15 @@ export interface DataService {
   markCompleted(rideId: string): Promise<Ride>
   markNoShow(rideId: string): Promise<Ride> // client passed up the ride and loses it
   undoDriverStep(rideId: string, driverId: string): Promise<Ride> // takes back the driver's last step
+
+  // Change history, oldest first. Staff see their own rides'; the platform admin sees every ride's.
+  listRideEvents(rideId: string): Promise<RideEvent[]>
+
+  // Feedback on a finished ride. Giving it again replaces the earlier one.
+  // Throws if the ride isn't over, or isn't this partner's or driver's ride.
+  giveFeedback(rideId: string, feedback: FeedbackInput): Promise<RideFeedback>
+  listMyFeedback(): Promise<RideFeedback[]> // what the signed-in person gave
+  listFeedback(filter: { driverId?: string; orgId?: string }): Promise<RideFeedback[]> // platform admin only
 
   // Impact
   getImpact(): Promise<Impact>

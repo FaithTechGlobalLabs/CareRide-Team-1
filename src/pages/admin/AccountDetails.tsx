@@ -1,14 +1,17 @@
-import { Mail, Phone, X } from 'lucide-react'
+import { ChevronDown, Flag, Mail, Phone, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { CopyButton } from '../../components/CopyButton'
+import { RideHistory } from '../../components/RideHistory'
 import { ROLE_TONE, secondaryButton, tones } from '../../components/ui'
 import { BACKGROUND_LABELS, ORG_TYPE_LABELS } from '../../constants'
 import { useData } from '../../hooks/useData'
 import { faresSavedFor, formatDollars } from '../../logic/estimateFare'
+import { ratingCounts } from '../../logic/feedback'
+import { formatDayTime } from '../../logic/formatTime'
 import { ROLE_LABELS } from '../../logic/homeFor'
 import { describeRequestHours } from '../../logic/requestHours'
 import { dataService } from '../../services'
-import type { Driver, House, Organization, Ride, User, VerificationStatus } from '../../types'
+import type { Driver, House, Organization, Ride, RideFeedback, User, VerificationStatus } from '../../types'
 import { ExternalLink } from '../../native/ExternalLink'
 
 const STATUS_LOOK: Record<VerificationStatus, { text: string; className: string }> = {
@@ -23,7 +26,10 @@ interface Details {
   driver?: Driver
   rides: Ride[]
   driverCount?: number
+  feedback?: RideFeedback[] // on a driver's rides, or a partner organization's
 }
+
+const RECENT_RIDES = 5
 
 // Everything linked to an account, depending on its role.
 async function loadDetails(user: User): Promise<Details> {
@@ -32,12 +38,17 @@ async function loadDetails(user: User): Promise<Details> {
 
   if (user.role === 'DRIVER') {
     const driver = (await dataService.listDrivers()).find((d) => d.userId === user.id)
-    return { org, driver, rides: driver ? await dataService.listMyRides(driver.id) : [] }
+    if (!driver) return { org, rides: [] }
+    const [rides, feedback] = await Promise.all([dataService.listMyRides(driver.id), dataService.listFeedback({ driverId: driver.id })])
+    return { org, driver, rides, feedback }
   }
   if (user.role === 'PARTNER' && org) {
     const house = user.houseId ? (await dataService.listHouses()).find((h) => h.id === user.houseId) : undefined
-    const booked = house ? await dataService.listRidesForHouse(house.id) : []
-    return { org, house, rides: booked }
+    const [booked, feedback] = await Promise.all([
+      house ? dataService.listRidesForHouse(house.id) : [],
+      dataService.listFeedback({ orgId: org.id }),
+    ])
+    return { org, house, rides: booked, feedback }
   }
   if (user.role === 'ORG_ADMIN' && org) {
     const drivers = await dataService.listDrivers(org.id)
@@ -84,6 +95,40 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
   )
 }
 
+const FEEDBACK_LOOK = {
+  UP: { icon: ThumbsUp, text: 'Front desk: it went well', className: 'bg-emerald-50 text-emerald-700' },
+  DOWN: { icon: ThumbsDown, text: "Front desk: it didn't go well", className: 'bg-red-50 text-red-700' },
+  FLAG: { icon: Flag, text: 'Driver flagged an issue', className: 'bg-amber-50 text-amber-800' },
+}
+
+// Newest first, each with the ride it's about
+function FeedbackList({ feedback, rides }: { feedback: RideFeedback[]; rides: Ride[] }) {
+  const sorted = [...feedback].sort((a, b) => b.at.localeCompare(a.at))
+  return (
+    <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+      {sorted.map((f) => {
+        const look = FEEDBACK_LOOK[f.authorRole === 'DRIVER' ? 'FLAG' : (f.rating ?? 'UP')]
+        const Icon = look.icon
+        const ride = rides.find((r) => r.id === f.rideId)
+        return (
+          <li key={f.id} className="flex gap-3 px-4 py-3">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${look.className}`} aria-hidden>
+              <Icon className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-medium text-ink">{look.text}</p>
+              <p className="text-sm text-slate-500">
+                {ride ? `Ride to ${ride.destinationName} · ${formatDayTime(ride.pickupTime)}` : `Ride ${f.rideId}`}
+              </p>
+              {f.note && <p className="mt-1 whitespace-pre-line break-words text-slate-700">“{f.note}”</p>}
+            </div>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 interface Props {
   user: User
   isSelf: boolean
@@ -107,7 +152,9 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
   const completed = rides.filter((r) => r.status === 'COMPLETED')
   const upcoming = rides.filter((r) => ['SEARCHING', 'OFFERED', 'ACCEPTED', 'NEEDS_ATTENTION', 'PICKED_UP'].includes(r.status))
   const saved = faresSavedFor(completed.length)
-  const { org, house, driver } = details ?? {}
+  const { org, house, driver, feedback } = details ?? {}
+  const ratings = ratingCounts(feedback ?? [])
+  const recent = [...rides].sort((a, b) => b.pickupTime.localeCompare(a.pickupTime)).slice(0, RECENT_RIDES)
 
   return (
     <dialog
@@ -222,6 +269,49 @@ export function AccountDetails({ user, isSelf, onClose }: Props) {
                   {org.bookingNotifications && <Row label="New bookings to">{org.bookingNotifications}</Row>}
                   {details.driverCount !== undefined && <Row label="Drivers">{details.driverCount}</Row>}
                 </Section>
+              )}
+
+              {feedback && (
+                <section>
+                  <h3 className="mb-2 text-sm font-bold text-slate-500">
+                    Feedback
+                    {(ratings.up > 0 || ratings.down > 0) && (
+                      <span className="ml-2 font-semibold text-slate-600">
+                        <ThumbsUp className="mb-0.5 inline h-3.5 w-3.5" aria-label="Thumbs up" /> {ratings.up} ·{' '}
+                        <ThumbsDown className="mb-0.5 inline h-3.5 w-3.5" aria-label="Thumbs down" /> {ratings.down}
+                      </span>
+                    )}
+                  </h3>
+                  {feedback.length === 0 ? (
+                    <p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-500">No feedback yet.</p>
+                  ) : (
+                    <FeedbackList feedback={feedback} rides={rides} />
+                  )}
+                </section>
+              )}
+
+              {recent.length > 0 && (
+                <section>
+                  <h3 className="mb-2 text-sm font-bold text-slate-500">Recent rides and their history</h3>
+                  <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                    {recent.map((r) => (
+                      <li key={r.id}>
+                        <details className="group px-4 py-3">
+                          <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 marker:content-none [&::-webkit-details-marker]:hidden">
+                            <span className="min-w-0">
+                              <span className="block font-medium text-ink">Ride to {r.destinationName}</span>
+                              <span className="block text-sm text-slate-500">{formatDayTime(r.pickupTime)}</span>
+                            </span>
+                            <ChevronDown className="details-chevron h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180" aria-hidden />
+                          </summary>
+                          <div className="mt-3">
+                            <RideHistory rideId={r.id} />
+                          </div>
+                        </details>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               )}
 
               {user.role === 'DRIVER' && !driver && (
