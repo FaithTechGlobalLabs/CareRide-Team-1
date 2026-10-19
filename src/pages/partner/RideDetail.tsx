@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CarFront,
   Check,
+  ChevronDown,
   CircleCheckBig,
   Pencil,
   Phone,
@@ -19,6 +20,8 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { ClientSlip } from '../../components/ClientSlip'
 import { ConfirmButton } from '../../components/ConfirmButton'
 import { RideCard } from '../../components/RideCard'
+import { RideFeedbackCard } from '../../components/RideFeedbackCard'
+import { RideHistory } from '../../components/RideHistory'
 import { TransitSlip, type TransitLeg } from '../../components/TransitSlip'
 import { card, dangerButton, ghostButton, input, label, pageTitle, primaryButton, secondaryButton } from '../../components/ui'
 import { useApp } from '../../hooks/useApp'
@@ -31,6 +34,7 @@ import { formatDayTime, formatTime } from '../../logic/formatTime'
 import { directionsBetween, directionsTo, isRealAddress } from '../../logic/maps'
 import { isDriverLate, wasDropped } from '../../logic/rideAlerts'
 import { isSentOnTransit, TRANSIT_PASS_REASON, TRANSIT_TICKET_REASON } from '../../logic/rideText'
+import { canGiveFeedback } from '../../logic/feedback'
 import { dataService } from '../../services'
 import type { OfferStatus, Ride, RideOffer, RideStatus } from '../../types'
 import { ExternalLink } from '../../native/ExternalLink'
@@ -497,6 +501,8 @@ export function RideDetail() {
       )}
       {ride.status === 'NO_SHOW' && ride.cancelReason && <p className="no-print">{ride.cancelReason}</p>}
 
+      {canGiveFeedback(ride) && <RideFeedbackCard ride={ride} />}
+
       <section className={`${card} no-print`}>
         <h2 className="mb-3 text-xl font-bold">Drivers asked</h2>
         {offers.length === 0 && <p>No drivers asked yet.</p>}
@@ -508,6 +514,15 @@ export function RideDetail() {
           ))}
         </ul>
       </section>
+
+      <details className={`${card} group no-print`}>
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-xl font-bold marker:content-none [&::-webkit-details-marker]:hidden">
+          Change history
+          <ChevronDown className="details-chevron h-5 w-5 text-slate-500 transition group-open:rotate-180" aria-hidden />
+        </summary>
+        <p className="mb-4 mt-1 text-slate-600">Every change to this ride: who made it, and when.</p>
+        <RideHistory rideId={ride.id} />
+      </details>
 
       <div className="no-print grid gap-3 sm:flex sm:flex-wrap">
         {BOOK_AGAIN.includes(ride.status) && (

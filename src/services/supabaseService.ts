@@ -6,12 +6,17 @@ import type {
   Destination,
   Driver,
   DriverBackground,
+  FeedbackRating,
   House,
   OfferStatus,
   Organization,
   OrgType,
   RequestHours,
   Ride,
+  RideEvent,
+  RideEventDetail,
+  RideEventKind,
+  RideFeedback,
   RideOffer,
   RideStatus,
   RideType,
@@ -45,6 +50,9 @@ const RIDE_COLUMNS = [
   'driver_eta, driver_arrived_at, picked_up_at, completed_at, cancelled_at, changed_at',
 ].join(', ')
 const OFFER_COLUMNS = 'id, ride_id, driver_id, status, sent_at, expires_at, responded_at'
+// Who made each change is kept as a name and role, so the browser never needs the actor's profile.
+const EVENT_COLUMNS = 'id, ride_id, kind, actor_role, actor_name, detail, created_at'
+const FEEDBACK_COLUMNS = 'id, ride_id, author_role, org_id, driver_id, rating, note, updated_at'
 
 interface ProfileRow {
   id: string
@@ -142,6 +150,27 @@ interface OfferRow {
   sent_at: string
   expires_at: string
   responded_at: string | null
+}
+
+interface RideEventRow {
+  id: number
+  ride_id: string
+  kind: RideEventKind
+  actor_role: UserRole | null
+  actor_name: string | null
+  detail: RideEventDetail | null
+  created_at: string
+}
+
+interface FeedbackRow {
+  id: string
+  ride_id: string
+  author_role: RideFeedback['authorRole']
+  org_id: string
+  driver_id: string | null
+  rating: FeedbackRating | null
+  note: string | null
+  updated_at: string
 }
 
 // Postgres returns "2026-10-03 12:00:00+00"-style times; the app compares ISO strings like the mock's.
@@ -248,6 +277,44 @@ function toOffer(row: OfferRow): RideOffer {
     expiresAt: iso(row.expires_at),
     respondedAt: iso(row.responded_at),
   }
+}
+
+function toRideEvent(row: RideEventRow): RideEvent {
+  const detail = row.detail ?? undefined
+  return {
+    id: String(row.id),
+    rideId: row.ride_id,
+    kind: row.kind,
+    at: iso(row.created_at),
+    actorRole: row.actor_role ?? undefined,
+    actorName: row.actor_name ?? undefined,
+    // Times inside the detail come from Postgres too
+    detail: detail && {
+      ...detail,
+      fromPickupTime: iso(detail.fromPickupTime ?? null),
+      toPickupTime: iso(detail.toPickupTime ?? null),
+      eta: iso(detail.eta ?? null),
+    },
+  }
+}
+
+function toFeedback(row: FeedbackRow): RideFeedback {
+  return {
+    id: row.id,
+    rideId: row.ride_id,
+    authorRole: row.author_role,
+    orgId: row.org_id,
+    driverId: row.driver_id ?? undefined,
+    rating: row.rating ?? undefined,
+    note: row.note ?? undefined,
+    at: iso(row.updated_at),
+  }
+}
+
+async function readFeedback(query: PromiseLike<{ data: FeedbackRow[] | null; error: PostgrestError | null }>): Promise<RideFeedback[]> {
+  const { data, error } = await query
+  if (error) fail(error, "We couldn't load feedback.")
+  return (data ?? []).map(toFeedback)
 }
 
 // The only driver columns the browser may change (matches the column grant in the policies migration).
@@ -815,6 +882,40 @@ export const supabaseService: DataService = {
 
   undoDriverStep: (rideId, driverId) =>
     rideCall('undo_driver_step', { p_ride_id: rideId, p_driver_id: driverId }, "We couldn't undo that step."),
+
+  // The access rules limit this to the partner's own rides (and every ride for admins)
+  async listRideEvents(rideId) {
+    const { data, error } = await getSupabase()
+      .from('ride_events')
+      .select(EVENT_COLUMNS)
+      .eq('ride_id', rideId)
+      .order('id')
+      .returns<RideEventRow[]>()
+    if (error) fail(error, "We couldn't load this ride's history.")
+    return data.map(toRideEvent)
+  },
+
+  async giveFeedback(rideId, { rating, note }) {
+    const { data, error } = await getSupabase().rpc('give_ride_feedback', {
+      p_ride_id: rideId,
+      p_rating: rating ?? null,
+      p_note: note?.trim() || null,
+    })
+    if (error) fail(error, "We couldn't save your feedback.")
+    return toFeedback(data as FeedbackRow)
+  },
+
+  // The access rules only return feedback the caller wrote (admins, who write none, would get everyone's)
+  listMyFeedback: () => readFeedback(getSupabase().from('ride_feedback').select(FEEDBACK_COLUMNS).returns<FeedbackRow[]>()),
+
+  // For admins. Anyone else only ever gets back their own feedback (access rules)
+  listFeedback({ driverId, orgId }) {
+    let query = getSupabase().from('ride_feedback').select(FEEDBACK_COLUMNS).order('updated_at', { ascending: false })
+    if (driverId) query = query.eq('driver_id', driverId)
+    if (orgId) query = query.eq('org_id', orgId)
+    return readFeedback(query.returns<FeedbackRow[]>())
+  },
+
   async getImpact() {
     const { data, error } = await getSupabase()
       .rpc('get_impact')

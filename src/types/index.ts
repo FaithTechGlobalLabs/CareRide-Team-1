@@ -149,6 +149,75 @@ export interface RideOffer {
   respondedAt?: string
 }
 
+// One line in a ride's change history (the audit log). Written for every change, by whoever made it.
+export type RideEventKind =
+  | 'REQUESTED'
+  | 'EDITED'
+  | 'SENT_AGAIN' // staff asked drivers again after nobody could take it
+  | 'NO_DRIVER_AVAILABLE'
+  | 'DRIVER_ACCEPTED'
+  | 'DRIVER_DROPPED' // the driver said they can't make it
+  | 'DRIVER_REMOVED' // the driver's account was closed, so the ride went back out
+  | 'ON_THE_WAY'
+  | 'ARRIVED'
+  | 'PICKED_UP'
+  | 'COMPLETED'
+  | 'NO_SHOW'
+  | 'CANCELLED'
+  | 'STEP_UNDONE'
+
+// What an edit touched. Destination covers its name and address together.
+export type EditedField =
+  | 'type'
+  | 'pickupTime'
+  | 'passengers'
+  | 'riderNames'
+  | 'needsWheelchair'
+  | 'needsAssistance'
+  | 'pickupInstructions'
+  | 'notes'
+  | 'destination'
+
+// The driver steps an undo can take back
+export type UndoneStep = 'ON_THE_WAY' | 'ARRIVED' | 'PICKED_UP' | 'COMPLETED' | 'NO_SHOW'
+
+export interface RideEventDetail {
+  fields?: EditedField[] // EDITED
+  fromPickupTime?: string // EDITED, when a scheduled pickup moved
+  toPickupTime?: string
+  reason?: string // CANCELLED
+  expired?: boolean // CANCELLED: nobody accepted in time
+  eta?: string // ON_THE_WAY
+  undid?: UndoneStep // STEP_UNDONE
+  unknownActor?: boolean // filled in from a ride that predates the history, so who did it isn't known
+}
+
+export interface RideEvent {
+  id: string
+  rideId: string
+  kind: RideEventKind
+  at: string
+  // Who made the change. No role means CareRide did it on its own (e.g. a request ran out of time).
+  actorRole?: UserRole
+  actorName?: string // as it was at the time
+  detail?: RideEventDetail
+}
+
+export type FeedbackRating = 'UP' | 'DOWN'
+
+// After a ride: staff give a thumbs up or down (with an optional note), drivers can flag an issue.
+// Only the author and the platform admin can read it. Drivers never see staff ratings.
+export interface RideFeedback {
+  id: string
+  rideId: string
+  authorRole: 'PARTNER' | 'DRIVER'
+  orgId: string // the ride's partner organization
+  driverId?: string // the ride's driver
+  rating?: FeedbackRating // staff only
+  note?: string // required for a driver's flag
+  at: string
+}
+
 export interface Impact {
   ridesCompleted: number
   moneySaved: number

@@ -9,6 +9,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.0',
+    date: '2026-10-18',
+    changes: [
+      'Staff can give a finished ride a thumbs up or down, with an optional note. Only CareRide sees it, not the driver.',
+      'Drivers can flag an issue on a past ride. Only CareRide sees it, not the front desk.',
+      'Each ride has a change history showing who booked, changed, accepted, picked up, dropped off or cancelled it, and when.',
+      'Admins see each account’s feedback and its recent rides’ history in the account details.',
+    ],
+  },
+  {
     version: '1.0.1',
     date: '2026-10-04',
     changes: [

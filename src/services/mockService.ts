@@ -17,9 +17,18 @@ import {
 } from '../logic/dispatch'
 import { etaTimestamp } from '../logic/driverEta'
 import { faresSavedFor } from '../logic/estimateFare'
-import type { Driver, House, OfferStatus, Organization, Ride, RideStatus, User } from '../types'
+import {
+  FEEDBACK_NOT_YET,
+  ISSUE_REQUIRED,
+  MAX_FEEDBACK_NOTE,
+  NOTE_TOO_LONG,
+  RATING_REQUIRED,
+  canGiveFeedback,
+} from '../logic/feedback'
+import { rideEventsBetween, type RideEventDraft } from '../logic/rideEvents'
+import type { Driver, House, OfferStatus, Organization, Ride, RideFeedback, RideStatus, User } from '../types'
 import type { DataService, NewAccount, NewDriver, NewDriverUser, RideChanges } from './dataService'
-import { seed, type Database } from './seed'
+import { backfilledEvents, seed, type Database } from './seed'
 
 // Hackathon backend: keeps everything in the browser's localStorage.
 // Swap this file for a real backend later; screens won't need to change.
@@ -39,11 +48,18 @@ function load(): Database {
   try {
     for (const key of OLD_STORAGE_KEYS) localStorage.removeItem(key)
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Database
+    if (raw) return upgrade(JSON.parse(raw) as Database)
   } catch {
     // Storage unavailable or corrupt: fall back to seed data
   }
   return structuredClone(seed)
+}
+
+// Demo data saved before ride history and feedback existed keeps its rides and gains both.
+function upgrade(db: Database): Database {
+  db.events ??= backfilledEvents(db)
+  db.feedback ??= []
+  return db
 }
 
 function save(db: Database): void {
@@ -243,13 +259,32 @@ function checkDeadlines(db: Database): void {
   }
 }
 
+function signedInUser(db: Database): User | undefined {
+  return db.users.find((u) => u.id === readSession())
+}
+
+// Adds one line to a ride's history. No actor means CareRide made the change on its own.
+function logEvent(db: Database, rideId: string, actor: User | undefined, { kind, detail }: RideEventDraft): void {
+  db.events.push({ id: newId('event'), rideId, kind, at: now(), actorRole: actor?.role, actorName: actor?.name, detail })
+}
+
+// Runs a change and writes what it did to each ride's history, the way the database trigger does.
+function logChanges<T>(db: Database, actor: User | undefined, change: () => T): T {
+  const before = new Map(db.rides.map((r) => [r.id, structuredClone(r)]))
+  const result = change()
+  for (const ride of db.rides) {
+    for (const event of rideEventsBetween(before.get(ride.id), ride)) logEvent(db, ride.id, actor, event)
+  }
+  return result
+}
+
 // Runs a change against the database and saves it.
 // Nothing is saved if the change throws.
 function transact<T>(fn: (db: Database) => T): Promise<T> {
   try {
     const db = load()
-    checkDeadlines(db)
-    const result = fn(db)
+    logChanges(db, undefined, () => checkDeadlines(db))
+    const result = logChanges(db, signedInUser(db), () => fn(db))
     save(db)
     return Promise.resolve(result)
   } catch (err) {
@@ -589,6 +624,8 @@ export const mockService: DataService = {
       db.offers = db.offers.filter(
         (o) => o.rideId !== rideId || o.status === 'ACCEPTED' || o.status === 'WITHDRAWN',
       )
+      // Logged here: a retry that finds nobody leaves the ride as it was, so comparing can't see it
+      logEvent(db, ride.id, signedInUser(db), { kind: 'SENT_AGAIN' })
       dispatch(db, ride)
       return ride
     }),
@@ -740,6 +777,52 @@ export const mockService: DataService = {
           throw new Error(cantChange(ride))
       }
       return ride
+    }),
+
+  listRideEvents: (rideId) => transact((db) => db.events.filter((e) => e.rideId === rideId)),
+
+  giveFeedback: (rideId, input) =>
+    transact((db) => {
+      const user = signedInUser(db)
+      const ride = findOrThrow(db.rides, rideId, 'Ride')
+      const isPartner = user?.role === 'PARTNER' && ride.orgId === user.orgId
+      const isDriver = user?.role === 'DRIVER' && !!ride.driverId && db.drivers.find((d) => d.id === ride.driverId)?.userId === user.id
+      if (!isPartner && !isDriver) throw new Error('You can only give feedback on your own rides.')
+      if (!canGiveFeedback(ride)) throw new Error(FEEDBACK_NOT_YET)
+      const note = input.note?.trim() || undefined
+      if (note && note.length > MAX_FEEDBACK_NOTE) throw new Error(NOTE_TOO_LONG)
+      if (isPartner && !input.rating) throw new Error(RATING_REQUIRED)
+      if (isDriver && !note) throw new Error(ISSUE_REQUIRED)
+
+      // One each per ride: the partner organization's account and the ride's driver
+      const authorRole = isPartner ? 'PARTNER' : 'DRIVER'
+      const existing = db.feedback.find((f) => f.rideId === rideId && f.authorRole === authorRole)
+      const entry: RideFeedback = {
+        id: existing?.id ?? newId('feedback'),
+        rideId,
+        authorRole,
+        orgId: ride.orgId,
+        driverId: ride.driverId,
+        rating: isPartner ? input.rating : undefined,
+        note,
+        at: now(),
+      }
+      db.feedback = [...db.feedback.filter((f) => f !== existing), entry]
+      return entry
+    }),
+
+  listMyFeedback: () =>
+    transact((db) => {
+      const user = signedInUser(db)
+      if (user?.role === 'PARTNER') return db.feedback.filter((f) => f.authorRole === 'PARTNER' && f.orgId === user.orgId)
+      const driver = user?.role === 'DRIVER' ? db.drivers.find((d) => d.userId === user.id) : undefined
+      return driver ? db.feedback.filter((f) => f.authorRole === 'DRIVER' && f.driverId === driver.id) : []
+    }),
+
+  listFeedback: ({ driverId, orgId }) =>
+    transact((db) => {
+      if (signedInUser(db)?.role !== 'PLATFORM_ADMIN') throw new Error('Only CareRide admins can see feedback.')
+      return db.feedback.filter((f) => (!driverId || f.driverId === driverId) && (!orgId || f.orgId === orgId))
     }),
 
   getImpact: () =>

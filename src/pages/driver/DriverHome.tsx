@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { DashboardHeader } from '../../components/dashboard/DashboardHeader'
 import { StatTile } from '../../components/dashboard/StatTile'
 import { DriverTripActions } from '../../components/DriverTripActions'
+import { FlagIssueButton } from '../../components/FlagIssueButton'
 import { OfferCard } from '../../components/OfferCard'
 import { RequestStatusCard } from '../../components/RequestStatusCard'
 import { RideCard } from '../../components/RideCard'
@@ -48,6 +49,7 @@ export function DriverHome() {
     const found = await Promise.all(pending.map((o) => dataService.getRide(o.rideId)))
     return pending.flatMap((offer, i) => (found[i] ? [{ offer, ride: found[i] }] : []))
   }, driverId)
+  const myFeedback = useData(() => dataService.listMyFeedback(), driverId) ?? []
   const [celebrate, setCelebrate] = useState<{ ride: Ride; count: number }>()
   const [pastShown, setPastShown] = useState(PAST_PAGE)
 
@@ -248,6 +250,7 @@ export function DriverHome() {
         <div className="space-y-3">
           {past.slice(0, pastShown).map((r) => (
             <RideCard key={r.id} ride={r} from={houseOf(r)?.name}>
+              <FlagIssueButton ride={r} flagged={myFeedback.find((f) => f.rideId === r.id)} />
               {canUndoFinish(r) && (
                 <button
                   type="button"
